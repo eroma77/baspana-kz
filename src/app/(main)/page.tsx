@@ -7,7 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye } from 'lucide-react'
+import { ChevronLeft, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye, SlidersHorizontal } from 'lucide-react'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -248,45 +248,51 @@ export default function FeedPage() {
       <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
 
       {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
-      <div className="w-full flex items-center justify-between px-4 py-3 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-200/50 dark:border-zinc-800 transition-colors duration-200">
+      <div className="w-full flex items-center justify-between px-4 py-3 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-250/30 dark:border-zinc-800/40 transition-colors duration-200">
+        {/* Left Filter Pill (stretches to meet the right pill) */}
         <button
           onClick={() => setShowFilters(true)}
-          className="flex items-center gap-2 bg-[#000000] text-[#FFFFFF] rounded-full px-5 py-3 text-xs font-black tracking-wider active:scale-95 transition-all duration-200 shadow-sm"
+          className="flex-1 flex items-center justify-center gap-2.5 bg-[#000000] text-[#FFFFFF] rounded-full min-h-[44px] px-5 py-2.5 active:scale-95 transition-all duration-200 shadow-md"
         >
-          <span className="text-sm font-black leading-none -mt-0.5">≡</span>
-          фильтр
+          <SlidersHorizontal className="w-4 h-4 text-white stroke-[2.25px]" />
+          <span className="text-[13px] font-medium tracking-wide">фильтр</span>
         </button>
 
-        <div className="flex items-center gap-2.5">
+        {/* Right Actions Pill (contains Sort, Theme, Help inside one black capsule) */}
+        <div className="flex-shrink-0 flex items-center gap-4 bg-[#000000] text-white rounded-full min-h-[44px] px-4.5 py-1.5 shadow-md ml-3">
           {/* Sort button */}
           <button
             onClick={() => setShowSort(true)}
-            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-7 h-7 flex items-center justify-center hover:scale-105 active:scale-90 transition-all duration-150"
             aria-label="Сортировка"
           >
-            <ArrowUpDown className="w-4 h-4 text-[#000000] dark:text-white stroke-[2.5px]" />
+            <svg className="w-4.5 h-4.5 text-white fill-current" viewBox="0 0 24 24">
+              <path d="M12 3l-5 6h10l-5-6zm0 18l5-6H7l5 6z" />
+            </svg>
           </button>
 
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-7 h-7 flex items-center justify-center hover:scale-105 active:scale-90 transition-all duration-150"
             aria-label="Смена темы"
           >
             {theme === 'light' ? (
-              <Sun className="w-4.5 h-4.5 text-yellow-500 fill-yellow-500" />
+              <Sun className="w-4.5 h-4.5 text-white fill-white" />
             ) : (
-              <Moon className="w-4.5 h-4.5 text-[#007BFF] fill-[#007BFF]" />
+              <Moon className="w-4.5 h-4.5 text-white fill-white" />
             )}
           </button>
 
           {/* Help / Instruction button */}
           <button
             onClick={() => router.push('/instruction')}
-            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-7 h-7 flex items-center justify-center hover:scale-105 active:scale-90 transition-all duration-150"
             aria-label="Инструкция"
           >
-            <HelpCircle className="w-4.5 h-4.5 text-[#000000] dark:text-white stroke-[2.5px]" />
+            <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-bold text-[11px] select-none">
+              ?
+            </div>
           </button>
         </div>
       </div>

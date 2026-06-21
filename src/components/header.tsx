@@ -33,23 +33,23 @@ export function Header({
       {/* Capsule Container */}
       <div className={`bg-[#000000] text-white rounded-full flex items-center px-1 py-1 min-h-[44px] shadow-md ${type === 'mode-toggle' && !showRightActions ? 'w-full' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
-          <div className="flex w-full justify-between items-center text-xs relative">
+          <div className="flex w-full justify-between items-center text-[13px] relative">
             <button
               onClick={() => setMode('apartment')}
-              className={`flex-1 text-center py-2.5 px-3 rounded-full transition-all duration-200 ease-in-out font-black tracking-wide ${
+              className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-200 ease-in-out tracking-wide ${
                 mode === 'apartment'
-                  ? 'bg-[#FFFFFF] text-[#000000]'
-                  : 'bg-transparent text-[#9D9D9D]'
+                  ? 'bg-[#FFFFFF] text-[#000000] font-bold'
+                  : 'bg-transparent text-[#FFFFFF] font-medium'
               }`}
             >
               ищу квартиру
             </button>
             <button
               onClick={() => setMode('roommate')}
-              className={`flex-1 text-center py-2.5 px-3 rounded-full transition-all duration-200 ease-in-out font-black tracking-wide ${
+              className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-200 ease-in-out tracking-wide ${
                 mode === 'roommate'
-                  ? 'bg-[#FFFFFF] text-[#000000]'
-                  : 'bg-transparent text-[#9D9D9D]'
+                  ? 'bg-[#FFFFFF] text-[#000000] font-bold'
+                  : 'bg-transparent text-[#FFFFFF] font-medium'
               }`}
             >
               ищу соседа
