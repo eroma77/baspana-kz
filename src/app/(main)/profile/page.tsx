@@ -7,7 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { User, LogOut, Settings, Plus, Flame, ShieldAlert, CheckCircle } from 'lucide-react'
+import { User, Settings, Plus, Flame, ShieldAlert, CheckCircle } from 'lucide-react'
 
 interface PriceSetting {
   key: string
@@ -17,7 +17,7 @@ interface PriceSetting {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, setUser, theme } = useAppStore()
+  const { user, setUser } = useAppStore()
 
   // Authorized user states
   const [listings, setListings] = useState<Listing[]>([])
@@ -172,64 +172,61 @@ export default function ProfilePage() {
       <div className="flex-1 px-4 py-5 overflow-y-auto">
         
         {/* Profile Card block */}
-        <div className="bg-white dark:bg-brand-card-dark rounded-3xl p-5 border border-gray-200 dark:border-zinc-800 shadow-xs mb-6 select-none transition-colors duration-200">
+        <div className="bg-white dark:bg-[#313131] rounded-3xl p-5 border border-gray-200 dark:border-zinc-700/50 shadow-sm mb-5 select-none transition-colors duration-200">
           {!user ? (
-            <div className="flex flex-col items-center py-4">
-              {/* Default Avatar */}
-              <div className="w-18 h-18 rounded-full bg-blue-50 dark:bg-zinc-800 flex items-center justify-center text-brand-blue mb-4">
-                <User className="w-9 h-9" />
+            <div className="flex flex-col gap-4">
+              {/* Horizontal layout: icon + email */}
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-blue-50 dark:bg-zinc-800 border-2 border-[#007BFF]/30 flex items-center justify-center shrink-0">
+                  <User className="w-7 h-7 text-[#007BFF]" />
+                </div>
+                <span className="text-sm font-semibold text-[#9D9D9D] truncate">
+                  account@gmail.com
+                </span>
               </div>
-              <h2 className="text-sm font-bold text-brand-black dark:text-brand-white mb-1">
-                Вы не вошли в аккаунт
-              </h2>
-              <p className="text-xs text-brand-gray mb-6 text-center max-w-[200px]">
-                Войдите через Google, чтобы управлять своими объявлениями и добавлять в избранное.
-              </p>
-              
+
               <button
                 onClick={handleGoogleLogin}
-                className="w-full bg-brand-blue text-white rounded-2xl py-3.5 font-bold hover:bg-blue-600 active:scale-98 transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-xs"
+                className="w-full bg-[#007BFF] text-white rounded-2xl py-3.5 font-bold hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm"
               >
                 Войти через Google
               </button>
             </div>
           ) : (
-            <div className="flex flex-col items-center">
-              {/* Google User Info */}
-              <div className="relative w-18 h-18 rounded-full overflow-hidden border-2 border-brand-blue/20 mb-4 bg-zinc-100 dark:bg-zinc-800">
-                {user.avatar_url ? (
-                  <Image
-                    src={user.avatar_url}
-                    alt="Аватар"
-                    fill
-                    sizes="72px"
-                    className="object-cover object-center"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-brand-blue font-bold text-lg">
-                    {user.email.substring(0, 2).toUpperCase()}
-                  </div>
-                )}
+            <div className="flex flex-col gap-4">
+              {/* Horizontal layout: avatar + email */}
+              <div className="flex items-center gap-4">
+                <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-[#007BFF]/30 bg-blue-50 dark:bg-zinc-800 shrink-0">
+                  {user.avatar_url ? (
+                    <Image
+                      src={user.avatar_url}
+                      alt="Аватар"
+                      fill
+                      sizes="56px"
+                      className="object-cover object-center"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[#007BFF]">
+                      <User className="w-7 h-7" />
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 truncate">
+                  {user.email}
+                </span>
               </div>
-              
-              <h2 className="text-sm font-extrabold text-brand-black dark:text-brand-white mb-0.5 truncate max-w-full">
-                Личный кабинет
-              </h2>
-              <p className="text-xs text-brand-gray mb-5 truncate max-w-full">
-                {user.email}
-              </p>
 
-              {/* Logout Button (Малиновый) */}
+              {/* Logout Button (Малиновый #FF3662) */}
               <button
                 onClick={handleLogout}
-                className="w-full bg-brand-red text-white rounded-2xl py-3.5 font-bold hover:bg-red-600 active:scale-98 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                className="w-full bg-[#FF3662] text-white rounded-2xl py-3.5 font-bold hover:bg-red-500 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm"
               >
-                <LogOut className="w-4 h-4" />
                 Выйти
               </button>
             </div>
           )}
         </div>
+
 
         {/* Auth users content */}
         {user && (
@@ -292,31 +289,25 @@ export default function ProfilePage() {
 
             {/* MY LISTINGS BANNER ROW */}
             <div className="flex flex-col">
-              {/* Header Banner */}
-              <div className={`w-full flex items-center justify-between px-5 py-4 rounded-3xl shadow-xs transition-all duration-200 select-none ${
-                theme === 'light'
-                  ? 'bg-blue-50/70 border border-blue-100 text-black'
-                  : 'bg-zinc-850 border border-zinc-800 text-white'
-              }`}>
-                <div className="flex items-center gap-3.5">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center shadow-xs ${
-                    theme === 'light' ? 'bg-black text-white' : 'bg-brand-blue text-white'
-                  }`}>
-                    <Flame className="w-5 h-5 fill-white" />
+              {/* Header Banner — black capsule as per Figma */}
+              <div className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-black dark:bg-zinc-900 border border-zinc-800 shadow-sm select-none mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-full bg-[#007BFF] flex items-center justify-center">
+                    <Flame className="w-4 h-4 fill-white text-white" />
                   </div>
-                  <span className="font-extrabold text-sm tracking-wide lowercase">
+                  <span className="font-bold text-sm text-white lowercase tracking-wide">
                     мои объявления
                   </span>
                 </div>
-                
+
                 {/* Count Badge */}
-                <div className="w-9 h-9 rounded-full bg-black text-white dark:bg-zinc-700 flex items-center justify-center font-extrabold text-sm border border-white/10">
+                <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center font-extrabold text-sm text-black dark:text-white">
                   {listings.length}
                 </div>
               </div>
 
               {/* Warnings and listings layout */}
-              <div className="mt-5 flex flex-col">
+              <div className="flex flex-col">
                 {isLoadingListings ? (
                   <div className="w-full py-12 flex flex-col items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>

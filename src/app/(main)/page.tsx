@@ -6,7 +6,8 @@ import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
-import { SlidersHorizontal, ArrowUpDown, Eye, Camera, RefreshCw, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { SlidersHorizontal, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye } from 'lucide-react'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -16,12 +17,12 @@ function formatBudgetDisplay(val: string) {
 }
 
 export default function FeedPage() {
-  const { mode, viewed } = useAppStore()
+  const router = useRouter()
+  const { mode, viewed, theme, setTheme } = useAppStore()
   
   // Data States
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Modal Toggles
   const [showFilters, setShowFilters] = useState(false)
@@ -175,7 +176,6 @@ export default function FeedPage() {
       console.error('Error loading listings:', err)
     } finally {
       setIsLoading(false)
-      setIsRefreshing(false)
     }
   }, [
     mode,
@@ -244,40 +244,49 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* Dynamic Header */}
-      <Header type="mode-toggle" showHelpToggle={true} />
+      {/* Dynamic Header — mode toggle only, no icons (Figma spec) */}
+      <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
 
-      {/* Toolbar Sub-bar */}
-      <div className="w-full flex items-center justify-between px-4 py-2 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-150 dark:border-zinc-800 transition-colors duration-200">
+      {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
+      <div className="w-full flex items-center justify-between px-4 py-2.5 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-200/50 dark:border-zinc-800 transition-colors duration-200">
         <button
           onClick={() => setShowFilters(true)}
-          className="flex items-center gap-2 bg-white dark:bg-brand-card-dark text-brand-black dark:text-brand-white border border-gray-200 dark:border-zinc-800 rounded-full px-4 py-2 shadow-xs text-xs font-bold active:scale-95 transition-all duration-200"
+          className="flex items-center gap-2.5 bg-black text-white rounded-full px-4 py-2.5 text-xs font-bold active:scale-95 transition-all duration-200 shadow-sm"
         >
-          <SlidersHorizontal className="w-4 h-4 text-brand-blue" />
-          Фильтр
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          фильтр
         </button>
 
         <div className="flex items-center gap-2">
-          {/* Refresh button */}
-          <button
-            onClick={() => {
-              setIsRefreshing(true)
-              fetchListings()
-            }}
-            className={`w-9 h-9 rounded-full flex items-center justify-center bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white shadow-xs hover:scale-105 active:scale-95 transition-all duration-200 ${
-              isRefreshing ? 'animate-spin' : ''
-            }`}
-            aria-label="Обновить"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
-          
+          {/* Sort button */}
           <button
             onClick={() => setShowSort(true)}
-            className="w-9 h-9 rounded-full flex items-center justify-center bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white shadow-xs hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             aria-label="Сортировка"
           >
-            <ArrowUpDown className="w-4 h-4 text-brand-blue" />
+            <ArrowUpDown className="w-4 h-4" />
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            aria-label="Смена темы"
+          >
+            {theme === 'light' ? (
+              <Sun className="w-4 h-4 text-yellow-500" />
+            ) : (
+              <Moon className="w-4 h-4 text-blue-400" />
+            )}
+          </button>
+
+          {/* Help / Instruction button */}
+          <button
+            onClick={() => router.push('/instruction')}
+            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            aria-label="Инструкция"
+          >
+            <HelpCircle className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -320,10 +329,10 @@ export default function FeedPage() {
 
             <div className="flex flex-col gap-2.5 mb-5">
               {([
-                { label: 'сначала новые', value: 'newest' },
-                { label: 'сначала старые', value: 'oldest' },
-                { label: 'низкая цена', value: 'price_asc' },
-                { label: 'высокая цена', value: 'price_desc' },
+                { label: 'Сначала новые', value: 'newest' },
+                { label: 'Сначала старые', value: 'oldest' },
+                { label: 'Низкая цена', value: 'price_asc' },
+                { label: 'Высокая цена', value: 'price_desc' },
               ] as const).map((opt) => {
                 const isSelected = sortBy === opt.value
                 return (
