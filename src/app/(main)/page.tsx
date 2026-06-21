@@ -7,7 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { SlidersHorizontal, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye } from 'lucide-react'
+import { ChevronLeft, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye } from 'lucide-react'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -248,45 +248,45 @@ export default function FeedPage() {
       <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
 
       {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
-      <div className="w-full flex items-center justify-between px-4 py-2.5 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-200/50 dark:border-zinc-800 transition-colors duration-200">
+      <div className="w-full flex items-center justify-between px-4 py-3 bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-200/50 dark:border-zinc-800 transition-colors duration-200">
         <button
           onClick={() => setShowFilters(true)}
-          className="flex items-center gap-2.5 bg-black text-white rounded-full px-4 py-2.5 text-xs font-bold active:scale-95 transition-all duration-200 shadow-sm"
+          className="flex items-center gap-2 bg-[#000000] text-[#FFFFFF] rounded-full px-5 py-3 text-xs font-black tracking-wider active:scale-95 transition-all duration-200 shadow-sm"
         >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span className="text-sm font-black leading-none -mt-0.5">≡</span>
           фильтр
         </button>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {/* Sort button */}
           <button
             onClick={() => setShowSort(true)}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             aria-label="Сортировка"
           >
-            <ArrowUpDown className="w-4 h-4" />
+            <ArrowUpDown className="w-4 h-4 text-[#000000] dark:text-white stroke-[2.5px]" />
           </button>
 
           {/* Theme toggle */}
           <button
             onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             aria-label="Смена темы"
           >
             {theme === 'light' ? (
-              <Sun className="w-4 h-4 text-yellow-500" />
+              <Sun className="w-4.5 h-4.5 text-yellow-500 fill-yellow-500" />
             ) : (
-              <Moon className="w-4 h-4 text-blue-400" />
+              <Moon className="w-4.5 h-4.5 text-[#007BFF] fill-[#007BFF]" />
             )}
           </button>
 
           {/* Help / Instruction button */}
           <button
             onClick={() => router.push('/instruction')}
-            className="w-10 h-10 rounded-full flex items-center justify-center bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-zinc-900 dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+            className="w-11 h-11 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 text-[#000000] dark:text-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
             aria-label="Инструкция"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4.5 h-4.5 text-[#000000] dark:text-white stroke-[2.5px]" />
           </button>
         </div>
       </div>
@@ -322,8 +322,8 @@ export default function FeedPage() {
           ></div>
 
           {/* Modal content */}
-          <div className="relative w-full max-w-[280px] bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-3xl p-5 shadow-2xl transition-all duration-200 select-none">
-            <h3 className="text-sm font-extrabold mb-4 text-center text-brand-black dark:text-brand-white uppercase tracking-wider">
+          <div className="relative w-full max-w-[280px] bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 rounded-[28px] p-5 shadow-2xl transition-all duration-200 select-none">
+            <h3 className="text-sm font-black mb-4 text-center text-[#000000] dark:text-white uppercase tracking-wider">
               Сортировка
             </h3>
 
@@ -339,18 +339,18 @@ export default function FeedPage() {
                   <button
                     key={opt.value}
                     onClick={() => setSortBy(opt.value)}
-                    className={`w-full py-2.5 px-4 rounded-full flex items-center text-xs font-bold transition-all duration-150 ${
+                    className={`w-full py-3 px-4 rounded-full flex items-center text-xs transition-all duration-150 ${
                       isSelected
-                        ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/30'
-                        : 'bg-zinc-50 dark:bg-zinc-800 text-brand-gray border border-transparent'
+                        ? 'bg-[#F7F7F7] dark:bg-[#202020] text-[#000000] dark:text-white font-black'
+                        : 'bg-[#F7F7F7] dark:bg-[#202020] text-[#9D9D9D] font-bold'
                     }`}
                   >
                     <div
-                      className={`w-4 h-4 rounded-full border mr-3 flex items-center justify-center ${
-                        isSelected ? 'border-brand-blue bg-brand-blue' : 'border-gray-300 dark:border-zinc-700'
+                      className={`w-4.5 h-4.5 rounded-full border mr-3 flex items-center justify-center ${
+                        isSelected ? 'border-[#007BFF] bg-[#007BFF]' : 'border-gray-300 dark:border-zinc-700'
                       }`}
                     >
-                      {isSelected && <div className="w-1.5 h-1.5 bg-white rounded-full"></div>}
+                      {isSelected && <div className="w-1.5 h-1.5 bg-[#FFFFFF] rounded-full"></div>}
                     </div>
                     {opt.label}
                   </button>
@@ -360,7 +360,7 @@ export default function FeedPage() {
 
             <button
               onClick={handleApplySort}
-              className="w-full bg-brand-blue text-white rounded-full py-3 text-xs font-bold text-center active:scale-95 transition-all duration-200"
+              className="w-full bg-[#007BFF] text-[#FFFFFF] rounded-full py-3.5 text-xs font-black uppercase tracking-widest active:scale-95 transition-all duration-200"
             >
               Готово
             </button>
@@ -378,18 +378,48 @@ export default function FeedPage() {
           ></div>
 
           {/* Drawer Content */}
-          <div className="relative w-full max-w-md mx-auto h-[85vh] bg-white dark:bg-brand-card-dark border-t border-gray-200 dark:border-zinc-800 rounded-t-[32px] flex flex-col shadow-2xl overflow-hidden select-none animate-slide-up">
-            {/* Header capsule */}
-            <div className="w-full flex items-center justify-between px-5 py-4 border-b border-gray-150 dark:border-zinc-850 shrink-0">
-              <h2 className="text-sm font-extrabold uppercase tracking-widest text-brand-black dark:text-brand-white">
-                Фильтр
-              </h2>
-              <button
-                onClick={() => setShowFilters(false)}
-                className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 text-brand-black dark:text-brand-white flex items-center justify-center hover:bg-zinc-200"
-              >
-                <X className="w-4 h-4" />
-              </button>
+          <div className="relative w-full max-w-md mx-auto h-[85vh] bg-[#FFFFFF] dark:bg-[#313131] border-t border-gray-200 dark:border-zinc-800 rounded-t-[32px] flex flex-col shadow-2xl overflow-hidden select-none animate-slide-up">
+            {/* Header Capsule - Matches Figma header style exactly */}
+            <div className="w-full flex items-center justify-between px-4 py-3 sticky top-0 z-40 bg-[#FFFFFF] dark:bg-[#313131] border-b border-gray-200/50 dark:border-zinc-800 transition-all duration-200 ease-in-out shrink-0">
+              <div className="bg-[#000000] text-white rounded-full flex items-center px-3 py-1.5 min-h-[44px] shadow-md flex-1 max-w-[280px]">
+                <div className="flex items-center w-full">
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    className="mr-2 text-white hover:text-[#007BFF] transition-colors duration-200"
+                    aria-label="Назад"
+                  >
+                    <ChevronLeft className="w-6 h-6" />
+                  </button>
+                  <span className="font-black text-sm tracking-wide lowercase truncate">
+                    фильтр
+                  </span>
+                </div>
+              </div>
+
+              {/* Theme & Help icons */}
+              <div className="flex items-center gap-3 pl-3">
+                <button
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+                  aria-label="Смена темы"
+                >
+                  {theme === 'light' ? (
+                    <Sun className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-[#007BFF] fill-[#007BFF]" />
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowFilters(false)
+                    router.push('/instruction')
+                  }}
+                  className="w-10 h-10 rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200"
+                  aria-label="Инструкция"
+                >
+                  <HelpCircle className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Fields grid scroll container */}
@@ -399,17 +429,17 @@ export default function FeedPage() {
               <div className="grid grid-cols-2 gap-3">
                 {/* City Dropdown */}
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Город</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Город</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('city')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterCity}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'city' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
                       {CITIES_DATA.map((c) => (
                         <button
                           key={c.city}
@@ -418,7 +448,7 @@ export default function FeedPage() {
                             setFilterCity(c.city)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {c.city}
                         </button>
@@ -429,17 +459,17 @@ export default function FeedPage() {
 
                 {/* Gender Dropdown */}
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Ограничения по полу</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Ограничения по полу</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('gender')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterGender}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'gender' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
                       {['любой', 'мужской', 'женский'].map((g) => (
                         <button
                           key={g}
@@ -448,7 +478,7 @@ export default function FeedPage() {
                             setFilterGender(g)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {g}
                         </button>
@@ -460,22 +490,22 @@ export default function FeedPage() {
 
               {/* Row 2: Район (Disabled if empty) */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Район</label>
+                <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Район</label>
                 <button
                   type="button"
                   disabled={!hasDistricts}
                   onClick={() => toggleDropdown('district')}
                   className={`w-full border rounded-2xl py-3 px-4 text-left font-bold flex justify-between items-center transition-all ${
                     hasDistricts
-                      ? 'bg-zinc-50 dark:bg-zinc-850 border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white'
-                      : 'bg-zinc-200 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-brand-gray opacity-50 cursor-not-allowed'
+                      ? 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white'
+                      : 'bg-zinc-200 dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed'
                   }`}
                 >
                   <span>{filterDistrict}</span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <span className="text-[10px] text-[#9D9D9D]">▼</span>
                 </button>
                 {activeDropdown === 'district' && hasDistricts && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
                     {mode === 'apartment' && (
                       <button
                         type="button"
@@ -483,7 +513,7 @@ export default function FeedPage() {
                           setFilterDistrict('Не важно')
                           setActiveDropdown(null)
                         }}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                       >
                         Не важно
                       </button>
@@ -496,7 +526,7 @@ export default function FeedPage() {
                           setFilterDistrict(d)
                           setActiveDropdown(null)
                         }}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                       >
                         {d}
                       </button>
@@ -508,37 +538,37 @@ export default function FeedPage() {
               {/* Row 3: Возраст (от / до) & Комната */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Возраст сожителя</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Возраст сожителя</label>
                   <div className="grid grid-cols-2 gap-1.5">
                     <input
-                      type="number"
+                      type="text"
                       placeholder="от"
                       value={filterAgeFrom}
                       onChange={(e) => setFilterAgeFrom(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-3.5 text-center text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                      className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-3.5 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                     />
                     <input
-                      type="number"
+                      type="text"
                       placeholder="до"
                       value={filterAgeTo}
                       onChange={(e) => setFilterAgeTo(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-3.5 text-center text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                      className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-3.5 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Комнатность</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Комнатность</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('rooms')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterRooms}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'rooms' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
                       {['любая', '1', '2', '3', '4+'].map((r) => (
                         <button
                           key={r}
@@ -547,7 +577,7 @@ export default function FeedPage() {
                             setFilterRooms(r)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {r} {r !== 'любая' ? 'комната' : ''}
                         </button>
@@ -560,23 +590,23 @@ export default function FeedPage() {
               {/* Row 4: Люди (Общее количество / Количество ищущих) */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Общее число людей</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Общее число людей</label>
                   <input
-                    type="number"
+                    type="text"
                     placeholder="человек всего"
                     value={filterPeopleCount}
                     onChange={(e) => setFilterPeopleCount(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Сколько сожителей ищут</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Сколько сожителей ищут</label>
                   <input
-                    type="number"
+                    type="text"
                     placeholder="ищут руммейтов"
                     value={filterSearchingCount}
                     onChange={(e) => setFilterSearchingCount(e.target.value.replace(/\D/g, ''))}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                   />
                 </div>
               </div>
@@ -584,17 +614,17 @@ export default function FeedPage() {
               {/* Row 5: С кем могу жить (Only in Apartment mode) */}
               {mode === 'apartment' && (
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">С кем могу жить</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">С кем могу жить</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('canLiveWith')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterCanLiveWith}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'canLiveWith' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
                       {['все', 'парни', 'девушки', 'семейная пара'].map((item) => (
                         <button
                           key={item}
@@ -603,7 +633,7 @@ export default function FeedPage() {
                             setFilterCanLiveWith(item)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {item}
                         </button>
@@ -617,17 +647,17 @@ export default function FeedPage() {
               <div className="grid grid-cols-2 gap-3">
                 {/* Deposit Dropdown */}
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Депозит</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Депозит</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('deposit')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterDeposit}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'deposit' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
                       {['не важно', 'да', 'нет'].map((d) => (
                         <button
                           key={d}
@@ -636,7 +666,7 @@ export default function FeedPage() {
                             setFilterDeposit(d)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {d}
                         </button>
@@ -647,17 +677,17 @@ export default function FeedPage() {
 
                 {/* Contract Dropdown */}
                 <div className="relative">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">Официальный договор</label>
+                  <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Официальный договор</label>
                   <button
                     type="button"
                     onClick={() => toggleDropdown('contract')}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
                     <span>{filterContract}</span>
-                    <span className="text-[10px] text-brand-gray">▼</span>
+                    <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'contract' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
                       {['не важно', 'да', 'нет'].map((c) => (
                         <button
                           key={c}
@@ -666,7 +696,7 @@ export default function FeedPage() {
                             setFilterContract(c)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white"
                         >
                           {c}
                         </button>
@@ -678,21 +708,21 @@ export default function FeedPage() {
 
               {/* Row 7: Бюджет от / до */}
               <div className="flex flex-col">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Бюджет (тенге)</label>
+                <label className="block text-[#9D9D9D] text-[10px] uppercase mb-1">Бюджет (тенге)</label>
                 <div className="grid grid-cols-2 gap-3">
                   <input
                     type="text"
                     placeholder="от"
                     value={formatBudgetDisplay(filterPriceFrom)}
-                    onChange={(e) => setFilterPriceFrom(e.target.value)}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                    onChange={(e) => setFilterPriceFrom(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                   />
                   <input
                     type="text"
                     placeholder="до"
                     value={formatBudgetDisplay(filterPriceTo)}
-                    onChange={(e) => setFilterPriceTo(e.target.value)}
-                    className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold placeholder:text-brand-gray focus:outline-none"
+                    onChange={(e) => setFilterPriceTo(e.target.value.replace(/\D/g, ''))}
+                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none"
                   />
                 </div>
               </div>
@@ -701,17 +731,17 @@ export default function FeedPage() {
               <div className="flex items-center justify-between gap-4 mt-2 py-3 border-y border-gray-150 dark:border-zinc-850">
                 {/* Only Photos Switch */}
                 <div className="flex items-center gap-3">
-                  <Camera className="w-5 h-5 text-brand-blue" />
+                  <Camera className="w-5 h-5 text-[#007BFF]" />
                   <span className="text-xs text-brand-black dark:text-brand-white font-bold">Только с фото</span>
                   <button
                     type="button"
                     onClick={() => setFilterOnlyPhotos(!filterOnlyPhotos)}
                     className={`w-12 h-6.5 rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center ${
-                      filterOnlyPhotos ? 'bg-brand-blue' : 'bg-gray-300 dark:bg-zinc-800'
+                      filterOnlyPhotos ? 'bg-[#007BFF]' : 'bg-gray-300 dark:bg-zinc-800'
                     }`}
                   >
                     <div
-                      className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
+                      className={`bg-[#FFFFFF] w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
                         filterOnlyPhotos ? 'translate-x-5.5' : 'translate-x-0'
                       }`}
                     ></div>
@@ -720,17 +750,17 @@ export default function FeedPage() {
 
                 {/* Hide Viewed Switch */}
                 <div className="flex items-center gap-3">
-                  <Eye className="w-5 h-5 text-brand-blue" />
+                  <Eye className="w-5 h-5 text-[#007BFF]" />
                   <span className="text-xs text-brand-black dark:text-brand-white font-bold">Скрыть просмотренные</span>
                   <button
                     type="button"
                     onClick={() => setFilterHideViewed(!filterHideViewed)}
                     className={`w-12 h-6.5 rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center ${
-                      filterHideViewed ? 'bg-brand-blue' : 'bg-gray-300 dark:bg-zinc-800'
+                      filterHideViewed ? 'bg-[#007BFF]' : 'bg-gray-300 dark:bg-zinc-800'
                     }`}
                   >
                     <div
-                      className={`bg-white w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
+                      className={`bg-[#FFFFFF] w-4.5 h-4.5 rounded-full shadow-md transform transition-transform duration-200 ${
                         filterHideViewed ? 'translate-x-5.5' : 'translate-x-0'
                       }`}
                     ></div>
@@ -743,13 +773,13 @@ export default function FeedPage() {
             <div className="w-full p-5 border-t border-gray-150 dark:border-zinc-850 flex justify-between gap-3 shrink-0">
               <button
                 onClick={handleResetFilters}
-                className="flex-1 bg-blue-50 dark:bg-zinc-800 text-brand-blue dark:text-brand-white rounded-2xl py-3.5 px-4 font-bold text-center hover:bg-blue-100 dark:hover:bg-zinc-750 active:scale-98 transition-all duration-200"
+                className="flex-1 bg-[#007BFF]/10 dark:bg-[#202020] text-[#007BFF] dark:text-[#FFFFFF] rounded-2xl py-3.5 px-4 font-black text-center hover:bg-blue-100 dark:hover:bg-zinc-750 active:scale-98 transition-all duration-200 uppercase tracking-wider"
               >
                 Сбросить
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="flex-1 bg-brand-blue text-white rounded-2xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-98 transition-all duration-200"
+                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 px-4 font-black text-center hover:bg-blue-600 active:scale-98 transition-all duration-200 uppercase tracking-wider"
               >
                 Применить
               </button>

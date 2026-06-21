@@ -13,6 +13,14 @@ interface ListingCardProps {
   onDelete?: (id: string) => void
 }
 
+const formatCanLiveWith = (val?: string | null) => {
+  if (!val || val === 'все') return 'Все'
+  if (val === 'парни') return 'Только парни'
+  if (val === 'девушки') return 'Только девушки'
+  if (val === 'семейная пара') return 'Семейная пара'
+  return val
+}
+
 export function ListingCard({
   listing,
   isOwnerView = false,
@@ -80,17 +88,18 @@ export function ListingCard({
   }
 
   // Common styles for parameter badge/tag - matches design exactly
-  const badgeClass = "flex items-center gap-2 bg-[#F7F7F7] dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700/40 rounded-xl py-2 px-3 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 truncate"
+  const badgeClass =
+    'flex items-center gap-2.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-[10.5px] font-bold text-zinc-800 dark:text-zinc-200 truncate transition-all duration-200 ease-in-out'
 
   // Render APARTMENT MODE Card
   if (listing.mode === 'apartment') {
     return (
       <div
         onClick={handleCardClick}
-        className="w-full bg-white dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-700/50 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
+        className="w-full bg-[#FFFFFF] dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
       >
         {/* Media Header */}
-        <div className="relative w-full aspect-[16/9] bg-zinc-100 dark:bg-zinc-800">
+        <div className="relative w-full aspect-[16/10] bg-zinc-150 dark:bg-zinc-900">
           {listing.photos && listing.photos.length > 0 ? (
             <Image
               src={listing.photos[0]}
@@ -98,7 +107,7 @@ export function ListingCard({
               fill
               sizes="(max-width: 480px) 100vw, 400px"
               priority={listing.is_premium}
-              className="object-cover object-center"
+              className="object-cover object-center rounded-t-[24px]"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">
@@ -113,7 +122,7 @@ export function ListingCard({
             aria-label="В избранное"
           >
             <Heart
-              className={`w-4 h-4 transition-colors duration-200 ${
+              className={`w-4.5 h-4.5 transition-colors duration-200 ${
                 isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-white'
               }`}
             />
@@ -131,14 +140,14 @@ export function ListingCard({
         <div className="p-4 flex flex-col flex-1">
           {/* Price & Date */}
           <div className="flex justify-between items-baseline mb-3">
-            <span className="text-[17px] font-black text-zinc-900 dark:text-white leading-tight">
+            <span className="text-[17px] font-black text-[#000000] dark:text-white leading-tight tracking-wide">
               {formatPrice(listing.price_from)}
               {listing.price_to && listing.price_to !== listing.price_from
                 ? ` - ${formatPrice(listing.price_to)}`
                 : ''}{' '}
               ₸
             </span>
-            <span className="text-[10px] text-[#9D9D9D] font-medium">
+            <span className="text-[10px] text-[#9D9D9D] font-bold">
               {formatDate(listing.created_at)}
             </span>
           </div>
@@ -149,7 +158,10 @@ export function ListingCard({
             <div className={badgeClass}>
               <MapPin className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
               <span className="truncate">
-                {listing.city.substring(0, 3).toUpperCase()}{listing.district ? `, ${listing.district}` : ''}
+                {listing.city.substring(0, 3).toUpperCase()}
+                {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
+                  ? `, ${listing.district}`
+                  : ''}
               </span>
             </div>
             {/* 2. Ищу (searching count) */}
@@ -165,17 +177,21 @@ export function ListingCard({
             {/* 4. Age range */}
             <div className={badgeClass}>
               <Calendar className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">{listing.age_from} - {listing.age_to} лет</span>
+              <span className="truncate">
+                {listing.age_from} - {listing.age_to} лет
+              </span>
             </div>
             {/* 5. Can live with (gender restriction) */}
             <div className={badgeClass}>
               <User className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">{listing.can_live_with || listing.gender || 'Все'}</span>
+              <span className="truncate">
+                {formatCanLiveWith(listing.can_live_with || listing.gender)}
+              </span>
             </div>
             {/* 6. Deposit */}
             <div className={badgeClass}>
               <Coins className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
+              <span className="truncate">Депозит: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
             </div>
             {/* 7. Total people */}
             <div className={badgeClass}>
@@ -185,7 +201,7 @@ export function ListingCard({
             {/* 8. Contract */}
             <div className={badgeClass}>
               <FileText className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">{listing.contract === 'yes' ? 'Есть' : 'Нет'}</span>
+              <span className="truncate">Договор: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
             </div>
           </div>
 
@@ -195,13 +211,13 @@ export function ListingCard({
               <div className="flex gap-2">
                 <button
                   onClick={handleWhatsApp}
-                  className="flex-[55] bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-sm"
+                  className="flex-[55] bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-xs tracking-wider"
                 >
                   Ватцап
                 </button>
                 <button
                   onClick={handle2GIS}
-                  className="flex-[40] bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all duration-200 text-sm border border-gray-200 dark:border-zinc-700"
+                  className="flex-[40] bg-[#FFFFFF] dark:bg-[#313131] text-[#000000] dark:text-white rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200 text-xs border border-gray-250 dark:border-zinc-850 tracking-wider"
                 >
                   2 гис
                 </button>
@@ -209,19 +225,28 @@ export function ListingCard({
             ) : (
               <div className="flex flex-col gap-2">
                 <button
-                  onClick={(e) => { e.stopPropagation(); onEdit?.(listing.id) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit?.(listing.id)
+                  }}
                   className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
                 >
                   Редактировать
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onPromote?.(listing.id) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onPromote?.(listing.id)
+                  }}
                   className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
                 >
                   Рекламировать
                 </button>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onDelete?.(listing.id) }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete?.(listing.id)
+                  }}
                   className="w-full bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all text-sm"
                 >
                   Удалить
@@ -238,12 +263,12 @@ export function ListingCard({
   return (
     <div
       onClick={handleCardClick}
-      className="w-full bg-white dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-700/50 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
+      className="w-full bg-[#FFFFFF] dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
     >
       {/* Top Profile Row: Avatar | Price+Date | Heart */}
       <div className="p-4 pb-3 flex items-center gap-3">
         {/* Avatar square */}
-        <div className="relative w-[72px] h-[72px] rounded-2xl overflow-hidden shrink-0 bg-zinc-100 dark:bg-zinc-800 border border-gray-200/50 dark:border-zinc-700/50">
+        <div className="relative w-[72px] h-[72px] rounded-2xl overflow-hidden shrink-0 bg-zinc-150 dark:bg-zinc-800 border border-gray-250/50 dark:border-zinc-800">
           {listing.photos && listing.photos.length > 0 ? (
             <Image
               src={listing.photos[0]}
@@ -261,20 +286,20 @@ export function ListingCard({
 
         {/* Price & Date */}
         <div className="flex flex-col flex-1 min-w-0">
-          <span className="text-[16px] font-black text-zinc-900 dark:text-white leading-tight truncate">
+          <span className="text-[16px] font-black text-[#000000] dark:text-white leading-tight tracking-wide truncate">
             {formatPrice(listing.price_from)}
             {listing.price_to && listing.price_to !== listing.price_from
               ? ` - ${formatPrice(listing.price_to)}`
               : ''}{' '}
             ₸
           </span>
-          <span className="text-[10px] text-[#9D9D9D] font-medium mt-0.5">
+          <span className="text-[10px] text-[#9D9D9D] font-bold mt-0.5">
             {formatDate(listing.created_at)}
           </span>
 
           {/* В ТОПЕ badge inline for roommate */}
           {listing.is_premium && (
-            <span className="mt-1 self-start bg-[#007BFF] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="mt-1 self-start bg-[#007BFF] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
               В ТОПЕ
             </span>
           )}
@@ -301,7 +326,10 @@ export function ListingCard({
           <div className={badgeClass}>
             <MapPin className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
             <span className="truncate">
-              {listing.city.substring(0, 3).toUpperCase()}{listing.district ? `, ${listing.district}` : ''}
+              {listing.city.substring(0, 3).toUpperCase()}
+              {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
+                ? `, ${listing.district}`
+                : ''}
             </span>
           </div>
           {/* 2. Нас (will live count) */}
@@ -317,27 +345,27 @@ export function ListingCard({
           {/* 4. Age */}
           <div className={badgeClass}>
             <Calendar className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.age_from} лет</span>
+            <span className="truncate">Возраст: {listing.age_from} лет</span>
           </div>
           {/* 5. Gender (Кто ищет) */}
           <div className={badgeClass}>
             <User className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.gender}</span>
+            <span className="truncate">Пол: {listing.gender}</span>
           </div>
           {/* 6. Deposit */}
           <div className={badgeClass}>
             <Coins className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
+            <span className="truncate">Депозит: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
           </div>
           {/* 7. Can live with (ищет кого) */}
           <div className={badgeClass}>
             <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.can_live_with || 'Все'}</span>
+            <span className="truncate">Ищу: {formatCanLiveWith(listing.can_live_with)}</span>
           </div>
           {/* 8. Contract */}
           <div className={badgeClass}>
             <FileText className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.contract === 'yes' ? 'Есть' : 'Нет'}</span>
+            <span className="truncate">Договор: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
           </div>
           {/* 9. Total people */}
           <div className={badgeClass}>
@@ -347,7 +375,7 @@ export function ListingCard({
           {/* 10. Term */}
           <div className={badgeClass}>
             <Clock className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.term}</span>
+            <span className="truncate">Срок: {listing.term}</span>
           </div>
         </div>
 
@@ -356,26 +384,35 @@ export function ListingCard({
           {!isOwnerView ? (
             <button
               onClick={handleWhatsApp}
-              className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-sm"
+              className="w-full bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-xs tracking-wider"
             >
               Ватцап
             </button>
           ) : (
             <div className="flex flex-col gap-2">
               <button
-                onClick={(e) => { e.stopPropagation(); onEdit?.(listing.id) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEdit?.(listing.id)
+                }}
                 className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
               >
                 Редактировать
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onPromote?.(listing.id) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onPromote?.(listing.id)
+                }}
                 className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
               >
                 Рекламировать
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); onDelete?.(listing.id) }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onDelete?.(listing.id)
+                }}
                 className="w-full bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all text-sm"
               >
                 Удалить
