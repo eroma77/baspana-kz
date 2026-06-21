@@ -291,7 +291,7 @@ export default function FeedPage() {
               className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
               aria-label="Инструкция"
             >
-              <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[10px] select-none leading-none">
+              <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[13px] select-none leading-none">
                 ?
               </div>
             </button>

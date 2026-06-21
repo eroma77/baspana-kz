@@ -32,23 +32,29 @@ export function Header({
     <div className={`w-full flex items-center justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out ${type === 'mode-toggle' && !showRightActions ? 'pt-[12px] pb-0' : 'py-3'}`}>
       <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
-          <div className="flex w-full justify-between items-center text-[16px] relative">
+          <div className="flex w-full justify-between items-center text-[16px] relative h-full">
+            {/* Floating White Pill */}
+            <div
+              className={`absolute top-0 bottom-0 w-[165px] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out ${
+                mode === 'apartment' ? 'translate-x-0' : 'translate-x-[168px]'
+              }`}
+            />
             <button
               onClick={() => setMode('apartment')}
-              className={`flex-1 h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-200 ease-in-out tracking-wide font-unbounded text-[16px] ${
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-colors duration-300 tracking-wide font-unbounded text-[16px] ${
                 mode === 'apartment'
-                  ? 'bg-[#FFFFFF] text-[#000000] font-normal'
-                  : 'bg-transparent text-[#FFFFFF] font-bold'
+                  ? 'text-[#000000] font-bold'
+                  : 'text-[#FFFFFF] font-normal'
               }`}
             >
               ищу квартиру
             </button>
             <button
               onClick={() => setMode('roommate')}
-              className={`flex-1 h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-200 ease-in-out tracking-wide font-unbounded text-[16px] ${
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-colors duration-300 tracking-wide font-unbounded text-[16px] ${
                 mode === 'roommate'
-                  ? 'bg-[#FFFFFF] text-[#000000] font-normal'
-                  : 'bg-transparent text-[#FFFFFF] font-bold'
+                  ? 'text-[#000000] font-bold'
+                  : 'text-[#FFFFFF] font-normal'
               }`}
             >
               ищу соседа
