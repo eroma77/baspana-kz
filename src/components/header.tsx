@@ -29,27 +29,26 @@ export function Header({
   const showRightActions = showThemeToggle || showHelpToggle
 
   return (
-    <div className="w-full flex items-center justify-between px-4 py-3 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out">
-      {/* Capsule Container */}
-      <div className={`bg-[#000000] text-white rounded-full flex items-center px-1 py-1 min-h-[44px] shadow-md ${type === 'mode-toggle' && !showRightActions ? 'w-full' : 'flex-1 max-w-[280px]'}`}>
+    <div className={`w-full flex items-center justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out ${type === 'mode-toggle' && !showRightActions ? 'pt-[12px] pb-0' : 'py-3'}`}>
+      <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
-          <div className="flex w-full justify-between items-center text-[13px] relative">
+          <div className="flex w-full justify-between items-center text-[16px] relative">
             <button
               onClick={() => setMode('apartment')}
-              className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-200 ease-in-out tracking-wide ${
+              className={`flex-1 h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-200 ease-in-out tracking-wide font-unbounded text-[16px] ${
                 mode === 'apartment'
-                  ? 'bg-[#FFFFFF] text-[#000000] font-bold'
-                  : 'bg-transparent text-[#FFFFFF] font-medium'
+                  ? 'bg-[#FFFFFF] text-[#000000] font-normal'
+                  : 'bg-transparent text-[#FFFFFF] font-bold'
               }`}
             >
               ищу квартиру
             </button>
             <button
               onClick={() => setMode('roommate')}
-              className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-200 ease-in-out tracking-wide ${
+              className={`flex-1 h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-200 ease-in-out tracking-wide font-unbounded text-[16px] ${
                 mode === 'roommate'
-                  ? 'bg-[#FFFFFF] text-[#000000] font-bold'
-                  : 'bg-transparent text-[#FFFFFF] font-medium'
+                  ? 'bg-[#FFFFFF] text-[#000000] font-normal'
+                  : 'bg-transparent text-[#FFFFFF] font-bold'
               }`}
             >
               ищу соседа
