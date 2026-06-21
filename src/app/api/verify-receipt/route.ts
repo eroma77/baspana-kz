@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify uniqueness of transaction ID in database
-    const { data: duplicateListing, error: checkError } = await supabaseAdmin
+    const { data: duplicateListing } = await supabaseAdmin
       .from('listings')
       .select('id, owner_id')
       .eq('transaction_id', transactionId)
@@ -70,9 +70,10 @@ export async function POST(req: NextRequest) {
     if (updateError) throw updateError
 
     return NextResponse.json({ verified: true, transactionId })
-  } catch (err: any) {
+  } catch (err) {
     console.error('Error during receipt verification:', err)
-    return NextResponse.json({ error: err.message || 'Internal verification error' }, { status: 500 })
+    const errorMsg = err instanceof Error ? err.message : 'Internal verification error'
+    return NextResponse.json({ error: errorMsg }, { status: 500 })
   }
 }
 

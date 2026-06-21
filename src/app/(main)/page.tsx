@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
-import { SlidersHorizontal, ArrowUpDown, Eye, Camera, RefreshCw, X, Check, HelpCircle } from 'lucide-react'
+import { SlidersHorizontal, ArrowUpDown, Eye, Camera, RefreshCw, X } from 'lucide-react'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -16,7 +16,7 @@ function formatBudgetDisplay(val: string) {
 }
 
 export default function FeedPage() {
-  const { mode, theme, viewed } = useAppStore()
+  const { mode, viewed } = useAppStore()
   
   // Data States
   const [listings, setListings] = useState<Listing[]>([])
@@ -56,14 +56,17 @@ export default function FeedPage() {
 
   // If city changes, reset district
   useEffect(() => {
-    if (hasDistricts) {
-      setFilterDistrict(mode === 'apartment' ? 'Не важно' : currentCityData.districts[0])
-    } else {
-      setFilterDistrict('-')
-    }
-  }, [filterCity, mode, hasDistricts])
+    const t = setTimeout(() => {
+      if (hasDistricts) {
+        setFilterDistrict(mode === 'apartment' ? 'Не важно' : currentCityData.districts[0])
+      } else {
+        setFilterDistrict('-')
+      }
+    }, 0)
+    return () => clearTimeout(t)
+  }, [filterCity, mode, hasDistricts, currentCityData])
 
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     setIsLoading(true)
     try {
       // Call remote self-cleaning function
@@ -99,6 +102,9 @@ export default function FeedPage() {
         query = query.eq('contract', 'yes')
       } else if (filterContract === 'нет') {
         query = query.eq('contract', 'no')
+      }
+      if (mode === 'apartment' && filterCanLiveWith && filterCanLiveWith !== 'все') {
+        query = query.eq('can_live_with', filterCanLiveWith)
       }
 
       // Budget Ranges
@@ -171,12 +177,35 @@ export default function FeedPage() {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }
+  }, [
+    mode,
+    filterCity,
+    hasDistricts,
+    filterDistrict,
+    filterGender,
+    filterRooms,
+    filterDeposit,
+    filterContract,
+    filterCanLiveWith,
+    filterPriceFrom,
+    filterPriceTo,
+    filterAgeFrom,
+    filterAgeTo,
+    filterPeopleCount,
+    filterSearchingCount,
+    filterOnlyPhotos,
+    filterHideViewed,
+    viewed,
+    sortBy,
+  ])
 
   // Refetch when search mode changes
   useEffect(() => {
-    fetchListings()
-  }, [mode])
+    const t = setTimeout(() => {
+      fetchListings()
+    }, 0)
+    return () => clearTimeout(t)
+  }, [fetchListings])
 
   // Filter application handler
   const handleApplyFilters = () => {
@@ -290,17 +319,17 @@ export default function FeedPage() {
             </h3>
 
             <div className="flex flex-col gap-2.5 mb-5">
-              {[
+              {([
                 { label: 'сначала новые', value: 'newest' },
                 { label: 'сначала старые', value: 'oldest' },
                 { label: 'низкая цена', value: 'price_asc' },
                 { label: 'высокая цена', value: 'price_desc' },
-              ].map((opt) => {
+              ] as const).map((opt) => {
                 const isSelected = sortBy === opt.value
                 return (
                   <button
                     key={opt.value}
-                    onClick={() => setSortBy(opt.value as any)}
+                    onClick={() => setSortBy(opt.value)}
                     className={`w-full py-2.5 px-4 rounded-full flex items-center text-xs font-bold transition-all duration-150 ${
                       isSelected
                         ? 'bg-brand-blue/10 text-brand-blue border border-brand-blue/30'

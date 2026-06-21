@@ -6,7 +6,7 @@ import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { Heart, ChevronLeft, MapPin, Home, User, Users, Calendar, Coins, FileText, ChevronRight, X } from 'lucide-react'
+import { Heart, ChevronLeft, MapPin, Home, User, Users, Calendar, Coins, FileText, ChevronRight, Clock, ExternalLink } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -244,7 +244,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* Parameter Matrix (8 tags / 2 columns) */}
+            {/* Parameter Matrix (10 tags / 2 columns) */}
             <div className="mb-8">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Детали сожительства</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-4 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-5 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
@@ -252,31 +252,39 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   <MapPin className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span className="truncate">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <Home className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>{listing.rooms}-комнатная</span>
+                  <span>{listing.rooms}-комн.</span>
                 </div>
                 <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <User className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span className="truncate">Пол: {listing.gender}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Всего: {listing.total_people} чел.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Ищут: {listing.searching_count} чел.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <Calendar className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span>Возраст: {listing.age_from}-{listing.age_to}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
-                  <Coins className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Депозит: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span className="truncate">С кем: {listing.can_live_with || 'все'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Нас: {listing.people_count} чел.</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Clock className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Срок: {listing.term}</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Общий: {listing.total_people} чел.</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Coins className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Деп: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <FileText className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span>Договор: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
                 </div>
@@ -358,7 +366,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* Parameter Matrix */}
+            {/* Parameter Matrix (10 tags / 2 columns) */}
             <div className="mb-8">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Параметры анкеты</h3>
               <div className="grid grid-cols-2 gap-y-4 gap-x-4 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-5 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
@@ -366,33 +374,41 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   <MapPin className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span className="truncate">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <Home className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>{listing.rooms}-комнатная</span>
+                  <span>{listing.rooms}-комн.</span>
                 </div>
                 <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <User className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">Будет жить: {listing.can_live_with || 'девушки/парни'}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
                   <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Всего: {listing.total_people} чел.</span>
+                  <span>Будет жить: {listing.people_count} чел.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Ищу: {listing.searching_count} чел.</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>Общий: {listing.total_people} чел.</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <Calendar className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span>Возраст: {listing.age_from}-{listing.age_to}</span>
                 </div>
                 <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <User className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">Ищу: {listing.gender}</span>
+                  <span>Ищу пол: {listing.gender}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <Coins className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Депозит: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
+                  <span>Деп: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
                   <FileText className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
                   <span>Договор: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
+                </div>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
+                  <ExternalLink className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
+                  <span>{listing.address_link ? '2GIS: есть' : '2GIS: нет'}</span>
                 </div>
               </div>
             </div>

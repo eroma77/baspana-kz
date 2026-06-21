@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Header } from '@/components/header'
-import { MapPin, Home, User, Users, Calendar, Coins, FileText, Clock, HelpCircle, Map, MessageCircle } from 'lucide-react'
+import { MapPin, Home, User, Users, Calendar, Coins, FileText, Clock, Map, MessageCircle } from 'lucide-react'
 
 export default function InstructionPage() {
   

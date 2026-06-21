@@ -14,13 +14,49 @@ export default function MainLayout({
   const { theme, setUser } = useAppStore()
 
   useEffect(() => {
-    setMounted(true)
+    const t = setTimeout(() => {
+      setMounted(true)
+    }, 0)
     // Synchronize HTML theme class on client mount
     const root = window.document.documentElement
     if (theme === 'dark') {
       root.classList.add('dark')
     } else {
       root.classList.remove('dark')
+    }
+
+    // Parse URL hash for Supabase access token (Google OAuth callback)
+    const hash = window.location.hash
+    if (hash && hash.includes('access_token=')) {
+      const params = new URLSearchParams(hash.substring(1))
+      const accessToken = params.get('access_token')
+      const refreshToken = params.get('refresh_token')
+      if (accessToken && refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        }).then(({ data, error }) => {
+          if (!error && data.session?.user) {
+            supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', data.session.user.id)
+              .single()
+              .then(({ data: profile }) => {
+                if (profile) {
+                  setUser(profile)
+                } else {
+                  setUser({
+                    id: data.session!.user.id,
+                    email: data.session!.user.email || '',
+                    avatar_url: data.session!.user.user_metadata?.avatar_url || '',
+                  })
+                }
+              })
+            window.history.replaceState(null, '', window.location.pathname)
+          }
+        })
+      }
     }
 
     // Set up auth state change listener
@@ -49,6 +85,7 @@ export default function MainLayout({
     })
 
     return () => {
+      clearTimeout(t)
       subscription.unsubscribe()
     }
   }, [theme, setUser])

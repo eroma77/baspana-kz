@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
@@ -58,7 +58,7 @@ export default function ProfilePage() {
   }
 
   // Fetch listings for current user
-  const fetchUserListings = async () => {
+  const fetchUserListings = useCallback(async () => {
     if (!user) return
     setIsLoadingListings(true)
     try {
@@ -74,10 +74,10 @@ export default function ProfilePage() {
     } finally {
       setIsLoadingListings(false)
     }
-  }
+  }, [user])
 
   // Fetch Admin Settings
-  const fetchAdminPrices = async () => {
+  const fetchAdminPrices = useCallback(async () => {
     if (!isAdmin) return
     try {
       const { data, error } = await supabase
@@ -89,7 +89,7 @@ export default function ProfilePage() {
     } catch (err) {
       console.error('Error loading admin settings:', err)
     }
-  }
+  }, [isAdmin])
 
   // Save Admin Settings
   const handleSavePrices = async (e: React.FormEvent) => {
@@ -150,12 +150,15 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
-      fetchUserListings()
-      if (isAdmin) {
-        fetchAdminPrices()
-      }
+      const t = setTimeout(() => {
+        fetchUserListings()
+        if (isAdmin) {
+          fetchAdminPrices()
+        }
+      }, 0)
+      return () => clearTimeout(t)
     }
-  }, [user, isAdmin])
+  }, [user, isAdmin, fetchUserListings, fetchAdminPrices])
 
   // Count of active listings
   const activeCount = listings.filter((l) => l.status === 'active').length
@@ -314,7 +317,12 @@ export default function ProfilePage() {
 
               {/* Warnings and listings layout */}
               <div className="mt-5 flex flex-col">
-                {listings.length === 0 ? (
+                {isLoadingListings ? (
+                  <div className="w-full py-12 flex flex-col items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
+                    <span className="text-xs text-brand-gray">Загрузка ваших объявлений...</span>
+                  </div>
+                ) : listings.length === 0 ? (
                   <div className="w-full py-10 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-4 text-center">
                     <span className="text-xs font-semibold text-brand-black dark:text-brand-white mb-3">
                       У вас пока нет объявлений

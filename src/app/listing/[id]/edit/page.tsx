@@ -27,7 +27,6 @@ export default function EditListingPage({ params }: PageProps) {
 
   // Form Fields State
   const [listing, setListing] = useState<Listing | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
   
   // Fields
   const [city, setCity] = useState('Алматы')
@@ -68,7 +67,6 @@ export default function EditListingPage({ params }: PageProps) {
     }
 
     const loadListing = async () => {
-      setIsLoading(true)
       try {
         const { data, error } = await supabase
           .from('listings')
@@ -113,49 +111,38 @@ export default function EditListingPage({ params }: PageProps) {
       } catch (err) {
         console.error('Error loading listing to edit:', err)
         router.push('/profile')
-      } finally {
-        setIsLoading(false)
       }
     }
 
     loadListing()
   }, [id, user, router])
 
-  // Sync district when city updates, but preserve original if same
-  useEffect(() => {
-    if (listing && city === listing.city) {
-      // Keep loaded district
-      return
-    }
-    if (hasDistricts) {
-      setDistrict(listing?.mode === 'apartment' ? 'Не важно' : currentCityData.districts[0])
-    } else {
-      setDistrict('-')
-    }
-    setErrors((prev) => ({ ...prev, district: false }))
-  }, [city, hasDistricts])
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col justify-start items-center">
-        <div className="w-full max-w-md min-h-screen bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
-          <span className="text-xs text-brand-gray">Загрузка данных объявления...</span>
-        </div>
-      </div>
-    )
-  }
-
-  if (!listing) return null
-
   const handleDropdownSelect = (dropdown: string, val: string) => {
-    if (dropdown === 'city') setCity(val)
+    if (dropdown === 'city') {
+      setCity(val)
+      const newCityData = CITIES_DATA.find((c) => c.city === val)
+      const newHasDistricts = newCityData && newCityData.districts.length > 0
+      if (newHasDistricts) {
+        setDistrict(listing?.mode === 'apartment' ? 'Не важно' : newCityData.districts[0])
+      } else {
+        setDistrict('-')
+      }
+      setErrors((prev) => ({ ...prev, district: false }))
+    }
     if (dropdown === 'district') setDistrict(val)
     if (dropdown === 'gender') setGender(val)
     if (dropdown === 'rooms') setRooms(val)
     if (dropdown === 'canLiveWith') setCanLiveWith(val)
     if (dropdown === 'term') setTerm(val)
     if (dropdown === 'contract') setContract(val)
+    if (dropdown === 'ageFrom') setAgeFrom(val)
+    if (dropdown === 'ageTo') setAgeTo(val)
+    if (dropdown === 'peopleCount') setPeopleCount(val)
+    if (dropdown === 'searchingCount') setSearchingCount(val)
+    if (dropdown === 'totalPeople') setTotalPeople(val)
+    if (dropdown === 'deposit') setDeposit(val)
+    if (dropdown === 'priceFrom') setPriceFrom(val)
+    if (dropdown === 'priceTo') setPriceTo(val)
 
     setActiveDropdown(null)
     setErrors((prev) => ({ ...prev, [dropdown]: false }))
@@ -178,7 +165,7 @@ export default function EditListingPage({ params }: PageProps) {
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = listing.mode === 'apartment' ? 5 : 3
+    const limit = listing?.mode === 'apartment' ? 5 : 3
     const availableSlots = limit - photos.length
 
     if (availableSlots <= 0) {
@@ -204,6 +191,7 @@ export default function EditListingPage({ params }: PageProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!listing) return
     setSubmitErrorMsg('')
     const newErrors: Record<string, boolean> = {}
 
@@ -248,10 +236,10 @@ export default function EditListingPage({ params }: PageProps) {
       searching_count: parseInt(searchingCount),
       term,
       total_people: parseInt(totalPeople),
-      deposit: parseInt(deposit.toString().replace(/\D/g, '')) || 0,
+      deposit: parseInt(deposit) || 0,
       contract,
-      price_from: parseInt(priceFrom.toString().replace(/\D/g, '')),
-      price_to: parseInt(priceTo.toString().replace(/\D/g, '')),
+      price_from: parseInt(priceFrom),
+      price_to: parseInt(priceTo),
       photos,
       description,
       phone: `+7${phone}`,
@@ -268,14 +256,16 @@ export default function EditListingPage({ params }: PageProps) {
       if (error) throw error
 
       router.push('/profile')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error updating listing:', err)
-      setSubmitErrorMsg(err.message || 'Ошибка сервера при изменении объявления.')
+      const errorMsg = err instanceof Error ? err.message : 'Ошибка сервера при изменении объявления.'
+      setSubmitErrorMsg(errorMsg)
     } finally {
       setIsSubmitting(false)
     }
   }
 
+  // Format phone output for visual convenience
   const formatPhoneDisplay = (val: string) => {
     if (!val) return ''
     const match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/)
@@ -286,6 +276,22 @@ export default function EditListingPage({ params }: PageProps) {
     if (match[3]) res += `-${match[3]}`
     if (match[4]) res += `-${match[4]}`
     return res
+  }
+
+  const dropdownToggleClass = (err: boolean) =>
+    `w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center ${
+      err ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
+    }`
+
+  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto"
+  const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+
+  if (!listing) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F7] dark:bg-[#202020] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007BFF]"></div>
+      </div>
+    )
   }
 
   return (
@@ -307,24 +313,25 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 1: Город & Пол */}
             <div className="grid grid-cols-2 gap-3">
+              {/* City */}
               <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Город</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('city')}
-                  className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                  className={dropdownToggleClass(errors.city)}
                 >
                   <span>{city}</span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'city' && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
+                  <div className={dropdownListClass}>
                     {CITIES_DATA.map((c) => (
                       <button
                         key={c.city}
                         type="button"
                         onClick={() => handleDropdownSelect('city', c.city)}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                        className={dropdownItemClass}
                       >
                         {c.city}
                       </button>
@@ -333,6 +340,7 @@ export default function EditListingPage({ params }: PageProps) {
                 )}
               </div>
 
+              {/* Gender */}
               <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">
                   {listing.mode === 'apartment' ? 'Ваш пол' : 'Ищу сожителя'}
@@ -340,19 +348,19 @@ export default function EditListingPage({ params }: PageProps) {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('gender')}
-                  className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                  className={dropdownToggleClass(errors.gender)}
                 >
                   <span>{gender}</span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'gender' && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                  <div className={dropdownListClass}>
                     {['любой', 'мужской', 'женский'].map((g) => (
                       <button
                         key={g}
                         type="button"
                         onClick={() => handleDropdownSelect('gender', g)}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                        className={dropdownItemClass}
                       >
                         {g}
                       </button>
@@ -371,20 +379,22 @@ export default function EditListingPage({ params }: PageProps) {
                 onClick={() => toggleDropdown('district')}
                 className={`w-full border rounded-2xl py-3 px-4 text-left font-bold flex justify-between items-center transition-all ${
                   hasDistricts
-                    ? 'bg-white dark:bg-brand-card-dark border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white'
-                    : 'bg-zinc-150 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-800 text-brand-gray opacity-50 cursor-not-allowed'
+                    ? errors.district
+                      ? 'border-brand-red bg-white dark:bg-brand-card-dark text-brand-black dark:text-brand-white'
+                      : 'bg-white dark:bg-brand-card-dark border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white'
+                    : 'bg-zinc-150 dark:bg-zinc-850 border-zinc-200 dark:border-zinc-800 text-brand-gray opacity-50 cursor-not-allowed'
                 }`}
               >
                 <span>{district}</span>
                 <span className="text-[10px] text-brand-gray">▼</span>
               </button>
               {activeDropdown === 'district' && hasDistricts && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
+                <div className={dropdownListClass}>
                   {listing.mode === 'apartment' && (
                     <button
                       type="button"
                       onClick={() => handleDropdownSelect('district', 'Не важно')}
-                      className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                      className={dropdownItemClass}
                     >
                       Не важно
                     </button>
@@ -394,7 +404,7 @@ export default function EditListingPage({ params }: PageProps) {
                       key={d}
                       type="button"
                       onClick={() => handleDropdownSelect('district', d)}
-                      className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                      className={dropdownItemClass}
                     >
                       {d}
                     </button>
@@ -405,56 +415,85 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 3: Возраст & Комната */}
             <div className="grid grid-cols-2 gap-3">
+              {/* Age dropdowns */}
               <div className="flex flex-col">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
                 <div className="grid grid-cols-2 gap-1.5">
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="от"
-                    value={ageFrom}
-                    onChange={(e) => {
-                      setAgeFrom(e.target.value.replace(/\D/g, ''))
-                      setErrors((prev) => ({ ...prev, ageFrom: false }))
-                    }}
-                    className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-3 text-center text-brand-black dark:text-brand-white font-bold focus:outline-none ${
-                      errors.ageFrom ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                    }`}
-                  />
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="до"
-                    value={ageTo}
-                    onChange={(e) => {
-                      setAgeTo(e.target.value.replace(/\D/g, ''))
-                      setErrors((prev) => ({ ...prev, ageTo: false }))
-                    }}
-                    className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-3 text-center text-brand-black dark:text-brand-white font-bold focus:outline-none ${
-                      errors.ageTo ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                    }`}
-                  />
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('ageFrom')}
+                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 text-center text-brand-black dark:text-brand-white font-bold flex justify-between items-center px-3.5 ${
+                        errors.ageFrom ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
+                      }`}
+                    >
+                      <span>{ageFrom || 'от'}</span>
+                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                    </button>
+                    {activeDropdown === 'ageFrom' && (
+                      <div className={dropdownListClass}>
+                        {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => handleDropdownSelect('ageFrom', a)}
+                            className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          >
+                            {a}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('ageTo')}
+                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 text-center text-brand-black dark:text-brand-white font-bold flex justify-between items-center px-3.5 ${
+                        errors.ageTo ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
+                      }`}
+                    >
+                      <span>{ageTo || 'до'}</span>
+                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                    </button>
+                    {activeDropdown === 'ageTo' && (
+                      <div className={dropdownListClass}>
+                        {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => handleDropdownSelect('ageTo', a)}
+                            className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                          >
+                            {a}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Rooms select */}
               <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Комнатность</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('rooms')}
-                  className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                  className={dropdownToggleClass(errors.rooms)}
                 >
                   <span>{rooms} комната</span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'rooms' && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                  <div className={dropdownListClass}>
                     {['1', '2', '3', '4+'].map((r) => (
                       <button
                         key={r}
                         type="button"
                         onClick={() => handleDropdownSelect('rooms', r)}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                        className={dropdownItemClass}
                       >
                         {r} комната
                       </button>
@@ -467,25 +506,26 @@ export default function EditListingPage({ params }: PageProps) {
             {/* Row 4: С кем могу жить / Будет жить & Нас / Ищу */}
             <div className="grid grid-cols-2 gap-3">
               {listing.mode === 'apartment' ? (
+                /* Apartment mode */
                 <>
                   <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">С кем могу жить</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('canLiveWith')}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                      className={dropdownToggleClass(false)}
                     >
                       <span>{canLiveWith}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'canLiveWith' && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                      <div className={dropdownListClass}>
                         {['все', 'парни', 'девушки', 'семейная пара'].map((item) => (
                           <button
                             key={item}
                             type="button"
                             onClick={() => handleDropdownSelect('canLiveWith', item)}
-                            className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                            className={dropdownItemClass}
                           >
                             {item}
                           </button>
@@ -494,39 +534,85 @@ export default function EditListingPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  <div className="flex flex-col">
+                  <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Нас: человек</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={peopleCount}
-                      onChange={(e) => setPeopleCount(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('peopleCount')}
+                      className={dropdownToggleClass(false)}
+                    >
+                      <span>{peopleCount} чел.</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
+                    </button>
+                    {activeDropdown === 'peopleCount' && (
+                      <div className={dropdownListClass}>
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleDropdownSelect('peopleCount', c)}
+                            className={dropdownItemClass}
+                          >
+                            {c} чел.
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
+                /* Roommate mode */
                 <>
-                  <div className="flex flex-col">
+                  <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Будет жить: чел.</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={peopleCount}
-                      onChange={(e) => setPeopleCount(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('peopleCount')}
+                      className={dropdownToggleClass(false)}
+                    >
+                      <span>{peopleCount} чел.</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
+                    </button>
+                    {activeDropdown === 'peopleCount' && (
+                      <div className={dropdownListClass}>
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleDropdownSelect('peopleCount', c)}
+                            className={dropdownItemClass}
+                          >
+                            {c} чел.
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex flex-col">
+                  <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Ищу: сожителей</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={searchingCount}
-                      onChange={(e) => setSearchingCount(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('searchingCount')}
+                      className={dropdownToggleClass(false)}
+                    >
+                      <span>{searchingCount} чел.</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
+                    </button>
+                    {activeDropdown === 'searchingCount' && (
+                      <div className={dropdownListClass}>
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleDropdownSelect('searchingCount', c)}
+                            className={dropdownItemClass}
+                          >
+                            {c} чел.
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -541,19 +627,19 @@ export default function EditListingPage({ params }: PageProps) {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('term')}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                      className={dropdownToggleClass(false)}
                     >
                       <span>{term}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'term' && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                      <div className={dropdownListClass}>
                         {['длительно', 'посуточно', 'на пару месяцев'].map((t) => (
                           <button
                             key={t}
                             type="button"
                             onClick={() => handleDropdownSelect('term', t)}
-                            className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                            className={dropdownItemClass}
                           >
                             {t}
                           </button>
@@ -562,28 +648,58 @@ export default function EditListingPage({ params }: PageProps) {
                     )}
                   </div>
 
-                  <div className="flex flex-col">
+                  <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Общий: человек</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={totalPeople}
-                      onChange={(e) => setTotalPeople(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('totalPeople')}
+                      className={dropdownToggleClass(false)}
+                    >
+                      <span>{totalPeople} чел.</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
+                    </button>
+                    {activeDropdown === 'totalPeople' && (
+                      <div className={dropdownListClass}>
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleDropdownSelect('totalPeople', c)}
+                            className={dropdownItemClass}
+                          >
+                            {c} чел.
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="flex flex-col">
+                  <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Общий: человек</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={totalPeople}
-                      onChange={(e) => setTotalPeople(e.target.value.replace(/\D/g, ''))}
-                      className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('totalPeople')}
+                      className={dropdownToggleClass(false)}
+                    >
+                      <span>{totalPeople} чел.</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
+                    </button>
+                    {activeDropdown === 'totalPeople' && (
+                      <div className={dropdownListClass}>
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => handleDropdownSelect('totalPeople', c)}
+                            className={dropdownItemClass}
+                          >
+                            {c} чел.
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col">
@@ -607,40 +723,57 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 6: Депозит & Договор */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Депозит (₸)</label>
-                <input
-                  type="text"
-                  placeholder="0"
-                  value={formatBudgetDisplay(deposit)}
-                  onChange={(e) => setDeposit(e.target.value)}
-                  className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none"
-                />
+              {/* Deposit */}
+              <div className="relative">
+                <label className="block text-brand-gray text-[10px] uppercase mb-1">Депозит</label>
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('deposit')}
+                  className={dropdownToggleClass(false)}
+                >
+                  <span>{deposit === '0' ? 'без депозита' : `${formatBudgetDisplay(deposit)} ₸`}</span>
+                  <span className="text-[10px] text-brand-gray">▼</span>
+                </button>
+                {activeDropdown === 'deposit' && (
+                  <div className={dropdownListClass}>
+                    {[0, 30000, 50000, 70000, 100000, 150000, 200000, 250000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => handleDropdownSelect('deposit', d.toString())}
+                        className={dropdownItemClass}
+                      >
+                        {d === 0 ? 'без депозита' : `${formatBudgetDisplay(d.toString())} ₸`}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
+              {/* Contract */}
               <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Официальный договор</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('contract')}
-                  className="w-full bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center"
+                  className={dropdownToggleClass(false)}
                 >
                   <span>{contract === 'yes' ? 'да' : 'нет'}</span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'contract' && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
+                  <div className={dropdownListClass}>
                     <button
                       type="button"
                       onClick={() => handleDropdownSelect('contract', 'yes')}
-                      className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                      className={dropdownItemClass}
                     >
                       да
                     </button>
                     <button
                       type="button"
                       onClick={() => handleDropdownSelect('contract', 'no')}
-                      className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                      className={dropdownItemClass}
                     >
                       нет
                     </button>
@@ -651,34 +784,58 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 7: Бюджет */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col">
+              {/* Budget From Dropdown */}
+              <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Бюджет От (₸)</label>
-                <input
-                  type="text"
-                  value={formatBudgetDisplay(priceFrom)}
-                  onChange={(e) => {
-                    setPriceFrom(e.target.value)
-                    setErrors((prev) => ({ ...prev, priceFrom: false }))
-                  }}
-                  className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none ${
-                    errors.priceFrom ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                  }`}
-                />
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('priceFrom')}
+                  className={dropdownToggleClass(errors.priceFrom)}
+                >
+                  <span>{priceFrom ? `${formatBudgetDisplay(priceFrom)} ₸` : 'от'}</span>
+                  <span className="text-[10px] text-brand-gray">▼</span>
+                </button>
+                {activeDropdown === 'priceFrom' && (
+                  <div className={dropdownListClass}>
+                    {[20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 220000, 250000, 270000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000, 900000, 1000000].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => handleDropdownSelect('priceFrom', p.toString())}
+                        className={dropdownItemClass}
+                      >
+                        {formatBudgetDisplay(p.toString())} ₸
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="flex flex-col">
+              {/* Budget To Dropdown */}
+              <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Бюджет До (₸)</label>
-                <input
-                  type="text"
-                  value={formatBudgetDisplay(priceTo)}
-                  onChange={(e) => {
-                    setPriceTo(e.target.value)
-                    setErrors((prev) => ({ ...prev, priceTo: false }))
-                  }}
-                  className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none ${
-                    errors.priceTo ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                  }`}
-                />
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('priceTo')}
+                  className={dropdownToggleClass(errors.priceTo)}
+                >
+                  <span>{priceTo ? `${formatBudgetDisplay(priceTo)} ₸` : 'до'}</span>
+                  <span className="text-[10px] text-brand-gray">▼</span>
+                </button>
+                {activeDropdown === 'priceTo' && (
+                  <div className={dropdownListClass}>
+                    {[20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 220000, 250000, 270000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000, 900000, 1000000].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => handleDropdownSelect('priceTo', p.toString())}
+                        className={dropdownItemClass}
+                      >
+                        {formatBudgetDisplay(p.toString())} ₸
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -691,6 +848,7 @@ export default function EditListingPage({ params }: PageProps) {
               <div className="flex flex-wrap gap-2 items-center">
                 {photos.map((ph, idx) => (
                   <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-zinc-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={ph} className="w-full h-full object-cover" alt="Preview" />
                     <button
                       type="button"
@@ -702,7 +860,7 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 ))}
 
-                {photos.length < (listing.mode === 'apartment' ? 5 : 3) && (
+                {photos.length < (listing?.mode === 'apartment' ? 5 : 3) && (
                   <div className="relative w-16 h-16 border border-dashed border-gray-300 dark:border-zinc-800 rounded-xl flex items-center justify-center bg-white dark:bg-brand-card-dark hover:bg-zinc-50 cursor-pointer">
                     <input
                       type="file"
@@ -754,7 +912,7 @@ export default function EditListingPage({ params }: PageProps) {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-[50%] bg-brand-blue text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all text-xs select-none shadow-xs"
+                className="w-[50%] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all text-xs select-none shadow-xs"
               >
                 {isSubmitting ? 'Сохранение...' : 'готово'}
               </button>

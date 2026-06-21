@@ -1,18 +1,17 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
-import { ArrowUpDown } from 'lucide-react'
 
 export default function FavoritesPage() {
   const { favorites } = useAppStore()
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     if (favorites.length === 0) {
       setListings([])
       setIsLoading(false)
@@ -38,12 +37,15 @@ export default function FavoritesPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [favorites])
 
   // Refetch when favorites array updates
   useEffect(() => {
-    fetchFavorites()
-  }, [favorites])
+    const t = setTimeout(() => {
+      fetchFavorites()
+    }, 0)
+    return () => clearTimeout(t)
+  }, [fetchFavorites])
 
   return (
     <div className="flex flex-col w-full h-full">

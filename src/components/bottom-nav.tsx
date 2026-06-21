@@ -29,8 +29,8 @@ export function BottomNav() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white dark:bg-brand-card-dark border-t border-gray-200 dark:border-zinc-800 transition-all duration-200 ease-in-out">
-      <div className="max-w-md mx-auto flex justify-between items-center px-4 py-2">
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#000000] border-t border-zinc-800 transition-all duration-200 ease-in-out">
+      <div className="max-w-md mx-auto flex justify-between items-center px-4 py-3">
         {tabs.map((tab) => {
           const isActive = pathname === tab.path
           const Icon = tab.icon
@@ -48,11 +48,11 @@ export function BottomNav() {
               <div
                 className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out ${
                   isActive
-                    ? 'bg-brand-blue text-white shadow-md scale-105'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-brand-blue dark:hover:text-brand-blue'
+                    ? 'bg-[#007BFF] text-white shadow-md scale-105'
+                    : 'text-[#9D9D9D] hover:text-white'
                 }`}
               >
-                <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
               </div>
             </Link>
           )

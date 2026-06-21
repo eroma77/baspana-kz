@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
@@ -11,7 +11,7 @@ export default function ViewedPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  const fetchViewed = async () => {
+  const fetchViewed = useCallback(async () => {
     if (viewed.length === 0) {
       setListings([])
       setIsLoading(false)
@@ -37,11 +37,14 @@ export default function ViewedPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [viewed])
 
   useEffect(() => {
-    fetchViewed()
-  }, [viewed])
+    const t = setTimeout(() => {
+      fetchViewed()
+    }, 0)
+    return () => clearTimeout(t)
+  }, [fetchViewed])
 
   return (
     <div className="flex flex-col w-full h-full">

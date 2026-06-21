@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Header } from '@/components/header'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { useRouter } from 'next/navigation'
-import { ShieldCheck, UploadCloud, CheckCircle2, AlertTriangle, Coins } from 'lucide-react'
+import { UploadCloud, CheckCircle2, Coins } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
