@@ -67,6 +67,11 @@ export default function FeedPage() {
     return () => clearTimeout(t)
   }, [filterCity, mode, hasDistricts, currentCityData])
 
+  // Prefetch instruction page for instant load
+  useEffect(() => {
+    router.prefetch('/instruction')
+  }, [router])
+
   const fetchListings = useCallback(async () => {
     setIsLoading(true)
     try {
@@ -281,7 +286,7 @@ export default function FeedPage() {
               {theme === 'light' ? (
                 <Sun className="w-[18px] h-[18px] text-white fill-white" />
               ) : (
-                <Moon className="w-[18px] h-[18px] text-white fill-white" />
+                <Moon className="w-[18px] h-[18px] text-white" strokeWidth={1.75} />
               )}
             </button>
 
