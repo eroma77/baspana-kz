@@ -21,6 +21,30 @@ const formatCanLiveWith = (val?: string | null) => {
   return val
 }
 
+const getCityAbbreviation = (city: string) => {
+  const c = city.toLowerCase().trim()
+  if (c.includes('алматы')) return 'ала'
+  if (c.includes('астана')) return 'аст'
+  if (c.includes('шымкент')) return 'шым'
+  if (c.includes('караганда') || c.includes('караганды')) return 'кгд'
+  if (c.includes('актобе')) return 'акб'
+  if (c.includes('тараз')) return 'трз'
+  if (c.includes('павлодар')) return 'пвд'
+  if (c.includes('семей')) return 'смй'
+  if (c.includes('кызылорда')) return 'кзд'
+  if (c.includes('атырау')) return 'ату'
+  if (c.includes('костанай')) return 'кст'
+  if (c.includes('уральск')) return 'урл'
+  if (c.includes('петропавловск')) return 'птп'
+  if (c.includes('актау')) return 'акт'
+  if (c.includes('темиртау')) return 'тмт'
+  if (c.includes('туркестан')) return 'трк'
+  if (c.includes('кокшетау')) return 'кшт'
+  if (c.includes('талдыкорган')) return 'тлд'
+  if (c.includes('жезказган')) return 'жзк'
+  return city.substring(0, 3).toLowerCase()
+}
+
 export function ListingCard({
   listing,
   isOwnerView = false,
@@ -87,27 +111,27 @@ export function ListingCard({
     }
   }
 
-  // Common styles for parameter badge/tag - matches design exactly
-  const badgeClass =
-    'flex items-center gap-2.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-[10.5px] font-bold text-zinc-800 dark:text-zinc-200 truncate transition-all duration-200 ease-in-out'
+  const cityAbbr = getCityAbbreviation(listing.city)
 
   // Render APARTMENT MODE Card
   if (listing.mode === 'apartment') {
     return (
       <div
         onClick={handleCardClick}
-        className="w-full bg-[#FFFFFF] dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
+        className={`w-[338px] ${
+          isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'h-[288px]'
+        } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
       >
         {/* Media Header */}
-        <div className="relative w-full aspect-[16/10] bg-zinc-150 dark:bg-zinc-900">
+        <div className="relative w-[338px] h-[87px] bg-zinc-150 dark:bg-zinc-900 shrink-0">
           {listing.photos && listing.photos.length > 0 ? (
             <Image
               src={listing.photos[0]}
               alt="Жилье"
               fill
-              sizes="(max-width: 480px) 100vw, 400px"
+              sizes="338px"
               priority={listing.is_premium}
-              className="object-cover object-center rounded-t-[24px]"
+              className="object-cover object-center"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">
@@ -118,118 +142,129 @@ export function ListingCard({
           {/* Favorite Button */}
           <button
             onClick={(e) => handleGuardAction(e, () => toggleFavorite(listing.id))}
-            className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+            className="absolute top-[10px] right-[10px] z-10 w-[20px] h-[20px] bg-transparent flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
             aria-label="В избранное"
           >
             <Heart
-              className={`w-4.5 h-4.5 transition-colors duration-200 ${
-                isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-white'
+              className={`w-[20px] h-[20px] transition-colors duration-200 ${
+                isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-white fill-none'
               }`}
             />
           </button>
 
           {/* В ТОПЕ Banner */}
           {listing.is_premium && (
-            <div className="absolute top-3 left-0 bg-[#007BFF] text-white text-[10px] font-black px-3.5 py-1.5 rounded-r-full shadow-md z-10 uppercase tracking-widest">
+            <div className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center font-unbounded font-bold text-[18px] z-10">
               В ТОПЕ
             </div>
           )}
         </div>
 
         {/* Details Area */}
-        <div className="p-4 flex flex-col flex-1">
+        <div className="p-[12px] flex flex-col flex-1 min-h-0 justify-between">
           {/* Price & Date */}
-          <div className="flex justify-between items-baseline mb-3">
-            <span className="text-[17px] font-black text-[#000000] dark:text-white leading-tight tracking-wide">
+          <div className="flex justify-between items-center mb-1">
+            <span className="text-[18px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-2">
               {formatPrice(listing.price_from)}
               {listing.price_to && listing.price_to !== listing.price_from
                 ? ` - ${formatPrice(listing.price_to)}`
                 : ''}{' '}
               ₸
             </span>
-            <span className="text-[10px] text-[#9D9D9D] font-bold">
+            <span className="text-[13px] text-[#9D9D9D] font-normal leading-none shrink-0">
               {formatDate(listing.created_at)}
             </span>
           </div>
 
           {/* 8 Parameters Grid (2-column) — matches Figma exactly */}
-          <div className="grid grid-cols-2 gap-1.5 mb-4">
-            {/* 1. City / District */}
-            <div className={badgeClass}>
-              <MapPin className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">
-                {listing.city.substring(0, 3).toUpperCase()}
-                {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
-                  ? `, ${listing.district}`
-                  : ''}
-              </span>
+          <div className="flex justify-between gap-[16px] my-1.5">
+            {/* Left Column (Long parameters - 190px) */}
+            <div className="flex flex-col gap-[4px] w-[190px]">
+              {/* Badge 1: Address */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+                <MapPin className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">
+                  {cityAbbr}
+                  {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
+                    ? `, ${listing.district}`
+                    : ''}
+                </span>
+              </div>
+
+              {/* Badge 2: Rooms */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+                <Home className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">{listing.rooms}-комнатный</span>
+              </div>
+
+              {/* Badge 3: Gender / Can live with */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+                <User className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">
+                  {formatCanLiveWith(listing.can_live_with || listing.gender)}
+                </span>
+              </div>
+
+              {/* Badge 4: Total People */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+                <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">Общий: {listing.total_people}</span>
+              </div>
             </div>
-            {/* 2. Ищу (searching count) */}
-            <div className={badgeClass}>
-              <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">Ищу: {listing.searching_count}</span>
-            </div>
-            {/* 3. Rooms */}
-            <div className={badgeClass}>
-              <Home className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">{listing.rooms}-комнатный</span>
-            </div>
-            {/* 4. Age range */}
-            <div className={badgeClass}>
-              <Calendar className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">
-                {listing.age_from} - {listing.age_to} лет
-              </span>
-            </div>
-            {/* 5. Can live with (gender restriction) */}
-            <div className={badgeClass}>
-              <User className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">
-                {formatCanLiveWith(listing.can_live_with || listing.gender)}
-              </span>
-            </div>
-            {/* 6. Deposit */}
-            <div className={badgeClass}>
-              <Coins className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">Депозит: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
-            </div>
-            {/* 7. Total people */}
-            <div className={badgeClass}>
-              <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">Общий: {listing.total_people}</span>
-            </div>
-            {/* 8. Contract */}
-            <div className={badgeClass}>
-              <FileText className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-              <span className="truncate">Договор: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
+
+            {/* Right Column (Short parameters - 99px) */}
+            <div className="flex flex-col gap-[4px] w-[99px]">
+              {/* Badge 5: Searching Count (Ищу) */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">Ищу: {listing.searching_count}</span>
+              </div>
+
+              {/* Badge 6: Age */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Calendar className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">{listing.age_from}-{listing.age_to} л.</span>
+              </div>
+
+              {/* Badge 7: Deposit */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Coins className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">Деп: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
+              </div>
+
+              {/* Badge 8: Contract */}
+              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <FileText className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+                <span className="truncate leading-none">Дог: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
+              </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="mt-auto">
             {!isOwnerView ? (
-              <div className="flex gap-2">
+              <div className="flex gap-[16px] justify-center">
                 <button
                   onClick={handleWhatsApp}
-                  className="flex-[55] bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-xs tracking-wider"
+                  className="w-[145px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
                 >
                   Ватцап
                 </button>
                 <button
                   onClick={handle2GIS}
-                  className="flex-[40] bg-[#FFFFFF] dark:bg-[#313131] text-[#000000] dark:text-white rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200 text-xs border border-gray-250 dark:border-zinc-850 tracking-wider"
+                  className="w-[145px] h-[35px] bg-[#F8F8F8] dark:bg-[#202020] text-[#000000] dark:text-white rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] border border-[#C7C7C7] dark:border-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200"
                 >
                   2 гис
                 </button>
               </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-1.5">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     onEdit?.(listing.id)
                   }}
-                  className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
+                  className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
                 >
                   Редактировать
                 </button>
@@ -238,7 +273,7 @@ export function ListingCard({
                     e.stopPropagation()
                     onPromote?.(listing.id)
                   }}
-                  className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
+                  className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
                 >
                   Рекламировать
                 </button>
@@ -247,7 +282,7 @@ export function ListingCard({
                     e.stopPropagation()
                     onDelete?.(listing.id)
                   }}
-                  className="w-full bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all text-sm"
+                  className="w-full h-[32px] bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all"
                 >
                   Удалить
                 </button>
@@ -263,12 +298,21 @@ export function ListingCard({
   return (
     <div
       onClick={handleCardClick}
-      className="w-full bg-[#FFFFFF] dark:bg-[#313131] rounded-[24px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none"
+      className={`w-[338px] ${
+        isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'h-[288px]'
+      } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
     >
       {/* Top Profile Row: Avatar | Price+Date | Heart */}
-      <div className="p-4 pb-3 flex items-center gap-3">
+      <div className={`p-[12px] pb-2 flex items-center gap-3 relative ${listing.is_premium ? 'pt-[36px]' : ''}`}>
+        {/* В ТОПЕ Banner */}
+        {listing.is_premium && (
+          <div className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center font-unbounded font-bold text-[18px] z-10">
+            В ТОПЕ
+          </div>
+        )}
+
         {/* Avatar square */}
-        <div className="relative w-[72px] h-[72px] rounded-2xl overflow-hidden shrink-0 bg-zinc-150 dark:bg-zinc-800 border border-gray-250/50 dark:border-zinc-800">
+        <div className="relative w-[72px] h-[72px] rounded-[14px] overflow-hidden shrink-0 bg-zinc-150 dark:bg-zinc-800 border border-gray-250/50 dark:border-zinc-850">
           {listing.photos && listing.photos.length > 0 ? (
             <Image
               src={listing.photos[0]}
@@ -285,141 +329,135 @@ export function ListingCard({
         </div>
 
         {/* Price & Date */}
-        <div className="flex flex-col flex-1 min-w-0">
-          <span className="text-[16px] font-black text-[#000000] dark:text-white leading-tight tracking-wide truncate">
+        <div className="flex flex-col flex-1 min-w-0 justify-center">
+          <span className="text-[18px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
             {formatPrice(listing.price_from)}
             {listing.price_to && listing.price_to !== listing.price_from
               ? ` - ${formatPrice(listing.price_to)}`
               : ''}{' '}
             ₸
           </span>
-          <span className="text-[10px] text-[#9D9D9D] font-bold mt-0.5">
+          <span className="text-[13px] text-[#9D9D9D] font-normal leading-none mt-2">
             {formatDate(listing.created_at)}
           </span>
-
-          {/* В ТОПЕ badge inline for roommate */}
-          {listing.is_premium && (
-            <span className="mt-1 self-start bg-[#007BFF] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-              В ТОПЕ
-            </span>
-          )}
         </div>
 
         {/* Heart button */}
         <button
           onClick={(e) => handleGuardAction(e, () => toggleFavorite(listing.id))}
-          className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 hover:scale-105 active:scale-95 transition-all"
+          className="absolute top-[12px] right-[12px] z-10 w-[20px] h-[20px] bg-transparent flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
           aria-label="В избранное"
         >
           <Heart
-            className={`w-5 h-5 transition-colors duration-200 ${
-              isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-zinc-400 dark:text-zinc-500'
+            className={`w-[20px] h-[20px] transition-colors duration-200 ${
+              isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-zinc-400 dark:text-zinc-500 fill-none'
             }`}
           />
         </button>
       </div>
 
-      {/* Parameters Grid — matches Figma exactly for roommate */}
-      <div className="px-4 pb-4 flex flex-col flex-1">
-        <div className="grid grid-cols-2 gap-1.5 mb-4">
-          {/* 1. City/District */}
-          <div className={badgeClass}>
-            <MapPin className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">
-              {listing.city.substring(0, 3).toUpperCase()}
+      {/* Parameters Columns */}
+      <div className="flex justify-between gap-[16px] my-1.5 px-[12px]">
+        {/* Left Column (Long parameters - 190px) */}
+        <div className="flex flex-col gap-[4px] w-[190px]">
+          {/* Badge 1: Address */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+            <MapPin className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">
+              {cityAbbr}
               {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
                 ? `, ${listing.district}`
                 : ''}
             </span>
           </div>
-          {/* 2. Нас (will live count) */}
-          <div className={badgeClass}>
-            <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Нас: {listing.people_count}</span>
+
+          {/* Badge 2: Rooms */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+            <Home className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">{listing.rooms}-комнатный</span>
           </div>
-          {/* 3. Rooms */}
-          <div className={badgeClass}>
-            <Home className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">{listing.rooms}-комнатный</span>
+
+          {/* Badge 3: Gender */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+            <User className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Пол: {listing.gender}</span>
           </div>
-          {/* 4. Age */}
-          <div className={badgeClass}>
-            <Calendar className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Возраст: {listing.age_from} лет</span>
-          </div>
-          {/* 5. Gender (Кто ищет) */}
-          <div className={badgeClass}>
-            <User className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Пол: {listing.gender}</span>
-          </div>
-          {/* 6. Deposit */}
-          <div className={badgeClass}>
-            <Coins className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Депозит: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
-          </div>
-          {/* 7. Can live with (ищет кого) */}
-          <div className={badgeClass}>
-            <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Ищу: {formatCanLiveWith(listing.can_live_with)}</span>
-          </div>
-          {/* 8. Contract */}
-          <div className={badgeClass}>
-            <FileText className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Договор: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
-          </div>
-          {/* 9. Total people */}
-          <div className={badgeClass}>
-            <Users className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Общий: {listing.total_people}</span>
-          </div>
-          {/* 10. Term */}
-          <div className={badgeClass}>
-            <Clock className="w-3.5 h-3.5 text-[#007BFF] shrink-0" />
-            <span className="truncate">Срок: {listing.term}</span>
+
+          {/* Badge 4: Term */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
+            <Clock className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Срок: {listing.term}</span>
           </div>
         </div>
 
-        {/* Action Buttons — WhatsApp 100% for roommate, no 2GIS */}
-        <div className="mt-auto">
-          {!isOwnerView ? (
-            <button
-              onClick={handleWhatsApp}
-              className="w-full bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 text-xs tracking-wider"
-            >
-              Ватцап
-            </button>
-          ) : (
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit?.(listing.id)
-                }}
-                className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
-              >
-                Редактировать
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPromote?.(listing.id)
-                }}
-                className="w-full bg-[#007BFF] text-white rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all text-sm"
-              >
-                Рекламировать
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete?.(listing.id)
-                }}
-                className="w-full bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-2xl py-3 font-bold text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all text-sm"
-              >
-                Удалить
-              </button>
-            </div>
-          )}
+        {/* Right Column (Short parameters - 99px) */}
+        <div className="flex flex-col gap-[4px] w-[99px]">
+          {/* Badge 5: Searching Count (Ищу) */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Ищу: {formatCanLiveWith(listing.can_live_with)}</span>
+          </div>
+
+          {/* Badge 6: Age */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Calendar className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">{listing.age_from} лет</span>
+          </div>
+
+          {/* Badge 7: Deposit */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Coins className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Деп: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
+          </div>
+
+          {/* Badge 8: Contract */}
+          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <FileText className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Дог: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
+          </div>
         </div>
+      </div>
+
+      {/* Action Buttons — WhatsApp 100% for roommate, no 2GIS */}
+      <div className="mt-auto px-[12px] pb-[12px]">
+        {!isOwnerView ? (
+          <button
+            onClick={handleWhatsApp}
+            className="w-[306px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
+          >
+            Ватцап
+          </button>
+        ) : (
+          <div className="flex flex-col gap-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onEdit?.(listing.id)
+              }}
+              className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
+            >
+              Редактировать
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onPromote?.(listing.id)
+              }}
+              className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
+            >
+              Рекламировать
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete?.(listing.id)
+              }}
+              className="w-full h-[32px] bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all"
+            >
+              Удалить
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
