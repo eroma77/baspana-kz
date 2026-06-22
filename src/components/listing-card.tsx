@@ -119,7 +119,7 @@ export function ListingCard({
       <div
         onClick={handleCardClick}
         className={`w-[338px] ${
-          isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'h-[288px]'
+          isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'min-h-[288px] h-auto'
         } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
       >
         {/* Media Header */}
@@ -299,7 +299,7 @@ export function ListingCard({
     <div
       onClick={handleCardClick}
       className={`w-[338px] ${
-        isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'h-[288px]'
+        isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'min-h-[288px] h-auto'
       } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
     >
       {/* Top Profile Row: Avatar | Price+Date | Heart */}
