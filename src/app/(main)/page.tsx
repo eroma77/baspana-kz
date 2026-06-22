@@ -18,11 +18,11 @@ function formatBudgetDisplay(val: string) {
 
 export default function FeedPage() {
   const router = useRouter()
-  const { mode, viewed, theme, setTheme } = useAppStore()
+  const { mode, viewed, theme, setTheme, listings, setListings } = useAppStore()
   
   // Data States
-  const [listings, setListings] = useState<Listing[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const hasPreloadedData = listings.length > 0 && listings[0].mode === mode
+  const [isLoading, setIsLoading] = useState(!hasPreloadedData)
 
   // Modal Toggles
   const [showFilters, setShowFilters] = useState(false)
@@ -73,7 +73,11 @@ export default function FeedPage() {
   }, [router])
 
   const fetchListings = useCallback(async () => {
-    setIsLoading(true)
+    const currentListings = useAppStore.getState().listings
+    const hasPreloaded = currentListings.length > 0 && currentListings[0].mode === mode
+    if (!hasPreloaded) {
+      setIsLoading(true)
+    }
     try {
       // Call remote self-cleaning function
       await supabase.rpc('cleanup_listings')
@@ -202,6 +206,7 @@ export default function FeedPage() {
     filterHideViewed,
     viewed,
     sortBy,
+    setListings,
   ])
 
   // Refetch when search mode changes
@@ -249,57 +254,61 @@ export default function FeedPage() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* Dynamic Header — mode toggle only, no icons (Figma spec) */}
-      <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
+      <div className="sticky top-0 z-50 bg-brand-bg-light dark:bg-brand-bg-dark w-full">
+        {/* Dynamic Header — mode toggle only, no icons (Figma spec) */}
+        <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
 
-      {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
-      <div className="w-full flex justify-center px-4 pt-[8px] pb-[12px] bg-brand-bg-light dark:bg-brand-bg-dark border-b border-gray-250/30 dark:border-zinc-800/40 transition-colors duration-200">
-        <div className="flex justify-between w-[339px] mx-auto gap-[5px] font-unbounded text-[16px]">
-          {/* Left Filter Pill */}
-          <button
-            onClick={() => setShowFilters(true)}
-            className="w-[210px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center pl-[11px] gap-[31px] shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-          >
-            <SlidersHorizontal className="w-[24px] h-[24px] text-white stroke-[2.25px] flex-shrink-0" />
-            <span className="font-normal leading-none">фильтр</span>
-          </button>
-
-          {/* Right Actions Pill */}
-          <div className="w-[124px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center justify-between px-[12px] shadow-md">
-            {/* Sort button */}
+        {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
+        <div className="w-full flex justify-center px-4 pt-[8px] pb-[6px] border-b border-zinc-200/20 dark:border-zinc-800/20 transition-colors duration-200">
+          <div className="flex justify-between w-[339px] mx-auto gap-[5px] font-unbounded text-[16px]">
+            {/* Left Filter Pill */}
             <button
-              onClick={() => setShowSort(true)}
-              className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-              aria-label="Сортировка"
+              onClick={() => setShowFilters(true)}
+              className="w-[210px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center pl-[11px] gap-[31px] shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
-              <svg className="w-[23px] h-[23px] text-white fill-current" viewBox="0 0 24 24">
-                <path d="M12 3l-5 6h10l-5-6zm0 18l5-6H7l5 6z" />
-              </svg>
+              <SlidersHorizontal className="w-[24px] h-[24px] text-white stroke-[2.25px] flex-shrink-0" />
+              <span className="font-normal leading-none">фильтр</span>
             </button>
 
-            {/* Theme toggle */}
-            <button
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-              aria-label="Смена темы"
-            >
-              {theme === 'light' ? (
-                <Sun className="w-[18px] h-[18px] text-white fill-white" />
-              ) : (
-                <Moon className="w-[18px] h-[18px] text-white" strokeWidth={1.75} />
-              )}
-            </button>
+            {/* Right Actions Pill */}
+            <div className="w-[124px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center justify-between px-[12px] shadow-md">
+              {/* Sort button */}
+              <button
+                onClick={() => setShowSort(true)}
+                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
+                aria-label="Сортировка"
+              >
+                <svg className="w-[23px] h-[23px] text-white fill-current" viewBox="0 0 24 24">
+                  <path d="M12 3l-5 6h10l-5-6zm0 18l5-6H7l5 6z" />
+                </svg>
+              </button>
 
-            {/* Help / Instruction button */}
-            <button
-              onClick={() => router.push('/instruction')}
-              className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-              aria-label="Инструкция"
-            >
-              <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[13px] select-none leading-none">
-                ?
-              </div>
-            </button>
+              {/* Theme toggle */}
+              <button
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
+                aria-label="Смена темы"
+              >
+                {theme === 'light' ? (
+                  <Sun className="w-[18px] h-[18px] text-white fill-white" />
+                ) : (
+                  <div className="scale-[0.85] flex items-center justify-center">
+                    <Moon className="w-[17px] h-[17px] text-white fill-white" />
+                  </div>
+                )}
+              </button>
+
+              {/* Help / Instruction button */}
+              <button
+                onClick={() => router.push('/instruction')}
+                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
+                aria-label="Инструкция"
+              >
+                <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[13px] select-none leading-none">
+                  ?
+                </div>
+              </button>
+            </div>
           </div>
         </div>
       </div>
