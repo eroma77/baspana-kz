@@ -215,26 +215,26 @@ export function ListingCard({
             {/* Right Column (Short parameters - 99px) */}
             <div className="flex flex-col gap-[4px] w-[99px]">
               {/* Badge 5: Searching Count (Ищу) */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Users className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
                 <span className="truncate leading-none">Ищу: {listing.searching_count}</span>
               </div>
 
               {/* Badge 6: Age */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Calendar className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Calendar className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
                 <span className="truncate leading-none">{listing.age_from}-{listing.age_to} л.</span>
               </div>
 
               {/* Badge 7: Deposit */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Coins className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <Coins className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
                 <span className="truncate leading-none">Деп: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
               </div>
 
               {/* Badge 8: Contract */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <FileText className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+                <FileText className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
                 <span className="truncate leading-none">Дог: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
               </div>
             </div>
@@ -393,26 +393,26 @@ export function ListingCard({
         {/* Right Column (Short parameters - 99px) */}
         <div className="flex flex-col gap-[4px] w-[99px]">
           {/* Badge 5: Searching Count (Ищу) */}
-          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-            <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
-            <span className="truncate leading-none">Ищу: {formatCanLiveWith(listing.can_live_with)}</span>
+          <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Users className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">Ищу: {listing.can_live_with === 'все' || !listing.can_live_with ? 'всех' : listing.can_live_with === 'парни' ? 'парней' : listing.can_live_with === 'девушки' ? 'девушек' : 'пару'}</span>
           </div>
 
           {/* Badge 6: Age */}
-          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-            <Calendar className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
-            <span className="truncate leading-none">{listing.age_from} лет</span>
+          <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Calendar className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
+            <span className="truncate leading-none">{listing.age_from} л.</span>
           </div>
 
           {/* Badge 7: Deposit */}
-          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-            <Coins className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+          <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <Coins className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
             <span className="truncate leading-none">Деп: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
           </div>
 
           {/* Badge 8: Contract */}
-          <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-            <FileText className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+          <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
+            <FileText className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
             <span className="truncate leading-none">Дог: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
           </div>
         </div>

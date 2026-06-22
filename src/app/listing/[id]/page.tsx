@@ -7,6 +7,7 @@ import { Header } from '@/components/header'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Heart, ChevronLeft, MapPin, Home, User, Users, Calendar, Coins, FileText, ChevronRight, Clock, ExternalLink } from 'lucide-react'
+import { BottomNav } from '@/components/bottom-nav'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -136,8 +137,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
     : (listing.photos || []).slice(0, 3)
 
   return (
-    <div className="min-h-screen w-full bg-zinc-100 dark:bg-zinc-950 flex flex-col justify-start items-center">
-      <div className="w-full max-w-md min-h-screen bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col pb-12 relative shadow-md border-x border-gray-200 dark:border-zinc-800 transition-colors duration-200 select-none">
+    <div className="h-screen h-[100dvh] w-full bg-zinc-100 dark:bg-zinc-950 flex flex-col justify-start items-center overflow-hidden">
+      <div className="w-full max-w-md h-full bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col relative shadow-md border-x border-gray-200 dark:border-zinc-800 transition-colors duration-200 select-none overflow-hidden">
+        <main className="flex-1 flex flex-col w-full overflow-y-auto overflow-x-hidden pb-24">
         
         {/* Header (Back button, Title "объявление") */}
         <Header type="title" title="объявление" showBack={true} showHelpToggle={false} />
@@ -247,46 +249,46 @@ export default function ListingDetailsPage({ params }: PageProps) {
             {/* Parameter Matrix (10 tags / 2 columns) */}
             <div className="mb-8">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Детали сожительства</h3>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-4 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-5 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <MapPin className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-2 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-4 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <MapPin className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="truncate text-xs">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Home className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>{listing.rooms}-комн.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Home className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.rooms}-комн.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <User className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">Пол: {listing.gender}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <User className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.gender}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Calendar className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Возраст: {listing.age_from}-{listing.age_to}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Calendar className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.age_from}–{listing.age_to} л.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">С кем: {listing.can_live_with || 'все'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs truncate">С кем: {listing.can_live_with || 'все'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Нас: {listing.people_count} чел.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Нас: {listing.people_count} ч.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Clock className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Срок: {listing.term}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Clock className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs truncate">Срок: {listing.term}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Общий: {listing.total_people} чел.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Всего: {listing.total_people} ч.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Coins className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Деп: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Coins className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.deposit > 0 ? `Деп: ${formatPrice(listing.deposit)} ₸` : 'Деп: нет'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <FileText className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Договор: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <FileText className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Дог: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
                 </div>
               </div>
             </div>
@@ -369,54 +371,64 @@ export default function ListingDetailsPage({ params }: PageProps) {
             {/* Parameter Matrix (10 tags / 2 columns) */}
             <div className="mb-8">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Параметры анкеты</h3>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-4 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-5 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <MapPin className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span className="truncate">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
+              <div className="grid grid-cols-2 gap-y-4 gap-x-2 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-4 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <MapPin className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="truncate text-xs">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Home className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>{listing.rooms}-комн.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Home className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.rooms}-комн.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Будет жить: {listing.people_count} чел.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Жить: {listing.people_count} ч.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Ищу: {listing.searching_count} чел.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Ищу: {listing.searching_count} ч.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Users className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Общий: {listing.total_people} чел.</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Всего: {listing.total_people} ч.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Calendar className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Возраст: {listing.age_from}-{listing.age_to}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Calendar className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.age_from}–{listing.age_to} л.</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <User className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Ищу пол: {listing.gender}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <User className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs truncate">Пол: {listing.gender}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <Coins className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Деп: {listing.deposit > 0 ? `${formatPrice(listing.deposit)} ₸` : 'нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <Coins className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">{listing.deposit > 0 ? `Деп: ${formatPrice(listing.deposit)} ₸` : 'Деп: нет'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <FileText className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>Договор: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <FileText className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  <span className="text-xs">Дог: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 truncate">
-                  <ExternalLink className="w-4 h-4 mr-2.5 text-brand-blue shrink-0" />
-                  <span>{listing.address_link ? '2GIS: есть' : '2GIS: нет'}</span>
+                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
+                  <ExternalLink className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
+                  {listing.address_link ? (
+                    <a
+                      href={listing.address_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-brand-blue underline truncate"
+                    >
+                      2GIS карта
+                    </a>
+                  ) : (
+                    <span className="text-xs text-brand-gray">2GIS: нет</span>
+                  )}
                 </div>
               </div>
             </div>
 
           </div>
         )}
-
-      </div>
 
       {/* --- FULLSCREEN LIGHTBOX MODAL --- */}
       {lightboxOpen && displayPhotos.length > 0 && (
@@ -496,6 +508,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
 
         </div>
       )}
+        </main>
+        <BottomNav />
+      </div>
     </div>
   )
 }
