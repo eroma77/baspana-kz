@@ -32,29 +32,45 @@ export function Header({
     <div className={`w-full flex items-center justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out ${type === 'mode-toggle' && !showRightActions ? 'pt-[12px] pb-0' : 'py-3'}`}>
       <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md isolate ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
-          <div className="flex w-full justify-between items-center text-[16px] relative h-full">
-            {/* Floating White Pill */}
+          <div className="w-full h-full relative flex items-center text-[16px]">
+            {/* Layer 1: Background text (White / Inactive) */}
+            <div className="absolute inset-0 flex justify-between items-center z-0">
+              <button
+                type="button"
+                onClick={() => setMode('apartment')}
+                className="w-[165px] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+              >
+                ищу квартиру
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('roommate')}
+                className="w-[165px] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+              >
+                ищу соседа
+              </button>
+            </div>
+
+            {/* Sliding Pill Container (Mask) */}
             <div
-              className={`absolute top-0 bottom-0 w-[165px] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out ${
+              className={`absolute top-0 bottom-0 left-0 w-[165px] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none ${
                 mode === 'apartment' ? 'translate-x-0' : 'translate-x-[168px]'
               }`}
-            />
-            <button
-              onClick={() => setMode('apartment')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center tracking-wide font-unbounded text-[16px] text-[#FFFFFF] mix-blend-difference transition-[font-weight] duration-0 delay-150 ${
-                mode === 'apartment' ? 'font-bold' : 'font-normal'
-              }`}
             >
-              ищу квартиру
-            </button>
-            <button
-              onClick={() => setMode('roommate')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center tracking-wide font-unbounded text-[16px] text-[#FFFFFF] mix-blend-difference transition-[font-weight] duration-0 delay-150 ${
-                mode === 'roommate' ? 'font-bold' : 'font-normal'
-              }`}
-            >
-              ищу соседа
-            </button>
+              {/* Layer 2: Moving text inside the mask (Black / Active / Bold) */}
+              <div
+                className={`absolute top-0 bottom-0 left-0 flex w-[333px] justify-between items-center transition-all duration-300 ease-in-out ${
+                  mode === 'apartment' ? 'translate-x-0' : 'translate-x-[-168px]'
+                }`}
+              >
+                <div className="w-[165px] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                  ищу квартиру
+                </div>
+                <div className="w-[165px] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                  ищу соседа
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex items-center w-full px-2">
