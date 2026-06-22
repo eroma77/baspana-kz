@@ -15,6 +15,12 @@ function formatBudgetDisplay(val: string) {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }
 
+function handleNumberKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (['e', 'E', '+', '-', '.', ','].includes(e.key)) {
+    e.preventDefault()
+  }
+}
+
 export default function AddListingPage() {
   const router = useRouter()
   const { user } = useAppStore()
@@ -138,6 +144,7 @@ export default function AddListingPage() {
   }
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
     const limit = formMode === 'apartment' ? 5 : 3
@@ -175,10 +182,36 @@ export default function AddListingPage() {
 
     // Validation
     if (!city) newErrors.city = true
+
+    // District Validation (mandatory if city has districts)
+    if (hasDistricts) {
+      if (formMode === 'roommate') {
+        if (!district || district === 'Не важно' || district === '-') {
+          newErrors.district = true
+        }
+      } else {
+        if (!district || district === '-') {
+          newErrors.district = true
+        }
+      }
+    }
+
     if (!priceFrom) newErrors.priceFrom = true
     if (!priceTo) newErrors.priceTo = true
+    if (priceFrom && priceTo && parseInt(priceFrom) > parseInt(priceTo)) {
+      newErrors.priceFrom = true
+      newErrors.priceTo = true
+      setSubmitErrorMsg('Минимальный бюджет (от) не может быть больше максимального (до).')
+    }
+
     if (!ageFrom) newErrors.ageFrom = true
     if (!ageTo) newErrors.ageTo = true
+    if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
+      newErrors.ageFrom = true
+      newErrors.ageTo = true
+      setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+    }
+
     if (!phone || phone.length < 10) newErrors.phone = true
     if (!description || description.trim().length < 10) newErrors.description = true
 
@@ -191,6 +224,19 @@ export default function AddListingPage() {
           newErrors.addressLink = true
           setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна содержать домен 2gis.kz или 2gis.ru')
         }
+      }
+    }
+
+    // Photo limits validation
+    if (formMode === 'apartment') {
+      if (photos.length < 3 || photos.length > 5) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Для квартиры необходимо добавить от 3 до 5 фотографий.')
+      }
+    } else {
+      if (photos.length > 3) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Для соседа можно добавить не более 3 фотографий.')
       }
     }
 
@@ -805,54 +851,38 @@ export default function AddListingPage() {
             <div className="grid grid-cols-2 gap-3">
               {/* Price From */}
               <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown('priceFrom')}
-                  className={dropdownToggleClass(!!errors.priceFrom, 'От', priceFrom)}
-                >
-                  <span className="truncate">{priceFrom ? `${formatBudgetDisplay(priceFrom)} ₸` : 'От'}</span>
-                  {dropdownChevron}
-                </button>
-                {activeDropdown === 'priceFrom' && (
-                  <div className={dropdownListClass}>
-                    {[20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 220000, 250000, 270000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000, 900000, 1000000].map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => handleDropdownSelect('priceFrom', p.toString())}
-                        className={dropdownItemClass}
-                      >
-                        {formatBudgetDisplay(p.toString())} ₸
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Бюджет от (₸)"
+                  value={formatBudgetDisplay(priceFrom)}
+                  onKeyDown={handleNumberKeyDown}
+                  onChange={(e) => {
+                    setPriceFrom(e.target.value.replace(/\D/g, ''))
+                    setErrors((prev) => ({ ...prev, priceFrom: false }))
+                  }}
+                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                    errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                  }`}
+                />
               </div>
 
               {/* Price To */}
               <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown('priceTo')}
-                  className={dropdownToggleClass(!!errors.priceTo, 'До', priceTo)}
-                >
-                  <span className="truncate">{priceTo ? `${formatBudgetDisplay(priceTo)} ₸` : 'До'}</span>
-                  {dropdownChevron}
-                </button>
-                {activeDropdown === 'priceTo' && (
-                  <div className={dropdownListClass}>
-                    {[20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000, 110000, 120000, 130000, 140000, 150000, 160000, 170000, 180000, 190000, 200000, 220000, 250000, 270000, 300000, 350000, 400000, 450000, 500000, 600000, 700000, 800000, 900000, 1000000].map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => handleDropdownSelect('priceTo', p.toString())}
-                        className={dropdownItemClass}
-                      >
-                        {formatBudgetDisplay(p.toString())} ₸
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Бюджет до (₸)"
+                  value={formatBudgetDisplay(priceTo)}
+                  onKeyDown={handleNumberKeyDown}
+                  onChange={(e) => {
+                    setPriceTo(e.target.value.replace(/\D/g, ''))
+                    setErrors((prev) => ({ ...prev, priceTo: false }))
+                  }}
+                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                    errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                  }`}
+                />
               </div>
             </div>
 
@@ -875,7 +905,9 @@ export default function AddListingPage() {
 
               {/* Upload button */}
               {photos.length < (formMode === 'apartment' ? 5 : 3) && (
-                <div className="relative w-16 h-16 border border-dashed border-gray-300 dark:border-zinc-700 rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D]">
+                <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
+                  errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
+                }`}>
                   <input
                     type="file"
                     accept="image/*"

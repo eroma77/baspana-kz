@@ -29,7 +29,7 @@ export function BottomNav() {
   }
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#000000] border-t border-zinc-800 transition-all duration-200 ease-in-out">
+    <div className="absolute bottom-0 left-0 right-0 z-40 bg-[#000000] border-t border-zinc-800 transition-all duration-200 ease-in-out">
       <div className="max-w-md mx-auto flex justify-between items-center px-4 py-3">
         {tabs.map((tab) => {
           const isActive = pathname === tab.path

@@ -103,7 +103,7 @@ export default function InstructionPage() {
             className="w-full bg-brand-blue text-white rounded-2xl py-4 font-bold text-center flex items-center justify-center gap-2 hover:bg-blue-600 active:scale-98 transition-all duration-200 shadow-sm text-sm mt-2"
           >
             <MessageCircle className="w-5 h-5 shrink-0" />
-            Связаться с автором
+            Связаться
           </button>
         </div>
 

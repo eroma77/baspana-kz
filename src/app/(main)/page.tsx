@@ -73,18 +73,29 @@ export default function FeedPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       if (hasDistricts) {
-        setFilterDistrict('Не важно')
+        setFilterDistrict(mode === 'apartment' ? 'Не важно' : (currentCityData?.districts[0] || ''))
       } else {
         setFilterDistrict('-')
       }
     }, 0)
     return () => clearTimeout(t)
-  }, [filterCity, hasDistricts])
+  }, [filterCity, hasDistricts, mode, currentCityData])
 
   // Prefetch instruction page for instant load
   useEffect(() => {
     router.prefetch('/instruction')
   }, [router])
+
+  // Sync district filter when mode changes
+  useEffect(() => {
+    if (hasDistricts) {
+      if (mode === 'roommate' && filterDistrict === 'Не важно') {
+        setFilterDistrict(currentCityData?.districts[0] || '')
+      } else if (mode === 'apartment' && filterDistrict !== 'Не важно' && !currentCityData?.districts.includes(filterDistrict)) {
+        setFilterDistrict('Не важно')
+      }
+    }
+  }, [mode, hasDistricts, currentCityData, filterDistrict])
 
   const fetchListings = useCallback(async () => {
     const fetchId = ++fetchCounter.current
@@ -256,7 +267,7 @@ export default function FeedPage() {
   // Filter reset handler
   const handleResetFilters = () => {
     setFilterCity('')
-    setFilterDistrict('Не важно')
+    setFilterDistrict(mode === 'apartment' ? 'Не важно' : '-')
     setFilterGender('любой')
     setFilterAgeFrom('')
     setFilterAgeTo('')
