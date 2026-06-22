@@ -30,7 +30,7 @@ export function Header({
 
   return (
     <div className={`w-full flex items-center justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out ${type === 'mode-toggle' && !showRightActions ? 'pt-[12px] pb-0' : 'py-3'}`}>
-      <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
+      <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md isolate ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
           <div className="flex w-full justify-between items-center text-[16px] relative h-full">
             {/* Floating White Pill */}
@@ -41,20 +41,16 @@ export function Header({
             />
             <button
               onClick={() => setMode('apartment')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-300 ease-in-out tracking-wide font-unbounded text-[16px] ${
-                mode === 'apartment'
-                  ? 'text-[#000000] font-bold'
-                  : 'text-[#FFFFFF] font-normal'
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center tracking-wide font-unbounded text-[16px] text-[#FFFFFF] mix-blend-difference transition-[font-weight] duration-0 delay-150 ${
+                mode === 'apartment' ? 'font-bold' : 'font-normal'
               }`}
             >
               ищу квартиру
             </button>
             <button
               onClick={() => setMode('roommate')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-300 ease-in-out tracking-wide font-unbounded text-[16px] ${
-                mode === 'roommate'
-                  ? 'text-[#000000] font-bold'
-                  : 'text-[#FFFFFF] font-normal'
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center tracking-wide font-unbounded text-[16px] text-[#FFFFFF] mix-blend-difference transition-[font-weight] duration-0 delay-150 ${
+                mode === 'roommate' ? 'font-bold' : 'font-normal'
               }`}
             >
               ищу соседа
