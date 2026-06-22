@@ -29,8 +29,12 @@ export function Header({
   const showRightActions = showThemeToggle || showHelpToggle
 
   return (
-    <div className={`w-full flex items-center justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark transition-all duration-200 ease-in-out ${type === 'mode-toggle' && !showRightActions ? 'pt-[12px] pb-0' : 'py-3'}`}>
-      <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md isolate ${type === 'mode-toggle' && !showRightActions ? 'w-[339px] mx-auto' : 'flex-1 max-w-[280px]'}`}>
+    <div className={`w-full flex items-center transition-all duration-200 ease-in-out ${
+      type === 'mode-toggle' && !showRightActions
+        ? 'pt-[12px] pb-0 justify-center'
+        : 'justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark py-3'
+    }`}>
+      <div className={`bg-[#000000] text-white rounded-[54px] flex items-center p-[3px] min-h-[41px] h-[41px] shadow-md isolate ${type === 'mode-toggle' && !showRightActions ? 'w-[339px]' : 'flex-1 max-w-[280px]'}`}>
         {type === 'mode-toggle' ? (
           <div className="w-full h-full relative flex items-center text-[16px]">
             {/* Layer 1: Background text (White / Inactive) */}
@@ -38,14 +42,16 @@ export function Header({
               <button
                 type="button"
                 onClick={() => setMode('apartment')}
-                className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                className="h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                style={{ width: 'calc(50% - 1.5px)' }}
               >
                 ищу квартиру
               </button>
               <button
                 type="button"
                 onClick={() => setMode('roommate')}
-                className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                className="h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                style={{ width: 'calc(50% - 1.5px)' }}
               >
                 ищу соседа
               </button>
@@ -53,20 +59,30 @@ export function Header({
 
             {/* Sliding Pill Container (Mask) */}
             <div
-              className={`absolute top-0 bottom-0 left-0 w-[calc(50%-1.5px)] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none ${
-                mode === 'apartment' ? 'translate-x-0' : 'translate-x-[calc(100%+3px)]'
-              }`}
+              className="absolute top-0 bottom-0 left-0 rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none"
+              style={{
+                width: 'calc(50% - 1.5px)',
+                transform: mode === 'apartment' ? 'translateX(0)' : 'translateX(calc(100% + 3px))'
+              }}
             >
               {/* Layer 2: Moving text inside the mask (Black / Active / Bold) */}
               <div
-                className={`absolute top-0 bottom-0 left-0 flex w-[calc(200%+3px)] justify-between items-center transition-all duration-300 ease-in-out ${
-                  mode === 'apartment' ? 'translate-x-0' : 'translate-x-[calc(-100%-3px)]'
-                }`}
+                className="absolute top-0 bottom-0 left-0 flex justify-between items-center transition-all duration-300 ease-in-out"
+                style={{
+                  width: 'calc(200% + 3px)',
+                  transform: mode === 'apartment' ? 'translateX(0)' : 'translateX(calc(-50% - 1.5px))'
+                }}
               >
-                <div className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                <div
+                  className="h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]"
+                  style={{ width: 'calc(50% - 1.5px)' }}
+                >
                   ищу квартиру
                 </div>
-                <div className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                <div
+                  className="h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]"
+                  style={{ width: 'calc(50% - 1.5px)' }}
+                >
                   ищу соседа
                 </div>
               </div>
