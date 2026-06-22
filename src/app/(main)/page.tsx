@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
@@ -40,7 +40,7 @@ export default function FeedPage() {
   const [showSort, setShowSort] = useState(false)
 
   // Filter States
-  const [filterCity, setFilterCity] = useState('Алматы')
+  const [filterCity, setFilterCity] = useState('')
   const [filterDistrict, setFilterDistrict] = useState('Не важно') // Default for apartment
   const [filterGender, setFilterGender] = useState('любой')
   const [filterAgeFrom, setFilterAgeFrom] = useState('')
@@ -54,7 +54,10 @@ export default function FeedPage() {
   const [filterPriceFrom, setFilterPriceFrom] = useState('')
   const [filterPriceTo, setFilterPriceTo] = useState('')
   const [filterOnlyPhotos, setFilterOnlyPhotos] = useState(false)
-  const [filterHideViewed, setFilterHideViewed] = useState(true)
+  const [filterHideViewed, setFilterHideViewed] = useState(false)
+
+  // Request counter ref to prevent race conditions
+  const fetchCounter = useRef(0)
 
   // Sort State
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'price_asc' | 'price_desc'>('newest')
@@ -70,13 +73,13 @@ export default function FeedPage() {
   useEffect(() => {
     const t = setTimeout(() => {
       if (hasDistricts) {
-        setFilterDistrict(mode === 'apartment' ? 'Не важно' : currentCityData.districts[0])
+        setFilterDistrict('Не важно')
       } else {
         setFilterDistrict('-')
       }
     }, 0)
     return () => clearTimeout(t)
-  }, [filterCity, mode, hasDistricts, currentCityData])
+  }, [filterCity, hasDistricts])
 
   // Prefetch instruction page for instant load
   useEffect(() => {
@@ -84,6 +87,7 @@ export default function FeedPage() {
   }, [router])
 
   const fetchListings = useCallback(async () => {
+    const fetchId = ++fetchCounter.current
     const storeState = useAppStore.getState()
     const currentListings = mode === 'apartment' ? storeState.apartmentListings : storeState.roommateListings
     const hasPreloaded = currentListings.length > 0
@@ -93,6 +97,7 @@ export default function FeedPage() {
     try {
       // Call remote self-cleaning function
       await supabase.rpc('cleanup_listings')
+      if (fetchId !== fetchCounter.current) return
 
       // Build database query
       let query = supabase
@@ -139,6 +144,7 @@ export default function FeedPage() {
 
       const { data, error } = await query
       if (error) throw error
+      if (fetchId !== fetchCounter.current) return
 
       let result = (data as Listing[]) || []
 
@@ -198,9 +204,13 @@ export default function FeedPage() {
         setRoommateListings(result)
       }
     } catch (err) {
-      console.error('Error loading listings:', err)
+      if (fetchId === fetchCounter.current) {
+        console.error('Error loading listings:', err)
+      }
     } finally {
-      setIsLoading(false)
+      if (fetchId === fetchCounter.current) {
+        setIsLoading(false)
+      }
     }
   }, [
     mode,
@@ -237,13 +247,16 @@ export default function FeedPage() {
   // Filter application handler
   const handleApplyFilters = () => {
     setShowFilters(false)
+    if (mode === 'roommate' && filterDistrict === 'Не важно' && currentCityData && currentCityData.districts.length > 0) {
+      setFilterDistrict(currentCityData.districts[0])
+    }
     fetchListings()
   }
 
   // Filter reset handler
   const handleResetFilters = () => {
-    setFilterCity('Алматы')
-    setFilterDistrict(mode === 'apartment' ? 'Не важно' : 'Алатауский')
+    setFilterCity('')
+    setFilterDistrict('Не важно')
     setFilterGender('любой')
     setFilterAgeFrom('')
     setFilterAgeTo('')
@@ -256,7 +269,7 @@ export default function FeedPage() {
     setFilterPriceFrom('')
     setFilterPriceTo('')
     setFilterOnlyPhotos(false)
-    setFilterHideViewed(mode === 'roommate') // Defaults for roommate
+    setFilterHideViewed(false)
     setActiveDropdown(null)
   }
 
@@ -332,7 +345,7 @@ export default function FeedPage() {
 
       {/* Main listings list */}
       <div className="flex-1 px-4 py-4 overflow-y-auto">
-        {isLoading ? (
+        {isLoading && listings.length === 0 ? (
           <div className="w-full py-12 flex flex-col items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
             <span className="text-xs text-brand-gray">Загрузка объявлений...</span>
@@ -474,11 +487,21 @@ export default function FeedPage() {
                     onClick={() => toggleDropdown('city')}
                     className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center"
                   >
-                    <span>{filterCity}</span>
+                    <span>{filterCity || 'Все города'}</span>
                     <span className="text-[10px] text-[#9D9D9D]">▼</span>
                   </button>
                   {activeDropdown === 'city' && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFilterCity('')
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white border-b border-zinc-200/10 dark:border-zinc-800/10"
+                      >
+                        Все города
+                      </button>
                       {CITIES_DATA.map((c) => (
                         <button
                           key={c.city}
@@ -540,7 +563,11 @@ export default function FeedPage() {
                       : 'bg-zinc-200 dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed'
                   }`}
                 >
-                  <span>{filterDistrict}</span>
+                  <span>
+                    {mode === 'roommate' && filterDistrict === 'Не важно' && currentCityData && currentCityData.districts.length > 0
+                      ? currentCityData.districts[0]
+                      : filterDistrict}
+                  </span>
                   <span className="text-[10px] text-[#9D9D9D]">▼</span>
                 </button>
                 {activeDropdown === 'district' && hasDistricts && (

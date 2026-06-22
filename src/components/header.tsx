@@ -41,7 +41,7 @@ export function Header({
             />
             <button
               onClick={() => setMode('apartment')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-none tracking-wide font-unbounded text-[16px] ${
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-300 ease-in-out tracking-wide font-unbounded text-[16px] ${
                 mode === 'apartment'
                   ? 'text-[#000000] font-bold'
                   : 'text-[#FFFFFF] font-normal'
@@ -51,7 +51,7 @@ export function Header({
             </button>
             <button
               onClick={() => setMode('roommate')}
-              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-none tracking-wide font-unbounded text-[16px] ${
+              className={`relative z-10 w-[165px] h-[35px] rounded-[54px] flex items-center justify-center transition-all duration-300 ease-in-out tracking-wide font-unbounded text-[16px] ${
                 mode === 'roommate'
                   ? 'text-[#000000] font-bold'
                   : 'text-[#FFFFFF] font-normal'
