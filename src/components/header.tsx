@@ -38,14 +38,14 @@ export function Header({
               <button
                 type="button"
                 onClick={() => setMode('apartment')}
-                className="w-[165px] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
               >
                 ищу квартиру
               </button>
               <button
                 type="button"
                 onClick={() => setMode('roommate')}
-                className="w-[165px] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
+                className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
               >
                 ищу соседа
               </button>
@@ -53,20 +53,20 @@ export function Header({
 
             {/* Sliding Pill Container (Mask) */}
             <div
-              className={`absolute top-0 bottom-0 left-0 w-[165px] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none ${
-                mode === 'apartment' ? 'translate-x-0' : 'translate-x-[168px]'
+              className={`absolute top-0 bottom-0 left-0 w-[calc(50%-1.5px)] rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none ${
+                mode === 'apartment' ? 'translate-x-0' : 'translate-x-[calc(100%+3px)]'
               }`}
             >
               {/* Layer 2: Moving text inside the mask (Black / Active / Bold) */}
               <div
-                className={`absolute top-0 bottom-0 left-0 flex w-[333px] justify-between items-center transition-all duration-300 ease-in-out ${
-                  mode === 'apartment' ? 'translate-x-0' : 'translate-x-[-168px]'
+                className={`absolute top-0 bottom-0 left-0 flex w-[calc(200%+3px)] justify-between items-center transition-all duration-300 ease-in-out ${
+                  mode === 'apartment' ? 'translate-x-0' : 'translate-x-[calc(-100%-3px)]'
                 }`}
               >
-                <div className="w-[165px] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                <div className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
                   ищу квартиру
                 </div>
-                <div className="w-[165px] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
+                <div className="w-[calc(50%-1.5px)] h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]">
                   ищу соседа
                 </div>
               </div>
