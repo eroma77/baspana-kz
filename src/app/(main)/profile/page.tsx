@@ -343,7 +343,7 @@ export default function ProfilePage() {
                       // Check for payment / validation error status
                       const hasReceiptError = item.status === 'receipt_error'
                       return (
-                        <div key={item.id} className="flex flex-col mb-4">
+                        <div key={item.id} className="flex flex-col w-[338px] mx-auto mb-4">
                           {hasReceiptError && (
                             <div className="mb-2 bg-brand-red/10 border border-brand-red/20 text-brand-red rounded-t-2xl p-3 flex justify-between items-center text-[11px] font-bold">
                               <span>Ошибка публикации из-за неверного чека</span>
