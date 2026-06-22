@@ -45,14 +45,16 @@ interface AppState {
   mode: 'apartment' | 'roommate'
   user: Profile | null
   favorites: string[] // Array of listing IDs
-  listings: Listing[]
+  apartmentListings: Listing[]
+  roommateListings: Listing[]
   viewed: string[] // Array of listing IDs
   setTheme: (theme: 'light' | 'dark') => void
   setMode: (mode: 'apartment' | 'roommate') => void
   setUser: (user: Profile | null) => void
   toggleFavorite: (listingId: string) => void
   addToViewed: (listingId: string) => void
-  setListings: (listings: Listing[]) => void
+  setApartmentListings: (listings: Listing[]) => void
+  setRoommateListings: (listings: Listing[]) => void
   clearFavorites: () => void
   clearViewed: () => void
 }
@@ -64,7 +66,8 @@ export const useAppStore = create<AppState>()(
       mode: 'apartment',
       user: null,
       favorites: [],
-      listings: [],
+      apartmentListings: [],
+      roommateListings: [],
       viewed: [],
       setTheme: (theme) => {
         set({ theme })
@@ -94,7 +97,8 @@ export const useAppStore = create<AppState>()(
           const newViewed = [listingId, ...filtered].slice(0, 30)
           return { viewed: newViewed }
         }),
-      setListings: (listings) => set({ listings }),
+      setApartmentListings: (listings) => set({ apartmentListings: listings }),
+      setRoommateListings: (listings) => set({ roommateListings: listings }),
       clearFavorites: () => set({ favorites: [] }),
       clearViewed: () => set({ viewed: [] }),
     }),

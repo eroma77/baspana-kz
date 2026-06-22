@@ -100,9 +100,9 @@ export default function MainLayout({
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-100 dark:bg-zinc-950 flex flex-col justify-start items-center">
-      <div className="w-full max-w-md min-h-screen bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col pb-24 relative shadow-md border-x border-gray-200 dark:border-zinc-800 transition-colors duration-200">
-        <main className="flex-1 flex flex-col w-full">{children}</main>
+    <div className="h-screen h-[100dvh] w-full bg-zinc-100 dark:bg-zinc-950 flex flex-col justify-start items-center overflow-hidden">
+      <div className="w-full max-w-md h-full bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col pb-24 relative shadow-md border-x border-gray-200 dark:border-zinc-800 transition-colors duration-200 overflow-hidden">
+        <main className="flex-1 flex flex-col w-full overflow-hidden">{children}</main>
         <BottomNav />
       </div>
     </div>

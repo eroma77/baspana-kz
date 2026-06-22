@@ -18,10 +18,21 @@ function formatBudgetDisplay(val: string) {
 
 export default function FeedPage() {
   const router = useRouter()
-  const { mode, viewed, theme, setTheme, listings, setListings } = useAppStore()
+  const { 
+    mode, 
+    viewed, 
+    theme, 
+    setTheme, 
+    apartmentListings, 
+    roommateListings, 
+    setApartmentListings, 
+    setRoommateListings 
+  } = useAppStore()
+  
+  const listings = mode === 'apartment' ? apartmentListings : roommateListings
   
   // Data States
-  const hasPreloadedData = listings.length > 0 && listings[0].mode === mode
+  const hasPreloadedData = listings.length > 0
   const [isLoading, setIsLoading] = useState(!hasPreloadedData)
 
   // Modal Toggles
@@ -73,8 +84,9 @@ export default function FeedPage() {
   }, [router])
 
   const fetchListings = useCallback(async () => {
-    const currentListings = useAppStore.getState().listings
-    const hasPreloaded = currentListings.length > 0 && currentListings[0].mode === mode
+    const storeState = useAppStore.getState()
+    const currentListings = mode === 'apartment' ? storeState.apartmentListings : storeState.roommateListings
+    const hasPreloaded = currentListings.length > 0
     if (!hasPreloaded) {
       setIsLoading(true)
     }
@@ -180,7 +192,11 @@ export default function FeedPage() {
         return 0
       })
 
-      setListings(result)
+      if (mode === 'apartment') {
+        setApartmentListings(result)
+      } else {
+        setRoommateListings(result)
+      }
     } catch (err) {
       console.error('Error loading listings:', err)
     } finally {
@@ -206,7 +222,8 @@ export default function FeedPage() {
     filterHideViewed,
     viewed,
     sortBy,
-    setListings,
+    setApartmentListings,
+    setRoommateListings,
   ])
 
   // Refetch when search mode changes
