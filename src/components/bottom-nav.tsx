@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
-import { Compass, Heart, Plus, Eye, User } from 'lucide-react'
+import { Flame, Heart, Plus, Eye, User } from 'lucide-react'
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -11,7 +11,7 @@ export function BottomNav() {
   const { user } = useAppStore()
 
   const tabs = [
-    { name: 'Лента', path: '/', icon: Compass },
+    { name: 'Лента', path: '/', icon: Flame },
     { name: 'Избранное', path: '/favorites', icon: Heart },
     { name: 'Добавить', path: '/add', icon: Plus, isAction: true },
     { name: 'Просмотрено', path: '/viewed', icon: Eye },
@@ -29,31 +29,33 @@ export function BottomNav() {
   }
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 z-40 bg-[#000000] border-t border-zinc-800 transition-all duration-200 ease-in-out">
-      <div className="max-w-md mx-auto flex justify-between items-center px-4 py-3">
+    <div className="absolute bottom-6 left-0 right-0 z-40 px-4 pointer-events-none select-none">
+      <div className="w-[340px] h-[64px] mx-auto bg-[#000000] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex justify-between items-center px-3 border border-zinc-900 pointer-events-auto transition-all duration-200 ease-in-out">
         {tabs.map((tab) => {
           const isActive = pathname === tab.path
           const Icon = tab.icon
 
-          // Special style for active state: solid blue circle
-          // otherwise grey/white
           return (
             <Link
               key={tab.path}
               href={tab.path}
               onClick={(e) => handleTabClick(e, tab)}
-              className="flex flex-col items-center justify-center flex-1 py-1"
+              className="flex items-center justify-center"
               aria-label={tab.name}
             >
-              <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ease-in-out ${
-                  isActive
-                    ? 'bg-[#007BFF] text-white shadow-md scale-105'
-                    : 'text-[#9D9D9D] hover:text-white'
-                }`}
-              >
-                <Icon className={`w-5 h-5 ${isActive ? 'stroke-[2.5px]' : 'stroke-2'}`} />
-              </div>
+              {isActive ? (
+                // Active: White outer circle, blue inner circle, white icon
+                <div className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center shadow-lg scale-105 transition-all duration-200">
+                  <div className="w-[36px] h-[36px] rounded-full bg-[#007BFF] flex items-center justify-center text-white">
+                    <Icon className="w-5 h-5 stroke-[2.5px] fill-current" />
+                  </div>
+                </div>
+              ) : (
+                // Inactive: Solid white circle with black icon
+                <div className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 shadow-sm">
+                  <Icon className="w-5 h-5 text-black stroke-[2.5px]" />
+                </div>
+              )}
             </Link>
           )
         })}

@@ -179,7 +179,10 @@ export function ListingCard({
 
           {/* В ТОПЕ Banner */}
           {listing.is_premium && (
-            <div className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center font-unbounded font-bold text-[18px] z-10">
+            <div 
+              className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center pr-[14px] font-unbounded font-bold text-[18px] z-10"
+              style={{ clipPath: 'polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)' }}
+            >
               В ТОПЕ
             </div>
           )}
@@ -337,7 +340,10 @@ export function ListingCard({
       <div className={`p-[12px] pb-2 flex items-center gap-3 relative ${listing.is_premium ? 'pt-[36px]' : ''}`}>
         {/* В ТОПЕ Banner */}
         {listing.is_premium && (
-          <div className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center font-unbounded font-bold text-[18px] z-10">
+          <div 
+            className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center pr-[14px] font-unbounded font-bold text-[18px] z-10"
+            style={{ clipPath: 'polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)' }}
+          >
             В ТОПЕ
           </div>
         )}
