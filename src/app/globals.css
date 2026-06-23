@@ -13,6 +13,7 @@
   --color-brand-red: #FF3662;
   
   --font-unbounded: var(--font-unbounded);
+  --font-montserrat: var(--font-montserrat);
 }
 
 html, body {

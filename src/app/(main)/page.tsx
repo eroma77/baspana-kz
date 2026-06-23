@@ -441,7 +441,7 @@ export default function FeedPage() {
           ></div>
 
           {/* Drawer Content */}
-          <div className="relative w-full max-w-md mx-auto h-[85vh] bg-[#FFFFFF] dark:bg-[#313131] border-t border-gray-200 dark:border-zinc-800 rounded-t-[32px] flex flex-col shadow-2xl overflow-hidden select-none animate-slide-up">
+          <div className="relative w-full max-w-md mx-auto h-[85vh] bg-[#FFFFFF] dark:bg-[#313131] border-t border-gray-200 dark:border-zinc-800 rounded-t-[32px] flex flex-col shadow-2xl overflow-hidden select-none animate-slide-up font-montserrat">
             {/* Header Capsule - Matches Figma header style exactly */}
             <div className="w-full flex items-center justify-between px-4 py-3 sticky top-0 z-40 bg-[#FFFFFF] dark:bg-[#313131] border-b border-gray-200/50 dark:border-zinc-800 transition-all duration-200 ease-in-out shrink-0">
               {/* Left filter capsule */}
@@ -456,7 +456,7 @@ export default function FeedPage() {
                       <ChevronLeft className="w-3.5 h-3.5 text-white" />
                     </div>
                   </button>
-                  <span className="font-normal text-xs tracking-wide lowercase font-unbounded">
+                  <span className="font-normal text-[16px] tracking-wide lowercase">
                     фильтр
                   </span>
                 </div>
@@ -483,7 +483,7 @@ export default function FeedPage() {
                   className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200 ease-in-out"
                   aria-label="Инструкция"
                 >
-                  <div className="w-[20px] h-[20px] rounded-full border border-white/50 flex items-center justify-center text-white font-bold text-[11px] font-unbounded select-none leading-none">
+                  <div className="w-[20px] h-[20px] rounded-full border border-white/50 flex items-center justify-center text-white font-bold text-[11px] select-none leading-none">
                     ?
                   </div>
                 </button>
@@ -491,7 +491,7 @@ export default function FeedPage() {
             </div>
 
             {/* Fields grid scroll container */}
-            <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4 text-xs font-semibold">
+            <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4 text-[16px] font-normal">
               
               {/* Row 1: Город & Пол */}
               <div className="grid grid-cols-2 gap-3">
@@ -500,7 +500,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('city')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterCity
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -517,7 +517,7 @@ export default function FeedPage() {
                           setFilterCity('')
                           setActiveDropdown(null)
                         }}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white border-b border-zinc-200/10 dark:border-zinc-800/10 transition-colors duration-200 ease-in-out"
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white border-b border-zinc-200/10 dark:border-zinc-800/10 transition-colors duration-200 ease-in-out"
                       >
                         Все города
                       </button>
@@ -529,7 +529,7 @@ export default function FeedPage() {
                             setFilterCity(c.city)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {c.city}
                         </button>
@@ -543,7 +543,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('gender')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterGender !== 'любой'
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -562,7 +562,7 @@ export default function FeedPage() {
                             setFilterGender(g)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {g}
                         </button>
@@ -578,7 +578,7 @@ export default function FeedPage() {
                   type="button"
                   disabled={!hasDistricts}
                   onClick={() => toggleDropdown('district')}
-                  className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                  className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                     hasDistricts
                       ? filterDistrict && filterDistrict !== 'Не важно' && filterDistrict !== '-'
                         ? 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold'
@@ -604,7 +604,7 @@ export default function FeedPage() {
                           setFilterDistrict('Не важно')
                           setActiveDropdown(null)
                         }}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                       >
                         Не важно
                       </button>
@@ -617,7 +617,7 @@ export default function FeedPage() {
                           setFilterDistrict(d)
                           setActiveDropdown(null)
                         }}
-                        className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                       >
                         {d}
                       </button>
@@ -633,7 +633,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('age')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterAgeFrom || filterAgeTo
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -658,14 +658,14 @@ export default function FeedPage() {
                           placeholder="от"
                           value={filterAgeFrom}
                           onChange={(e) => setFilterAgeFrom(e.target.value.replace(/\D/g, ''))}
-                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out"
+                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out text-[16px]"
                         />
                         <input
                           type="text"
                           placeholder="до"
                           value={filterAgeTo}
                           onChange={(e) => setFilterAgeTo(e.target.value.replace(/\D/g, ''))}
-                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out"
+                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out text-[16px]"
                         />
                       </div>
                       <button
@@ -684,7 +684,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('rooms')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterRooms !== 'любая'
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -705,7 +705,7 @@ export default function FeedPage() {
                             setFilterRooms(r)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {r === 'любая' ? 'любая комната' : `${r} комната`}
                         </button>
@@ -722,7 +722,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('peopleCount')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterPeopleCount
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -743,7 +743,7 @@ export default function FeedPage() {
                             setFilterPeopleCount(p === 'любое' ? '' : p)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {p === 'любое' ? 'любое число' : p}
                         </button>
@@ -757,7 +757,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('searchingCount')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterSearchingCount
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -778,7 +778,7 @@ export default function FeedPage() {
                             setFilterSearchingCount(s === 'любое' ? '' : s)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {s === 'любое' ? 'любое число' : s}
                         </button>
@@ -794,7 +794,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('canLiveWith')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterCanLiveWith !== 'Не важно'
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -815,7 +815,7 @@ export default function FeedPage() {
                             setFilterCanLiveWith(item)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {item}
                         </button>
@@ -832,7 +832,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('deposit')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterDeposit !== 'не важно'
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -853,7 +853,7 @@ export default function FeedPage() {
                             setFilterDeposit(d)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {d}
                         </button>
@@ -867,7 +867,7 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('contract')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                       filterContract !== 'не важно'
                         ? 'text-[#000000] dark:text-white font-semibold'
                         : 'text-[#9D9D9D] font-normal'
@@ -888,7 +888,7 @@ export default function FeedPage() {
                             setFilterContract(c)
                             setActiveDropdown(null)
                           }}
-                          className="w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
+                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
                         >
                           {c}
                         </button>
@@ -905,7 +905,7 @@ export default function FeedPage() {
                   placeholder="От"
                   value={formatBudgetDisplay(filterPriceFrom)}
                   onChange={(e) => setFilterPriceFrom(e.target.value.replace(/\D/g, ''))}
-                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out ${
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                     filterPriceFrom
                       ? 'text-[#000000] dark:text-white font-semibold'
                       : 'text-[#9D9D9D] font-normal'
@@ -916,7 +916,7 @@ export default function FeedPage() {
                   placeholder="До"
                   value={formatBudgetDisplay(filterPriceTo)}
                   onChange={(e) => setFilterPriceTo(e.target.value.replace(/\D/g, ''))}
-                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out ${
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
                     filterPriceTo
                       ? 'text-[#000000] dark:text-white font-semibold'
                       : 'text-[#9D9D9D] font-normal'
@@ -968,13 +968,13 @@ export default function FeedPage() {
             <div className="w-full p-5 border-t border-gray-150 dark:border-zinc-850 flex justify-between gap-3 shrink-0 transition-all duration-200 ease-in-out">
               <button
                 onClick={handleResetFilters}
-                className="flex-1 bg-[#007BFF]/10 text-[#007BFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-[#007BFF]/20 active:scale-[0.98] transition-all duration-200 ease-in-out"
+                className="flex-1 bg-[#007BFF]/10 text-[#007BFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-[#007BFF]/20 active:scale-[0.98] transition-all duration-200 ease-in-out text-[16px]"
               >
                 Сбросить
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 ease-in-out"
+                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 ease-in-out text-[16px]"
               >
                 Применить
               </button>
