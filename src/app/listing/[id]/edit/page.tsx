@@ -41,7 +41,7 @@ export default function EditListingPage({ params }: PageProps) {
   const [ageFrom, setAgeFrom] = useState('')
   const [ageTo, setAgeTo] = useState('')
   const [rooms, setRooms] = useState('1')
-  const [canLiveWith, setCanLiveWith] = useState('все') 
+  const [canLiveWith, setCanLiveWith] = useState('Не важно') 
   const [peopleCount, setPeopleCount] = useState('1')
   const [searchingCount, setSearchingCount] = useState('1')
   const [term, setTerm] = useState('длительно')
@@ -97,7 +97,7 @@ export default function EditListingPage({ params }: PageProps) {
         setAgeFrom(item.age_from.toString())
         setAgeTo(item.age_to.toString())
         setRooms(item.rooms)
-        setCanLiveWith(item.can_live_with || 'все')
+        setCanLiveWith(item.can_live_with || 'Не важно')
         setPeopleCount(item.people_count.toString())
         setSearchingCount(item.searching_count.toString())
         setTerm(item.term)
@@ -567,7 +567,7 @@ export default function EditListingPage({ params }: PageProps) {
                     </button>
                     {activeDropdown === 'canLiveWith' && (
                       <div className={dropdownListClass}>
-                        {['все', 'парни', 'девушки', 'семейная пара'].map((item) => (
+                        {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
                           <button
                             key={item}
                             type="button"

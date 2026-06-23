@@ -268,7 +268,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 </div>
                 <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
                   <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs truncate">С кем: {listing.can_live_with || 'все'}</span>
+                  <span className="text-xs truncate">С кем: {listing.can_live_with || 'Не важно'}</span>
                 </div>
                 <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
                   <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />

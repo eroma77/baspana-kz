@@ -48,7 +48,7 @@ export default function FeedPage() {
   const [filterRooms, setFilterRooms] = useState('любая')
   const [filterPeopleCount, setFilterPeopleCount] = useState('')
   const [filterSearchingCount, setFilterSearchingCount] = useState('')
-  const [filterCanLiveWith, setFilterCanLiveWith] = useState('все')
+  const [filterCanLiveWith, setFilterCanLiveWith] = useState('Не важно')
   const [filterDeposit, setFilterDeposit] = useState('не важно')
   const [filterContract, setFilterContract] = useState('не важно')
   const [filterPriceFrom, setFilterPriceFrom] = useState('')
@@ -141,7 +141,7 @@ export default function FeedPage() {
       } else if (filterContract === 'нет') {
         query = query.eq('contract', 'no')
       }
-      if (mode === 'apartment' && filterCanLiveWith && filterCanLiveWith !== 'все') {
+      if (mode === 'apartment' && filterCanLiveWith && filterCanLiveWith !== 'Не важно') {
         query = query.eq('can_live_with', filterCanLiveWith)
       }
 
@@ -274,7 +274,7 @@ export default function FeedPage() {
     setFilterRooms('любая')
     setFilterPeopleCount('')
     setFilterSearchingCount('')
-    setFilterCanLiveWith('все')
+    setFilterCanLiveWith('Не важно')
     setFilterDeposit('не важно')
     setFilterContract('не важно')
     setFilterPriceFrom('')
@@ -702,7 +702,7 @@ export default function FeedPage() {
                   </button>
                   {activeDropdown === 'canLiveWith' && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl">
-                      {['все', 'парни', 'девушки', 'семейная пара'].map((item) => (
+                      {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
                         <button
                           key={item}
                           type="button"

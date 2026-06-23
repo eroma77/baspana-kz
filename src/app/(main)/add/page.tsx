@@ -257,7 +257,7 @@ export default function AddListingPage() {
       age_from: parseInt(ageFrom),
       age_to: parseInt(ageTo),
       rooms: rooms || '1',
-      can_live_with: formMode === 'apartment' ? (canLiveWith || 'все') : null,
+      can_live_with: formMode === 'apartment' ? (canLiveWith || 'Не важно') : null,
       people_count: parseInt(peopleCount) || 1,
       searching_count: parseInt(searchingCount) || 1,
       term: term || 'длительно',
@@ -588,7 +588,7 @@ export default function AddListingPage() {
                     </button>
                     {activeDropdown === 'canLiveWith' && (
                       <div className={dropdownListClass}>
-                        {['все', 'Только парни', 'Только девочки', 'семейная пара'].map((item) => (
+                        {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
                           <button
                             key={item}
                             type="button"
