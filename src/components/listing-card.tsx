@@ -14,35 +14,60 @@ interface ListingCardProps {
 }
 
 const formatCanLiveWith = (val?: string | null) => {
-  if (!val || val === 'все') return 'Все'
-  if (val === 'парни') return 'Только парни'
-  if (val === 'девушки') return 'Только девушки'
-  if (val === 'семейная пара') return 'Семейная пара'
-  return val
+  if (!val) return 'Не важно'
+  const v = val.toLowerCase().trim()
+  if (v === 'парни' || v === 'мужской' || v === 'только парни' || v.includes('парн')) return 'Только парни'
+  if (v === 'девушки' || v === 'девочки' || v === 'женский' || v === 'только девушки' || v === 'только девочки' || v.includes('дев')) return 'Только девочки'
+  return 'Не важно'
 }
 
 const getCityAbbreviation = (city: string) => {
   const c = city.toLowerCase().trim()
-  if (c.includes('алматы')) return 'ала'
-  if (c.includes('астана')) return 'аст'
-  if (c.includes('шымкент')) return 'шым'
-  if (c.includes('караганда') || c.includes('караганды')) return 'кгд'
-  if (c.includes('актобе')) return 'акб'
-  if (c.includes('тараз')) return 'трз'
-  if (c.includes('павлодар')) return 'пвд'
-  if (c.includes('семей')) return 'смй'
-  if (c.includes('кызылорда')) return 'кзд'
-  if (c.includes('атырау')) return 'ату'
-  if (c.includes('костанай')) return 'кст'
-  if (c.includes('уральск')) return 'урл'
-  if (c.includes('петропавловск')) return 'птп'
-  if (c.includes('актау')) return 'акт'
-  if (c.includes('темиртау')) return 'тмт'
-  if (c.includes('туркестан')) return 'трк'
-  if (c.includes('кокшетау')) return 'кшт'
-  if (c.includes('талдыкорган')) return 'тлд'
-  if (c.includes('жезказган')) return 'жзк'
-  return city.substring(0, 3).toLowerCase()
+  if (c.includes('алматы')) return 'АЛА'
+  if (c.includes('астана')) return 'АСТ'
+  if (c.includes('шымкент')) return 'ШЫМ'
+  if (c.includes('караганда') || c.includes('караганды')) return 'КГД'
+  if (c.includes('актобе')) return 'АКБ'
+  if (c.includes('тараз')) return 'ТРЗ'
+  if (c.includes('павлодар')) return 'ПВД'
+  if (c.includes('семей')) return 'СМЙ'
+  if (c.includes('кызылорда')) return 'КЗД'
+  if (c.includes('атырау')) return 'АТУ'
+  if (c.includes('костанай')) return 'КСТ'
+  if (c.includes('уральск')) return 'УРЛ'
+  if (c.includes('петропавловск')) return 'ПТП'
+  if (c.includes('актау')) return 'АКТ'
+  if (c.includes('темиртау')) return 'ТМТ'
+  if (c.includes('туркестан')) return 'ТРК'
+  if (c.includes('кокшетау')) return 'КШТ'
+  if (c.includes('талдыкорган')) return 'ТЛД'
+  if (c.includes('жезказган')) return 'ЖЗК'
+  return city.substring(0, 3).toUpperCase()
+}
+
+const formatDistrict = (district?: string | null) => {
+  if (!district || district === '-' || district === 'Не важно' || district === 'all') return ''
+  const d = district.trim()
+  
+  // Mapping for Almaty districts
+  if (d.includes('Алатау')) return 'Алатау'
+  if (d.includes('Алмали')) return 'Алмалы'
+  if (d.includes('Ауэзов')) return 'Ауэзов'
+  if (d.includes('Бостандык')) return 'Бостандык'
+  if (d.includes('Жетысу')) return 'Жетысу'
+  if (d.includes('Медеу')) return 'Медеу'
+  if (d.includes('Наурызбай')) return 'Наурызбай'
+  if (d.includes('Турксиб')) return 'Турксиб'
+  
+  // Mapping for Shymkent districts
+  if (d.includes('Абай')) return 'Абай'
+  if (d.includes('Аль-Фараби')) return 'Аль-Фараби'
+  if (d.includes('Енбекши')) return 'Енбекши'
+  if (d.includes('Каратау')) return 'Каратау'
+  if (d.includes('Туран')) return 'Туран'
+  
+  // Strip "ский" or "ская" suffix
+  return d.replace(/ский$/, '').replace(/ская$/, '')
 }
 
 export function ListingCard({
@@ -161,10 +186,10 @@ export function ListingCard({
         </div>
 
         {/* Details Area */}
-        <div className="p-[12px] flex flex-col flex-1 min-h-0 justify-between">
+        <div className="px-[16px] pt-[12px] pb-[12px] flex flex-col flex-1 min-h-0 justify-between">
           {/* Price & Date */}
           <div className="flex justify-between items-center mb-1">
-            <span className="text-[18px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-2">
+            <span className="text-[17px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-2">
               {formatPrice(listing.price_from)}
               {listing.price_to && listing.price_to !== listing.price_from
                 ? ` - ${formatPrice(listing.price_to)}`
@@ -177,65 +202,71 @@ export function ListingCard({
           </div>
 
           {/* 8 Parameters Grid (2-column) — matches Figma exactly */}
-          <div className="flex justify-between gap-[16px] my-1.5">
-            {/* Left Column (Long parameters - 190px) */}
-            <div className="flex flex-col gap-[4px] w-[190px]">
+          <div className="flex justify-between gap-[14px] my-1.5">
+            {/* Left Column (Long parameters - 168px) */}
+            <div className="flex flex-col gap-[4px] w-[168px]">
               {/* Badge 1: Address */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
-                <MapPin className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Location.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Location-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
                 <span className="truncate leading-none">
                   {cityAbbr}
-                  {listing.district && listing.district !== '-' && listing.district !== 'Не важно'
-                    ? `, ${listing.district}`
-                    : ''}
+                  {formatDistrict(listing.district) ? `, ${formatDistrict(listing.district)}` : ''}
                 </span>
               </div>
 
               {/* Badge 2: Rooms */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
-                <Home className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Room.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Room-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
                 <span className="truncate leading-none">{listing.rooms}-комнатный</span>
               </div>
 
               {/* Badge 3: Gender / Can live with */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
-                <User className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Toilet.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Toilet-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
                 <span className="truncate leading-none">
                   {formatCanLiveWith(listing.can_live_with || listing.gender)}
                 </span>
               </div>
 
               {/* Badge 4: Total People */}
-              <div className="flex items-center gap-1.5 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-2 text-[12px] font-medium text-zinc-800 dark:text-zinc-200 w-[190px] h-[22px] shrink-0 min-w-0">
-                <Users className="w-[13px] h-[13px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Batch Assign.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Batch Assign-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
                 <span className="truncate leading-none">Общий: {listing.total_people}</span>
               </div>
             </div>
 
-            {/* Right Column (Short parameters - 99px) */}
-            <div className="flex flex-col gap-[4px] w-[99px]">
+            {/* Right Column (Short parameters - 124px) */}
+            <div className="flex flex-col gap-[4px] w-[124px]">
               {/* Badge 5: Searching Count (Ищу) */}
-              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Users className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
+              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Google Web Search.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Google Web Search-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
                 <span className="truncate leading-none">Ищу: {listing.searching_count}</span>
               </div>
 
               {/* Badge 6: Age */}
-              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Calendar className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
-                <span className="truncate leading-none">{listing.age_from}-{listing.age_to} л.</span>
+              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Birthday.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Birthday-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
+                <span className="truncate leading-none">{listing.age_from}-{listing.age_to} лет</span>
               </div>
 
               {/* Badge 7: Deposit */}
-              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <Coins className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
-                <span className="truncate leading-none">Деп: {listing.deposit > 0 ? 'Да' : 'Нет'}</span>
+              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Us Dollar Circled.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Us Dollar Circled-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
+                <span className="truncate leading-none">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
               </div>
 
               {/* Badge 8: Contract */}
-              <div className="flex items-center gap-1 bg-[#F7F7F7] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-[4px] px-1.5 text-[11px] font-medium text-zinc-800 dark:text-zinc-200 w-[99px] h-[22px] shrink-0 min-w-0">
-                <FileText className="w-[11px] h-[11px] text-[#007BFF] shrink-0" />
-                <span className="truncate leading-none">Дог: {listing.contract === 'yes' ? 'Да' : 'Нет'}</span>
+              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                <img src="/icons/Document.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
+                <img src="/icons/Document-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
+                <span className="truncate leading-none">{listing.contract === 'yes' ? 'Есть' : 'Нет'}</span>
               </div>
             </div>
           </div>
@@ -243,16 +274,16 @@ export function ListingCard({
           {/* Action Buttons */}
           <div className="mt-auto">
             {!isOwnerView ? (
-              <div className="flex gap-[16px] justify-center">
+              <div className="flex gap-[14px] justify-center">
                 <button
                   onClick={handleWhatsApp}
-                  className="w-[145px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
+                  className="w-[168px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-medium text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
                 >
                   Ватцап
                 </button>
                 <button
                   onClick={handle2GIS}
-                  className="w-[145px] h-[35px] bg-[#F8F8F8] dark:bg-[#202020] text-[#000000] dark:text-white rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] border border-[#C7C7C7] dark:border-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200"
+                  className="w-[124px] h-[35px] bg-[#F8F8F8] dark:bg-[#202020] text-[#000000] dark:text-white rounded-[5px] flex items-center justify-center font-unbounded font-medium text-[16px] border border-[#C7C7C7] dark:border-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200"
                 >
                   2 гис
                 </button>
@@ -330,7 +361,7 @@ export function ListingCard({
 
         {/* Price & Date */}
         <div className="flex flex-col flex-1 min-w-0 justify-center">
-          <span className="text-[18px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
+          <span className="text-[17px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
             {formatPrice(listing.price_from)}
             {listing.price_to && listing.price_to !== listing.price_from
               ? ` - ${formatPrice(listing.price_to)}`
