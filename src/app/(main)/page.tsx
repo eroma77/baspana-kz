@@ -445,14 +445,16 @@ export default function FeedPage() {
             {/* Header Capsule - Matches Figma header style exactly */}
             <div className="w-full flex items-center justify-between px-4 py-3 sticky top-0 z-40 bg-[#FFFFFF] dark:bg-[#313131] border-b border-gray-200/50 dark:border-zinc-800 transition-all duration-200 ease-in-out shrink-0">
               {/* Left filter capsule */}
-              <div className="bg-[#000000] text-white rounded-full flex items-center pl-[11px] pr-4 h-[36px] shadow-md transition-all duration-200 ease-in-out">
+              <div className="bg-[#000000] text-white rounded-full flex items-center pl-[6px] pr-4 h-[36px] shadow-md transition-all duration-200 ease-in-out">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setShowFilters(false)}
                     className="text-white hover:text-zinc-300 transition-colors duration-200 ease-in-out flex items-center justify-center animate-none"
                     aria-label="Назад"
                   >
-                    <ChevronLeft className="w-[20px] h-[20px] stroke-[2.5px]" />
+                    <div className="w-[24px] h-[24px] rounded-full border border-white/20 flex items-center justify-center">
+                      <ChevronLeft className="w-3.5 h-3.5 text-white" />
+                    </div>
                   </button>
                   <span className="font-normal text-xs tracking-wide lowercase font-unbounded">
                     фильтр
@@ -481,7 +483,7 @@ export default function FeedPage() {
                   className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200 ease-in-out"
                   aria-label="Инструкция"
                 >
-                  <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[13px] select-none leading-none">
+                  <div className="w-[20px] h-[20px] rounded-full border border-white/50 flex items-center justify-center text-white font-bold text-[11px] font-unbounded select-none leading-none">
                     ?
                   </div>
                 </button>
@@ -498,13 +500,17 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('city')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterCity
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">{filterCity || 'Город'}</span>
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'city' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
                       <button
                         type="button"
                         onClick={() => {
@@ -537,13 +543,17 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('gender')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterGender !== 'любой'
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">{filterGender === 'любой' ? 'Пол' : filterGender}</span>
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'gender' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['любой', 'мужской', 'женский'].map((g) => (
                         <button
                           key={g}
@@ -568,10 +578,12 @@ export default function FeedPage() {
                   type="button"
                   disabled={!hasDistricts}
                   onClick={() => toggleDropdown('district')}
-                  className={`w-full border rounded-2xl py-3 px-4 text-left font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                  className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
                     hasDistricts
-                      ? 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white'
-                      : 'bg-zinc-200 dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed'
+                      ? filterDistrict && filterDistrict !== 'Не важно' && filterDistrict !== '-'
+                        ? 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold'
+                        : 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#9D9D9D] font-normal'
+                      : 'bg-[#F7F7F7] dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed font-normal'
                   }`}
                 >
                   <span className="truncate">
@@ -584,7 +596,7 @@ export default function FeedPage() {
                   <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
                 {activeDropdown === 'district' && hasDistricts && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
                     {mode === 'apartment' && (
                       <button
                         type="button"
@@ -621,7 +633,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('age')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterAgeFrom || filterAgeTo
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {(filterAgeFrom || filterAgeTo)
@@ -635,7 +651,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'age' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl p-3 flex flex-col gap-2 transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl p-3 flex flex-col gap-2 transition-all duration-200 ease-in-out">
                       <div className="flex gap-2">
                         <input
                           type="text"
@@ -668,7 +684,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('rooms')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterRooms !== 'любая'
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterRooms === 'любая' ? 'Комната' : `${filterRooms} комн.`}
@@ -676,7 +696,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'rooms' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['любая', '1', '2', '3', '4+'].map((r) => (
                         <button
                           key={r}
@@ -702,7 +722,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('peopleCount')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterPeopleCount
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterPeopleCount ? `Общий: ${filterPeopleCount}` : 'Общий:'}
@@ -710,7 +734,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'peopleCount' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['любое', '1', '2', '3', '4', '5+'].map((p) => (
                         <button
                           key={p}
@@ -733,7 +757,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('searchingCount')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterSearchingCount
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterSearchingCount ? `Нас: ${filterSearchingCount}` : 'Нас:'}
@@ -741,7 +769,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'searchingCount' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['любое', '1', '2', '3', '4+'].map((s) => (
                         <button
                           key={s}
@@ -766,7 +794,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('canLiveWith')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterCanLiveWith !== 'Не важно'
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterCanLiveWith === 'Не важно' ? 'Могу жить с' : filterCanLiveWith}
@@ -774,7 +806,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'canLiveWith' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
                         <button
                           key={item}
@@ -800,7 +832,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('deposit')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterDeposit !== 'не важно'
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterDeposit === 'не важно' ? 'Депозит' : `Депозит: ${filterDeposit}`}
@@ -808,7 +844,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'deposit' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['не важно', 'да', 'нет'].map((d) => (
                         <button
                           key={d}
@@ -831,7 +867,11 @@ export default function FeedPage() {
                   <button
                     type="button"
                     onClick={() => toggleDropdown('contract')}
-                    className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out"
+                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] transition-all duration-200 ease-in-out ${
+                      filterContract !== 'не важно'
+                        ? 'text-[#000000] dark:text-white font-semibold'
+                        : 'text-[#9D9D9D] font-normal'
+                    }`}
                   >
                     <span className="truncate">
                       {filterContract === 'не важно' ? 'Договор' : `Договор: ${filterContract}`}
@@ -839,7 +879,7 @@ export default function FeedPage() {
                     <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                   </button>
                   {activeDropdown === 'contract' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl transition-all duration-200 ease-in-out">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
                       {['не важно', 'да', 'нет'].map((c) => (
                         <button
                           key={c}
@@ -865,21 +905,29 @@ export default function FeedPage() {
                   placeholder="От"
                   value={formatBudgetDisplay(filterPriceFrom)}
                   onChange={(e) => setFilterPriceFrom(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out"
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out ${
+                    filterPriceFrom
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
                 />
                 <input
                   type="text"
                   placeholder="До"
                   value={formatBudgetDisplay(filterPriceTo)}
                   onChange={(e) => setFilterPriceTo(e.target.value.replace(/\D/g, ''))}
-                  className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 text-left text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out"
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] transition-all duration-200 ease-in-out ${
+                    filterPriceTo
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
                 />
               </div>
 
               {/* Row 8: Toggles (Only Photos / Hide Viewed) */}
               <div className="grid grid-cols-2 gap-3">
                 {/* Only Photos Toggle */}
-                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
+                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
                   <Camera className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filterOnlyPhotos ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
                   <button
                     type="button"
@@ -897,7 +945,7 @@ export default function FeedPage() {
                 </div>
 
                 {/* Hide Viewed Toggle */}
-                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-2xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
+                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
                   <Eye className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filterHideViewed ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
                   <button
                     type="button"
@@ -920,13 +968,13 @@ export default function FeedPage() {
             <div className="w-full p-5 border-t border-gray-150 dark:border-zinc-850 flex justify-between gap-3 shrink-0 transition-all duration-200 ease-in-out">
               <button
                 onClick={handleResetFilters}
-                className="flex-1 bg-[#007BFF]/10 text-[#007BFF] rounded-2xl py-3.5 px-4 font-bold text-center hover:bg-[#007BFF]/20 active:scale-[0.98] transition-all duration-200 ease-in-out"
+                className="flex-1 bg-[#007BFF]/10 text-[#007BFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-[#007BFF]/20 active:scale-[0.98] transition-all duration-200 ease-in-out"
               >
                 Сбросить
               </button>
               <button
                 onClick={handleApplyFilters}
-                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-2xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 ease-in-out"
+                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 ease-in-out"
               >
                 Применить
               </button>
