@@ -90,7 +90,7 @@ export default function FeedPage() {
       // Build database query with limit for performance
       let query = supabase
         .from('listings')
-        .select('id,mode,city,district,gender,age_from,age_to,rooms,can_live_with,people_count,searching_count,term,total_people,deposit,contract,price_from,price_to,photos,description,phone,address_link,is_premium,status,created_at,owner_id,expires_at,promoted_until')
+        .select('id,owner_id,mode,city,district,gender,age_from,age_to,rooms,can_live_with,people_count,searching_count,term,total_people,deposit,contract,price_from,price_to,photos,description,phone,address_link,is_premium,premium_until,status,transaction_id,receipt_url,created_at,updated_at,expires_at,promoted_until')
         .eq('mode', mode === 'apartment' ? 'roommate' : 'apartment')
         .eq('status', 'active')
         .limit(100)
