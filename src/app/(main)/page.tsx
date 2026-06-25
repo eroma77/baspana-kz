@@ -75,16 +75,25 @@ export default function FeedPage() {
       setIsLoading(true)
     }
     try {
-      // Call remote self-cleaning function
-      await supabase.rpc('cleanup_listings')
+      // Cleanup runs at most once per day — not on every page load
+      const CLEANUP_KEY = 'baspana_last_cleanup'
+      const lastCleanup = localStorage.getItem(CLEANUP_KEY)
+      const now = Date.now()
+      if (!lastCleanup || now - parseInt(lastCleanup) > 24 * 60 * 60 * 1000) {
+        supabase.rpc('cleanup_listings').then(() => {
+          localStorage.setItem(CLEANUP_KEY, String(now))
+        })
+      }
+
       if (fetchId !== fetchCounter.current) return
 
-      // Build database query
+      // Build database query with limit for performance
       let query = supabase
         .from('listings')
-        .select('*')
+        .select('id,mode,city,district,gender,age_from,age_to,rooms,can_live_with,people_count,searching_count,term,total_people,deposit,contract,price_from,price_to,photos,description,phone,address_link,is_premium,status,created_at,owner_id,expires_at,promoted_until')
         .eq('mode', mode === 'apartment' ? 'roommate' : 'apartment')
         .eq('status', 'active')
+        .limit(100)
 
       // Apply DB filters
       if (filters.city) {
