@@ -147,7 +147,7 @@ export default function AddListingPage() {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/\D/g, '')
     let stripped = rawDigits
-    if (rawDigits.startsWith('7') || rawDigits.startsWith('8')) {
+    if (rawDigits.length >= 11 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
       stripped = rawDigits.substring(1)
     }
     const limited = stripped.substring(0, 10)
@@ -159,10 +159,13 @@ export default function AddListingPage() {
     setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = 3
+    const limit = 5
     const availableSlots = limit - photos.length
 
-    if (availableSlots <= 0) return
+    if (availableSlots <= 0) {
+      alert('Максимум можно добавить 5 фотографий.')
+      return
+    }
 
     const filesToUpload = fileList.slice(0, availableSlots)
     filesToUpload.forEach((file) => {
@@ -257,10 +260,9 @@ export default function AddListingPage() {
       }
     }
 
+
     if (!phone || phone.length < 10) newErrors.phone = true
-    if (formMode === 'roommate') {
-      if (!description || description.trim().length < 10) newErrors.description = true
-    }
+
 
     if (formMode === 'roommate') {
       if (!addressLink) {
@@ -274,10 +276,13 @@ export default function AddListingPage() {
       }
     }
 
-    // Photo limits validation (optional, max 3)
-    if (photos.length > 3) {
+    // Photo limits: min 3, max 5 for all modes
+    if (photos.length < 3) {
       newErrors.photos = true
-      setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
+      setSubmitErrorMsg('Необходимо загрузить от 3 до 5 фотографий.')
+    } else if (photos.length > 5) {
+      newErrors.photos = true
+      setSubmitErrorMsg('Максимум можно добавить 5 фотографий.')
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -297,11 +302,13 @@ export default function AddListingPage() {
       age_from: parseInt(ageFrom),
       age_to: formMode === 'apartment' ? parseInt(ageFrom) : parseInt(ageTo),
       rooms: rooms || '1-комнатный',
-      can_live_with: formMode === 'apartment' ? (canLiveWith || 'Не важно') : null,
-      people_count: formMode === 'roommate' ? parseInt(peopleCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
-      searching_count: formMode === 'roommate' ? parseInt(searchingCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
+      can_live_with: formMode === 'apartment' ? (canLiveWith || 'Не важно') : peopleCount,
+      people_count: formMode === 'roommate'
+        ? Math.max(1, (parseInt(totalPeople) || 1) - (parseInt(searchingCount) || 1))
+        : (parseInt(peopleCount) || 1),
+      searching_count: formMode === 'roommate' ? (parseInt(searchingCount) || 1) : (parseInt(peopleCount) || 1),
       term: term || '1 месяц',
-      total_people: formMode === 'roommate' ? parseInt(totalPeople.replace(/\D/g, '')) : (parseInt(totalPeople) || 1),
+      total_people: formMode === 'roommate' ? (parseInt(totalPeople) || 1) : (parseInt(totalPeople) || 1),
       deposit: deposit === 'Есть' ? 1 : 0,
       contract: contract === 'Есть' ? 'yes' : 'no',
       price_from: fromVal,
@@ -323,8 +330,14 @@ export default function AddListingPage() {
 
       router.push('/profile')
     } catch (err) {
-      console.error('Error submitting listing:', err)
-      const errorMsg = err instanceof Error ? err.message : 'Ошибка сервера при создании объявления.'
+      console.error('Error submitting listing detailed:', err)
+      let errorMsg = 'Ошибка сервера при создании объявления.'
+      if (err && typeof err === 'object') {
+        const anyErr = err as any
+        errorMsg = anyErr.message || anyErr.details || anyErr.hint || JSON.stringify(anyErr)
+      } else if (err instanceof Error) {
+        errorMsg = err.message
+      }
       setSubmitErrorMsg(errorMsg)
     } finally {
       setIsSubmitting(false)
@@ -359,7 +372,8 @@ export default function AddListingPage() {
       <Header
         type="title"
         title={step === 'select-type' ? 'объявление' : formMode === 'apartment' ? 'ищу квартиру' : 'ищу соседа'}
-        showBack={step === 'fill-form'}
+        showBack={true}
+        onBack={step === 'fill-form' ? () => setStep('select-type') : undefined}
         showHelpToggle={true}
       />
 
@@ -719,7 +733,7 @@ export default function AddListingPage() {
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 9 }, (_, i) => `Нас: ${i + 1}`).concat('Нас: 10+').map((c) => (
+                        {['Только парни', 'Только девочки', 'Не важно'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -740,7 +754,7 @@ export default function AddListingPage() {
                       onClick={() => toggleDropdown('searchingCount')}
                       className={dropdownToggleClass(!!errors.searchingCount, 'Ищу:', searchingCount)}
                     >
-                      <span className="truncate">{searchingCount || 'Ищу:'}</span>
+                      <span className="truncate">{searchingCount ? `Ищу: ${searchingCount}` : 'Ищу:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'searchingCount' && (
@@ -827,12 +841,12 @@ export default function AddListingPage() {
                       onClick={() => toggleDropdown('totalPeople')}
                       className={dropdownToggleClass(!!errors.totalPeople, 'Общий:', totalPeople)}
                     >
-                      <span className="truncate">{totalPeople || 'Общий:'}</span>
+                      <span className="truncate">{totalPeople ? `Общий: ${totalPeople}` : 'Общий:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 9 }, (_, i) => `Общий: ${i + 1}`).concat('Общий: 10+').map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -931,8 +945,10 @@ export default function AddListingPage() {
                   value={formatBudgetDisplay(priceFrom)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
-                    setPriceFrom(e.target.value.replace(/\D/g, ''))
-                    setErrors((prev) => ({ ...prev, priceFrom: false }))
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setPriceFrom(raw)
+                    const num = parseInt(raw || '0', 10)
+                    setErrors((prev) => ({ ...prev, priceFrom: raw.length > 0 && num < 10000 }))
                   }}
                   className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
                     errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
@@ -949,8 +965,10 @@ export default function AddListingPage() {
                   value={formatBudgetDisplay(priceTo)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
-                    setPriceTo(e.target.value.replace(/\D/g, ''))
-                    setErrors((prev) => ({ ...prev, priceTo: false }))
+                    const raw = e.target.value.replace(/\D/g, '')
+                    setPriceTo(raw)
+                    const num = parseInt(raw || '0', 10)
+                    setErrors((prev) => ({ ...prev, priceTo: raw.length > 0 && num > 900000 }))
                   }}
                   className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
                     errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
@@ -977,7 +995,7 @@ export default function AddListingPage() {
               ))}
 
               {/* Upload button */}
-              {photos.length < 3 && (
+              {photos.length < 5 && (
                 <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
                   errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
                 }`}>

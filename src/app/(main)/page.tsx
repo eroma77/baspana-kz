@@ -83,7 +83,7 @@ export default function FeedPage() {
       let query = supabase
         .from('listings')
         .select('*')
-        .eq('mode', mode)
+        .eq('mode', mode === 'apartment' ? 'roommate' : 'apartment')
         .eq('status', 'active')
 
       // Apply DB filters
@@ -125,10 +125,10 @@ export default function FeedPage() {
 
       // Budget Ranges
       if (filters.priceFrom) {
-        query = query.gte('price_from', parseInt(filters.priceFrom.replace(/\s/g, '')))
+        query = query.gte('price_from', parseInt(filters.priceFrom.replace(/\D/g, '')) || 0)
       }
       if (filters.priceTo) {
-        query = query.lte('price_from', parseInt(filters.priceTo.replace(/\s/g, '')))
+        query = query.lte('price_from', parseInt(filters.priceTo.replace(/\D/g, '')) || 0)
       }
 
       const { data, error } = await query
@@ -140,36 +140,38 @@ export default function FeedPage() {
       // Client-side post filtering
       if (mode === 'apartment') {
         if (filters.ageFrom && filters.ageFrom !== 'Не важно') {
-          const ageVal = parseInt(filters.ageFrom.replace(/\D/g, ''))
-          result = result.filter((item) => item.age_from === ageVal)
+          const ageVal = parseInt(filters.ageFrom.replace(/\D/g, '')) || 0
+          result = result.filter((item) => item.age_from <= ageVal && item.age_to >= ageVal)
         }
       } else {
-        if (filters.ageFrom) {
-          const from = parseInt(filters.ageFrom)
-          result = result.filter((item) => item.age_from >= from || item.age_to >= from)
+        if (filters.ageFrom && filters.ageFrom !== 'Не важно') {
+          const from = parseInt(filters.ageFrom.replace(/\D/g, '')) || 0
+          result = result.filter((item) => item.age_from >= from)
         }
-        if (filters.ageTo) {
-          const to = parseInt(filters.ageTo)
-          result = result.filter((item) => item.age_from <= to || item.age_to <= to)
+        if (filters.ageTo && filters.ageTo !== 'Не важно') {
+          const to = parseInt(filters.ageTo.replace(/\D/g, '')) || 0
+          result = result.filter((item) => item.age_from <= to)
         }
       }
 
       // Capacity filters
       if (mode === 'roommate') {
         if (filters.peopleCount && filters.peopleCount !== 'Не важно') {
-          const val = parseInt(filters.peopleCount.replace(/\D/g, ''))
+          const val = parseInt(filters.peopleCount.replace(/\D/g, '')) || 0
           result = result.filter((item) => item.total_people === val)
         }
         if (filters.searchingCount && filters.searchingCount !== 'Не важно') {
-          const val = parseInt(filters.searchingCount.replace(/\D/g, ''))
+          const val = parseInt(filters.searchingCount.replace(/\D/g, '')) || 0
           result = result.filter((item) => item.people_count === val)
         }
       } else {
         if (filters.peopleCount && filters.peopleCount !== 'Не важно') {
-          result = result.filter((item) => item.total_people === parseInt(filters.peopleCount))
+          const val = parseInt(filters.peopleCount.replace(/\D/g, '')) || 0
+          result = result.filter((item) => item.total_people === val)
         }
         if (filters.searchingCount && filters.searchingCount !== 'Не важно') {
-          result = result.filter((item) => item.searching_count === parseInt(filters.searchingCount))
+          const val = parseInt(filters.searchingCount.replace(/\D/g, '')) || 0
+          result = result.filter((item) => item.searching_count === val)
         }
       }
 

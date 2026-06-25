@@ -167,7 +167,7 @@ export function ListingCard({
   const cityAbbr = getCityAbbreviation(listing.city)
 
   // Render APARTMENT MODE Card
-  if (listing.mode === 'apartment') {
+  if (listing.mode === 'roommate') {
     return (
       <div
         onClick={handleCardClick}
@@ -395,7 +395,7 @@ export function ListingCard({
 
         {/* Price & Date */}
         <div className="flex flex-col flex-1 min-w-0 justify-center">
-          <span className="text-[17px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
+          <span className="text-[13px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
             {formatPrice(listing.price_from)}
             {listing.price_to && listing.price_to !== listing.price_from
               ? ` - ${formatPrice(listing.price_to)}`

@@ -16,7 +16,7 @@ function formatBudgetDisplay(val: string) {
 
 export default function FilterPage() {
   const router = useRouter()
-  const { mode, theme, setTheme, filters, setFilters, resetFilters } = useAppStore()
+  const { mode, setMode, theme, setTheme, filters, setFilters, resetFilters } = useAppStore()
 
   // Local state for dropdown visibility
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
@@ -29,26 +29,6 @@ export default function FilterPage() {
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown(activeDropdown === name ? null : name)
-  }
-
-  const handleAgeFromSelect = (val: string) => {
-    const num = parseInt(val)
-    let updatedTo = filters.ageTo
-    if (filters.ageTo && parseInt(filters.ageTo) < num) {
-      updatedTo = val
-    }
-    setFilters({ ageFrom: val, ageTo: updatedTo })
-    setActiveDropdown(null)
-  }
-
-  const handleAgeToSelect = (val: string) => {
-    const num = parseInt(val)
-    let updatedFrom = filters.ageFrom
-    if (filters.ageFrom && parseInt(filters.ageFrom) > num) {
-      updatedFrom = val
-    }
-    setFilters({ ageFrom: updatedFrom, ageTo: val })
-    setActiveDropdown(null)
   }
 
   // Handle city selection: reset district based on mode
@@ -76,533 +56,709 @@ export default function FilterPage() {
         showHelpToggle={true}
       />
 
+
       {/* Fields grid scroll container */}
       <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4 text-[16px] font-normal">
         
         {/* Error banner */}
         {errorMsg && (
-          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-[#FF3662] rounded-xl p-4 flex gap-3 leading-relaxed text-xs">
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-[#FF3662] rounded-xl p-4 flex gap-3 leading-relaxed text-xs shrink-0">
             <span>{errorMsg}</span>
           </div>
         )}
-        
-        {/* Row 1: Город & Пол */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* City Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('city')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.city
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">{filters.city || 'Город'}</span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'city' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-                <button
-                  type="button"
-                  onClick={() => handleCitySelect('')}
-                  className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white border-b border-zinc-200/10 dark:border-zinc-800/10 transition-colors duration-200 ease-in-out cursor-pointer"
-                >
-                  Все города
-                </button>
-                {CITIES_DATA.map((c) => (
-                  <button
-                    key={c.city}
-                    type="button"
-                    onClick={() => handleCitySelect(c.city)}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {c.city}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Gender Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('gender')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.gender !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">{filters.gender === 'Не важно' ? 'Пол' : filters.gender}</span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'gender' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                {['Не важно', 'Парень', 'Девушка'].map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => {
-                      setFilters({ gender: g })
-                      setActiveDropdown(null)
-                    }}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {g}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Tab-dependent Filters */}
+        {mode === 'apartment' ? (
+          <>
+            {/* --- Вкладка «Ищу квартиру» (параметры КВАРТИРЫ) --- */}
 
-        {/* Row 2: Район (Disabled if empty) */}
-        <div className="relative">
-          <button
-            type="button"
-            disabled={!hasDistricts}
-            onClick={() => toggleDropdown('district')}
-            className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-              hasDistricts
-                ? filters.district && filters.district !== 'Не важно' && filters.district !== '-'
-                  ? 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold'
-                  : 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#9D9D9D] font-normal'
-                : 'bg-[#F7F7F7] dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed font-normal'
-            }`}
-          >
-            <span className="truncate">
-              {!hasDistricts
-                ? '-'
-                : filters.district === 'Не важно'
-                ? 'Район'
-                : filters.district}
-            </span>
-            <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-          </button>
-          {activeDropdown === 'district' && hasDistricts && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-              {mode === 'apartment' && (
+            {/* Строка 1: Город & Комнат */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Город */}
+              <div className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    setFilters({ district: 'Не важно' })
-                    setActiveDropdown(null)
-                  }}
-                  className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                  onClick={() => toggleDropdown('city')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.city
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
                 >
-                  Не важно
+                  <span className="truncate">{filters.city || 'Город'}</span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
-              )}
-              {currentCityData?.districts.map((d) => (
+                {activeDropdown === 'city' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {CITIES_DATA.map((c) => (
+                      <button key={c.city} type="button" onClick={() => handleCitySelect(c.city)} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{c.city}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Комнат */}
+              <div className="relative">
                 <button
-                  key={d}
                   type="button"
-                  onClick={() => {
-                    setFilters({ district: d })
-                    setActiveDropdown(null)
-                  }}
-                  className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                  onClick={() => toggleDropdown('rooms')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.rooms && filters.rooms !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
                 >
-                  {d}
+                  <span className="truncate">{filters.rooms && filters.rooms !== 'Не важно' ? filters.rooms : 'Комнат'}</span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
-              ))}
+                {activeDropdown === 'rooms' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {['1-комнатный', '2-комнатный', '3-комнатный', '4-комнатный', '5-комнатный', '6-комнатный', '7-комнатный', '8-комнатный', '9-комнатный', '10+-комнатный'].map((r) => (
+                      <button key={r} type="button" onClick={() => { setFilters({ rooms: r }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{r}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Row 3: Возраст & Комната */}
-        <div className="grid grid-cols-2 gap-3">
-          {mode === 'apartment' ? (
+            {/* Строка 2: Район */}
             <div className="relative">
               <button
                 type="button"
-                onClick={() => toggleDropdown('ageFrom')}
-                className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                  filters.ageFrom && filters.ageFrom !== 'Не важно'
-                    ? 'text-[#000000] dark:text-white font-semibold'
-                    : 'text-[#9D9D9D] font-normal'
+                disabled={!hasDistricts}
+                onClick={() => toggleDropdown('district')}
+                className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
+                  hasDistricts
+                    ? filters.district && filters.district !== 'Не важно' && filters.district !== '-'
+                      ? 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold cursor-pointer'
+                      : 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#9D9D9D] font-normal cursor-pointer'
+                    : 'bg-[#F7F7F7] dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed font-normal'
                 }`}
               >
                 <span className="truncate">
-                  {filters.ageFrom === 'Не важно' || !filters.ageFrom ? 'Возраст автора' : filters.ageFrom}
+                  {!hasDistricts
+                    ? 'Район'
+                    : filters.district === 'Не важно' || !filters.district || filters.district === '-'
+                    ? 'Не важно'
+                    : filters.district}
                 </span>
                 <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
               </button>
-              {activeDropdown === 'ageFrom' && (
+              {activeDropdown === 'district' && hasDistricts && (
                 <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-                  {['Не важно', ...Array.from({ length: 35 }, (_, i) => `${16 + i} лет`)].map((a) => (
+                  <button type="button" onClick={() => { setFilters({ district: 'Не важно' }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">Не важно</button>
+                  {currentCityData?.districts.map((d) => (
+                    <button key={d} type="button" onClick={() => { setFilters({ district: d }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{d}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Строка 3: Возраст & Пол сожителей */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Возраст (16–50 лет) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('ageFrom')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.ageFrom && filters.ageFrom !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.ageFrom && filters.ageFrom !== 'Не важно' ? filters.ageFrom : 'Возраст'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'ageFrom' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
+                      <button key={a} type="button" onClick={() => { setFilters({ ageFrom: a, ageTo: a }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{a}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Пол сожителей (canLiveWith) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('canLiveWith')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.canLiveWith !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.canLiveWith === 'Не важно' ? 'Пол сожителей' : filters.canLiveWith}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'canLiveWith' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
+                      <button key={item} type="button" onClick={() => { setFilters({ canLiveWith: item }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{item}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Строка 4: Депозит & Договор */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Депозит */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('deposit')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.deposit && filters.deposit !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.deposit && filters.deposit !== 'Не важно' ? filters.deposit : 'Депозит'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'deposit' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Есть', 'Нет'].map((d) => (
+                      <button key={d} type="button" onClick={() => { setFilters({ deposit: d }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{d}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Договор */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('contract')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.contract && filters.contract !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.contract && filters.contract !== 'Не важно' ? filters.contract : 'Договор'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'contract' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Есть', 'Нет'].map((c) => (
+                      <button key={c} type="button" onClick={() => { setFilters({ contract: c }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{c}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Строка 5: Ищет & Общий */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Ищет (searchingCount) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('searchingCount')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.searchingCount && filters.searchingCount !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.searchingCount && filters.searchingCount !== 'Не важно' ? `Ищет: ${filters.searchingCount}` : 'Ищет'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'searchingCount' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((s) => (
+                      <button key={s} type="button" onClick={() => { setFilters({ searchingCount: s }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{s}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Общий (peopleCount) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('peopleCount')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.peopleCount && filters.peopleCount !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.peopleCount && filters.peopleCount !== 'Не важно' ? `Общий: ${filters.peopleCount}` : 'Общий'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'peopleCount' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((p) => (
+                      <button key={p} type="button" onClick={() => { setFilters({ peopleCount: p }); setActiveDropdown(null) }} className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer">{p}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* --- Вкладка «Ищу соседа» (параметры ЧЕЛОВЕКА) --- */}
+            
+            {/* Строка 1: Город & Пол автора */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Город (city) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('city')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.city
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">{filters.city || 'Город'}</span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'city' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {CITIES_DATA.map((c) => (
+                      <button
+                        key={c.city}
+                        type="button"
+                        onClick={() => handleCitySelect(c.city)}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {c.city}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Пол автора (gender) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('gender')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.gender && filters.gender !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.gender && filters.gender !== 'Не важно' ? filters.gender : 'Пол'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'gender' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Парень', 'Девушка'].map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ gender: g })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Строка 2: Район (Disabled if empty) */}
+            <div className="relative">
+              <button
+                type="button"
+                disabled={!hasDistricts}
+                onClick={() => toggleDropdown('district')}
+                className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                  hasDistricts
+                    ? filters.district && filters.district !== 'Не важно' && filters.district !== '-'
+                      ? 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold'
+                      : 'bg-[#FFFFFF] dark:bg-[#313131] border-gray-200 dark:border-zinc-800 text-[#9D9D9D] font-normal'
+                    : 'bg-[#F7F7F7] dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed font-normal'
+                }`}
+              >
+                <span className="truncate">
+                  {!hasDistricts
+                    ? 'Район'
+                    : filters.district === 'Не важно' || !filters.district || filters.district === '-'
+                    ? 'Не важно'
+                    : filters.district}
+                </span>
+                <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+              </button>
+              {activeDropdown === 'district' && hasDistricts && (
+                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                  {currentCityData?.districts.map((d) => (
                     <button
-                      key={a}
+                      key={d}
                       type="button"
                       onClick={() => {
-                        setFilters({ ageFrom: a, ageTo: a })
+                        setFilters({ district: d })
                         setActiveDropdown(null)
                       }}
                       className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
                     >
-                      {a}
+                      {d}
                     </button>
                   ))}
                 </div>
               )}
             </div>
-          ) : (
-            <div className="flex items-center bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl min-h-[44px] text-[16px] relative select-none">
-              <div className="pl-3 pr-2 flex items-center shrink-0">
-                <span className="text-[16px]">🎂</span>
-              </div>
-              <div className="h-5 w-[1px] bg-zinc-200 dark:bg-zinc-800/80"></div>
-              {/* Age From */}
-              <div className="relative flex-1 h-full">
+
+            {/* Строка 3: Возраст от & до */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Возраст от */}
+              <div className="relative">
                 <button
                   type="button"
                   onClick={() => toggleDropdown('ageFrom')}
-                  className={`w-full h-full py-2.5 px-2 text-center flex justify-between items-center text-[16px] cursor-pointer ${
-                    filters.ageFrom ? 'text-[#000000] dark:text-white font-semibold' : 'text-[#9D9D9D] font-normal'
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.ageFrom
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
                   }`}
                 >
-                  <span className="w-full text-center">{filters.ageFrom || 'от'}</span>
-                  <span className="text-[10px] text-[#9D9D9D] shrink-0">▼</span>
+                  <span className="truncate">
+                    {filters.ageFrom ? `от ${filters.ageFrom} лет` : 'от 16 лет'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
                 {activeDropdown === 'ageFrom' && (
-                  <div className="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto">
-                    {Array.from(
-                      { length: (filters.ageTo ? parseInt(filters.ageTo) : 50) - 16 + 1 },
-                      (_, i) => (16 + i).toString()
-                    ).map((a) => (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {Array.from({ length: 35 }, (_, i) => 16 + i).map((a) => (
                       <button
                         key={a}
                         type="button"
-                        onClick={() => handleAgeFromSelect(a)}
-                        className="w-full text-center py-2 px-3 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-150 cursor-pointer"
+                        onClick={() => {
+                          const toVal = filters.ageTo ? parseInt(filters.ageTo) : 50
+                          setFilters({ ageFrom: String(a), ageTo: toVal < a ? String(a) : filters.ageTo })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
                       >
-                        {a}
+                        {a} лет
                       </button>
                     ))}
                   </div>
                 )}
               </div>
-              <div className="h-5 w-[1px] bg-zinc-200 dark:bg-zinc-800/80"></div>
-              {/* Age To */}
-              <div className="relative flex-1 h-full">
+
+              {/* Возраст до */}
+              <div className="relative">
                 <button
                   type="button"
                   onClick={() => toggleDropdown('ageTo')}
-                  className={`w-full h-full py-2.5 px-2 text-center flex justify-between items-center text-[16px] cursor-pointer ${
-                    filters.ageTo ? 'text-[#000000] dark:text-white font-semibold' : 'text-[#9D9D9D] font-normal'
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.ageTo
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
                   }`}
                 >
-                  <span className="w-full text-center">{filters.ageTo || 'до'}</span>
-                  <span className="text-[10px] text-[#9D9D9D] shrink-0">▼</span>
+                  <span className="truncate">
+                    {filters.ageTo ? `до ${filters.ageTo} лет` : 'до 50 лет'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
                 {activeDropdown === 'ageTo' && (
-                  <div className="absolute left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto">
-                    {Array.from(
-                      { length: 50 - (filters.ageFrom ? parseInt(filters.ageFrom) : 16) + 1 },
-                      (_, i) => ((filters.ageFrom ? parseInt(filters.ageFrom) : 16) + i).toString()
-                    ).map((a) => (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {Array.from({ length: 35 }, (_, i) => 16 + i).map((a) => (
                       <button
                         key={a}
                         type="button"
-                        onClick={() => handleAgeToSelect(a)}
-                        className="w-full text-center py-2 px-3 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-150 cursor-pointer"
+                        onClick={() => {
+                          const fromVal = filters.ageFrom ? parseInt(filters.ageFrom) : 16
+                          setFilters({ ageTo: String(a), ageFrom: fromVal > a ? String(a) : filters.ageFrom })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
                       >
-                        {a}
+                        {a} лет
                       </button>
                     ))}
                   </div>
                 )}
               </div>
             </div>
-          )}
 
-          {/* Rooms Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('rooms')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.rooms !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.rooms === 'Не важно' ? 'Комната' : filters.rooms}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'rooms' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                {['Не важно', '1-комнатный', '2-комнатный', '3-комнатный', '4-комнатный', '5-комнатный', '6-комнатный', '7-комнатный', '8-комнатный', '9-комнатный', '10+-комнатный'].map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => {
-                      setFilters({ rooms: r })
-                      setActiveDropdown(null)
-                    }}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Row 4: Общий & Нас Dropdowns */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Total People Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('peopleCount')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.peopleCount !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.peopleCount === 'Не важно' ? 'Общий:' : filters.peopleCount}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'peopleCount' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-                {mode === 'roommate' ? (
-                  ['Не важно', ...Array.from({ length: 9 }, (_, i) => `Общий: ${i + 1}`), 'Общий: 10+'].map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ peopleCount: p })
-                        setActiveDropdown(null)
-                      }}
-                      className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                    >
-                      {p}
-                    </button>
-                  ))
-                ) : (
-                  ['Не важно', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ peopleCount: p })
-                        setActiveDropdown(null)
-                      }}
-                      className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                    >
-                      {p}
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Searching Count Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('searchingCount')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.searchingCount !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.searchingCount === 'Не важно' ? 'Нас:' : filters.searchingCount}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'searchingCount' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-                {mode === 'roommate' ? (
-                  ['Не важно', ...Array.from({ length: 9 }, (_, i) => `Нас: ${i + 1}`), 'Нас: 10+'].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ searchingCount: s })
-                        setActiveDropdown(null)
-                      }}
-                      className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                    >
-                      {s}
-                    </button>
-                  ))
-                ) : (
-                  ['Не важно', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => {
-                        setFilters({ searchingCount: s })
-                        setActiveDropdown(null)
-                      }}
-                      className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                    >
-                      {s}
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Row 5: С кем могу жить (Always visible) */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => toggleDropdown('canLiveWith')}
-            className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-              filters.canLiveWith !== 'Не важно'
-                ? 'text-[#000000] dark:text-white font-semibold'
-                : 'text-[#9D9D9D] font-normal'
-            }`}
-          >
-            <span className="truncate">
-              {filters.canLiveWith === 'Не важно' ? 'Могу жить с' : filters.canLiveWith}
-            </span>
-            <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-          </button>
-          {activeDropdown === 'canLiveWith' && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-              {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
+            {/* Строка 3b: Комнатность */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Комнатность (rooms) */}
+              <div className="relative col-span-1">
                 <button
-                  key={item}
                   type="button"
-                  onClick={() => {
-                    setFilters({ canLiveWith: item })
-                    setActiveDropdown(null)
-                  }}
-                  className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                  onClick={() => toggleDropdown('rooms')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.rooms && filters.rooms !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
                 >
-                  {item}
+                  <span className="truncate">
+                    {filters.rooms && filters.rooms !== 'Не важно' ? filters.rooms : 'Комнатность'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
-              ))}
+                {activeDropdown === 'rooms' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['1-комнатный', '2-комнатный', '3-комнатный', '4-комнатный', '5-комнатный', '6-комнатный', '7-комнатный', '8-комнатный', '9-комнатный', '10+-комнатный'].map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ rooms: r })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
 
-        {/* Row 6: Депозит & Договор */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Deposit Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('deposit')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.deposit !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.deposit === 'Не важно' ? 'Депозит' : `Депозит: ${filters.deposit}`}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'deposit' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                {['Не важно', 'Есть', 'Нет'].map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    onClick={() => {
-                      setFilters({ deposit: d })
-                      setActiveDropdown(null)
-                    }}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {d}
-                  </button>
-                ))}
+            {/* Строка 4: Могу жить с & Нас (без префикса, просто числа) */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Могу жить с (canLiveWith) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('canLiveWith')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.canLiveWith !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.canLiveWith === 'Не важно' ? 'Может жить с' : filters.canLiveWith}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'canLiveWith' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ canLiveWith: item })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Contract Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('contract')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.contract !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.contract === 'Не важно' ? 'Договор' : `Договор: ${filters.contract}`}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'contract' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                {['Не важно', 'Есть', 'Нет'].map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      setFilters({ contract: c })
-                      setActiveDropdown(null)
-                    }}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {c}
-                  </button>
-                ))}
+              {/* Нас (searchingCount) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('searchingCount')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.searchingCount && filters.searchingCount !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.searchingCount && filters.searchingCount !== 'Не важно' ? filters.searchingCount : 'Нас'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'searchingCount' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ searchingCount: s })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        {/* Row 6.5: Срок проживания (roommate only) */}
-        {mode === 'roommate' && (
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => toggleDropdown('term')}
-              className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
-                filters.term && filters.term !== 'Не важно'
-                  ? 'text-[#000000] dark:text-white font-semibold'
-                  : 'text-[#9D9D9D] font-normal'
-              }`}
-            >
-              <span className="truncate">
-                {filters.term === 'Не важно' || !filters.term ? 'Срок проживания' : filters.term}
-              </span>
-              <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-            </button>
-            {activeDropdown === 'term' && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
-                {['Не важно', ...Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`)].map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => {
-                      setFilters({ term: t })
-                      setActiveDropdown(null)
-                    }}
-                    className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
-                  >
-                    {t}
-                  </button>
-                ))}
+            {/* Строка 5: Срок & Общее количество людей (без префикса, просто числа) */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Срок проживания (term) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('term')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.term && filters.term !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.term === 'Не важно' || !filters.term ? 'Срок проживания' : filters.term}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'term' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ term: t })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Общее количество людей (peopleCount) */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('peopleCount')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.peopleCount && filters.peopleCount !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.peopleCount && filters.peopleCount !== 'Не важно' ? filters.peopleCount : 'Общее количество людей'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'peopleCount' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-80 overflow-y-auto transition-all duration-200 ease-in-out">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ peopleCount: p })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Строка 6: Депозит & Договор */}
+            <div className="grid grid-cols-2 gap-3">
+              {/* Депозит */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('deposit')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.deposit && filters.deposit !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.deposit && filters.deposit !== 'Не важно' ? `Депозит: ${filters.deposit}` : 'Депозит'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'deposit' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Есть', 'Нет'].map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ deposit: d })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Договор */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('contract')}
+                  className={`w-full bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out cursor-pointer ${
+                    filters.contract && filters.contract !== 'Не важно'
+                      ? 'text-[#000000] dark:text-white font-semibold'
+                      : 'text-[#9D9D9D] font-normal'
+                  }`}
+                >
+                  <span className="truncate">
+                    {filters.contract && filters.contract !== 'Не важно' ? `Договор: ${filters.contract}` : 'Договор'}
+                  </span>
+                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
+                </button>
+                {activeDropdown === 'contract' && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
+                    {['Есть', 'Нет'].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setFilters({ contract: c })
+                          setActiveDropdown(null)
+                        }}
+                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-zinc-900 dark:text-white transition-colors duration-200 ease-in-out cursor-pointer"
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
 
         {/* Row 7: Бюджет от / до */}
@@ -643,29 +799,11 @@ export default function FilterPage() {
           />
         </div>
 
-        {/* Row 8: Toggles (Only Photos / Hide Viewed) */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Only Photos Toggle */}
+        {/* Row 8: Toggles */}
+        {mode === 'apartment' ? (
+          // Apartment: only «Просмотрено» toggle (full width)
           <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
-            <Camera className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filters.onlyPhotos ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
-            <button
-              type="button"
-              onClick={() => setFilters({ onlyPhotos: !filters.onlyPhotos })}
-              className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center cursor-pointer ${
-                filters.onlyPhotos ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'
-              }`}
-            >
-              <div
-                className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                  filters.onlyPhotos ? 'translate-x-4' : 'translate-x-0'
-                }`}
-              ></div>
-            </button>
-          </div>
-
-          {/* Hide Viewed Toggle */}
-          <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
-            <Eye className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filters.hideViewed ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
+            <span className="text-[16px] text-[#9D9D9D] font-normal select-none">Просмотрено</span>
             <button
               type="button"
               onClick={() => setFilters({ hideViewed: !filters.hideViewed })}
@@ -673,14 +811,26 @@ export default function FilterPage() {
                 filters.hideViewed ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'
               }`}
             >
-              <div
-                className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                  filters.hideViewed ? 'translate-x-4' : 'translate-x-0'
-                }`}
-              ></div>
+              <div className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${filters.hideViewed ? 'translate-x-4' : 'translate-x-0'}`}></div>
             </button>
           </div>
-        </div>
+        ) : (
+          // Roommate: both toggles
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
+              <Camera className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filters.onlyPhotos ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
+              <button type="button" onClick={() => setFilters({ onlyPhotos: !filters.onlyPhotos })} className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center cursor-pointer ${filters.onlyPhotos ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'}`}>
+                <div className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${filters.onlyPhotos ? 'translate-x-4' : 'translate-x-0'}`}></div>
+              </button>
+            </div>
+            <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
+              <Eye className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filters.hideViewed ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
+              <button type="button" onClick={() => setFilters({ hideViewed: !filters.hideViewed })} className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center cursor-pointer ${filters.hideViewed ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'}`}>
+                <div className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${filters.hideViewed ? 'translate-x-4' : 'translate-x-0'}`}></div>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Actions Footer */}

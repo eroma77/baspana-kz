@@ -7,7 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { User, Settings, Plus, Flame, ShieldAlert, CheckCircle } from 'lucide-react'
+import { User, Settings, Plus, Flame, ShieldAlert, CheckCircle, Info } from 'lucide-react'
 
 interface PriceSetting {
   key: string
@@ -76,6 +76,7 @@ export default function ProfilePage() {
         .from('listings')
         .select('*')
         .eq('owner_id', user.id)
+        .order('created_at', { ascending: false })
 
       if (error) throw error
       const result = (data as Listing[]) || []
@@ -270,8 +271,9 @@ export default function ProfilePage() {
                             <input
                               type="number"
                               min="0"
-                              value={p.value}
-                              onChange={(e) => handlePriceChange(p.key, parseInt(e.target.value) || 0)}
+                              value={p.value === 0 ? '' : p.value}
+                              placeholder="0"
+                              onChange={(e) => handlePriceChange(p.key, e.target.value === '' ? 0 : (parseInt(e.target.value) || 0))}
                               className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-xl py-2.5 pl-4 pr-10 font-bold text-brand-black dark:text-brand-white focus:outline-none"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-brand-gray">₸</span>
@@ -340,12 +342,12 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="flex flex-col">
-                    {/* Exceeded listings warnings */}
-                    {activeCount >= 5 && (
-                      <div className="w-[338px] mx-auto mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-xs select-none">
-                        <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
-                        <span className="text-amber-800 dark:text-amber-300 font-semibold leading-relaxed">
-                          Достигнут лимит (максимум 5 активных объявлений). Чтобы опубликовать новое, удалите или деактивируйте одно из старых.
+                    {/* Exceeded listings warning — not shown to admin */}
+                    {activeCount >= 5 && !isAdmin && (
+                      <div className="w-[338px] mx-auto mb-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-2xl p-4 flex gap-3 text-xs select-none">
+                        <Info className="w-5 h-5 text-green-500 shrink-0" />
+                        <span className="text-green-800 dark:text-green-300 font-semibold leading-relaxed">
+                          Максимальное количество достигнуто. Чтобы опубликовать новое объявление, удалите старое.
                         </span>
                       </div>
                     )}

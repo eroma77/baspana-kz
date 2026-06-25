@@ -178,7 +178,6 @@ export default function ListingDetailsPage({ params }: PageProps) {
       return date.toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long',
-        year: 'numeric',
       })
     } catch {
       return dateStr
@@ -218,7 +217,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   }
 
   // Limit pictures: 3 to 5 for apartments, max 3 for roommates
-  const displayPhotos = listing.mode === 'apartment'
+  const displayPhotos = listing.mode === 'roommate'
     ? (listing.photos || []).slice(0, 5)
     : (listing.photos || []).slice(0, 3)
 
@@ -231,7 +230,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
         <Header type="title" title="объявление" showBack={true} showHelpToggle={false} />
 
         {/* --- APARTMENT MODE DESIGN --- */}
-        {listing.mode === 'apartment' && (
+        {listing.mode === 'roommate' && (
           <div className="flex flex-col flex-1 px-5 py-2">
             
             {/* Price & Date */}
@@ -357,12 +356,14 @@ export default function ListingDetailsPage({ params }: PageProps) {
             )}
 
             {/* Description */}
-            <div className="mb-6">
-              <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-2">Описание</h3>
-              <p className="text-sm text-zinc-850 dark:text-zinc-200 leading-relaxed whitespace-pre-line font-medium">
-                {listing.description}
-              </p>
-            </div>
+            {listing.description && listing.description.trim() && (
+              <div className="mb-6">
+                <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-2">Описание</h3>
+                <p className="text-sm text-zinc-850 dark:text-zinc-200 leading-relaxed whitespace-pre-line font-medium">
+                  {listing.description}
+                </p>
+              </div>
+            )}
 
             {/* Parameter Matrix (8 tags / 2 columns) — matches card exactly, scaled to match photo width */}
             <div className="mb-8 w-full">
@@ -441,7 +442,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
         )}
 
         {/* --- ROOMMATE MODE DESIGN --- */}
-        {listing.mode === 'roommate' && (
+        {listing.mode === 'apartment' && (
           <div className="flex flex-col flex-1 px-5 py-2">
             
             {/* Horizontal Block: Avatar (Left), Price & Date (Center), Heart (Right) */}
@@ -505,12 +506,14 @@ export default function ListingDetailsPage({ params }: PageProps) {
             </button>
 
             {/* Description */}
-            <div className="mb-6">
-              <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-2">О себе и сожителе</h3>
-              <p className="text-sm text-zinc-850 dark:text-zinc-200 leading-relaxed whitespace-pre-line font-medium">
-                {listing.description}
-              </p>
-            </div>
+            {listing.description && listing.description.trim() && (
+              <div className="mb-6">
+                <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-2">О себе и сожителе</h3>
+                <p className="text-sm text-zinc-850 dark:text-zinc-200 leading-relaxed whitespace-pre-line font-medium">
+                  {listing.description}
+                </p>
+              </div>
+            )}
 
             {/* Parameter Matrix (10 tags / 2 columns) */}
             <div className="mb-8 w-full">

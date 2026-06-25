@@ -116,10 +116,10 @@ export default function EditListingPage({ params }: PageProps) {
         setRooms(mappedRooms)
 
         setCanLiveWith(item.can_live_with || 'Не важно')
-        setPeopleCount(item.mode === 'roommate' ? `Нас: ${item.people_count}` : item.people_count.toString())
+        setPeopleCount(item.mode === 'roommate' ? (item.can_live_with || 'Не важно') : item.people_count.toString())
         setSearchingCount(item.searching_count.toString())
         setTerm(item.term)
-        setTotalPeople(item.mode === 'roommate' ? `Общий: ${item.total_people}` : item.total_people.toString())
+        setTotalPeople(item.total_people.toString())
         setDeposit(item.deposit > 0 ? 'Есть' : 'Нет')
         setContract(item.contract === 'yes' ? 'Есть' : 'Нет')
         setPriceFrom(item.price_from.toString())
@@ -191,7 +191,7 @@ export default function EditListingPage({ params }: PageProps) {
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawDigits = e.target.value.replace(/\D/g, '')
     let stripped = rawDigits
-    if (rawDigits.startsWith('7') || rawDigits.startsWith('8')) {
+    if (rawDigits.length >= 11 && (rawDigits.startsWith('7') || rawDigits.startsWith('8'))) {
       stripped = rawDigits.substring(1)
     }
     setPhone(stripped.substring(0, 10))
@@ -202,11 +202,11 @@ export default function EditListingPage({ params }: PageProps) {
     setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = 3
+    const limit = listing?.mode === 'apartment' ? 5 : 3
     const availableSlots = limit - photos.length
 
     if (availableSlots <= 0) {
-      alert(`Максимум фотографий: ${limit}`)
+      alert(`Максимум фотографий для этого режима: ${limit}`)
       return
     }
 
@@ -285,15 +285,14 @@ export default function EditListingPage({ params }: PageProps) {
     if (!term) newErrors.term = true
     if (listing.mode === 'roommate') {
       if (!gender) newErrors.gender = true
-      if (!canLiveWith) newErrors.canLiveWith = true
       if (!peopleCount) newErrors.peopleCount = true
+      if (!searchingCount) newErrors.searchingCount = true
       if (!totalPeople) newErrors.totalPeople = true
     }
 
+
     if (!phone || phone.length < 10) newErrors.phone = true
-    if (listing.mode === 'roommate') {
-      if (!description || description.trim().length < 10) newErrors.description = true
-    }
+
 
     if (listing.mode === 'roommate') {
       if (!addressLink) {
@@ -307,10 +306,20 @@ export default function EditListingPage({ params }: PageProps) {
       }
     }
 
-    // Photo limits validation (optional, max 3)
-    if (photos.length > 3) {
+    // Photo limits validation: apartment (3-5), roommate (1-3)
+    const minPhotos = listing.mode === 'apartment' ? 3 : 1
+    const maxPhotos = listing.mode === 'apartment' ? 5 : 3
+
+    if (photos.length < minPhotos) {
       newErrors.photos = true
-      setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
+      setSubmitErrorMsg(
+        listing.mode === 'apartment'
+          ? 'Для категории «Ищу квартиру» необходимо загрузить от 3 до 5 фотографий.'
+          : 'Для категории «Ищу соседа» необходимо загрузить хотя бы 1 фотографию (селфи).'
+      )
+    } else if (photos.length > maxPhotos) {
+      newErrors.photos = true
+      setSubmitErrorMsg(`Максимум можно добавить ${maxPhotos} фотографии.`)
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -329,11 +338,13 @@ export default function EditListingPage({ params }: PageProps) {
       age_from: parseInt(ageFrom),
       age_to: listing.mode === 'apartment' ? parseInt(ageFrom) : parseInt(ageTo),
       rooms,
-      can_live_with: listing.mode === 'apartment' ? (canLiveWith || 'Не важно') : canLiveWith,
-      people_count: listing.mode === 'roommate' ? parseInt(peopleCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
-      searching_count: listing.mode === 'roommate' ? 1 : (parseInt(searchingCount) || 1),
+      can_live_with: listing.mode === 'apartment' ? (canLiveWith || 'Не важно') : peopleCount,
+      people_count: listing.mode === 'roommate'
+        ? Math.max(1, (parseInt(totalPeople) || 1) - (parseInt(searchingCount) || 1))
+        : (parseInt(peopleCount) || 1),
+      searching_count: listing.mode === 'roommate' ? (parseInt(searchingCount) || 1) : (parseInt(peopleCount) || 1),
       term,
-      total_people: listing.mode === 'roommate' ? parseInt(totalPeople.replace(/\D/g, '')) : (parseInt(totalPeople) || 1),
+      total_people: (parseInt(totalPeople) || 1),
       deposit: deposit === 'Есть' ? 1 : 0,
       contract: contract === 'Есть' ? 'yes' : 'no',
       price_from: parseInt(priceFrom),
@@ -355,8 +366,14 @@ export default function EditListingPage({ params }: PageProps) {
 
       router.push('/profile')
     } catch (err) {
-      console.error('Error updating listing:', err)
-      const errorMsg = err instanceof Error ? err.message : 'Ошибка сервера при изменении объявления.'
+      console.error('Error updating listing detailed:', err)
+      let errorMsg = 'Ошибка сервера при изменении объявления.'
+      if (err && typeof err === 'object') {
+        const anyErr = err as any
+        errorMsg = anyErr.message || anyErr.details || anyErr.hint || JSON.stringify(anyErr)
+      } else if (err instanceof Error) {
+        errorMsg = err.message
+      }
       setSubmitErrorMsg(errorMsg)
     } finally {
       setIsSubmitting(false)
@@ -700,21 +717,21 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 </>
               ) : (
-                /* Roommate mode Row 4: Будет жить (Нас) & Ищу (canLiveWith) */
+                /* Roommate mode Row 4: Будет жить & Ищу: */
                 <>
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Будет жить: чел.</label>
+                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Будет жить</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
-                      className={dropdownToggleClass(errors.peopleCount)}
+                      className={dropdownToggleClass(!!errors.peopleCount)}
                     >
-                      <span>{peopleCount || 'Нас:'}</span>
+                      <span>{peopleCount || 'Будет жить'}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 9 }, (_, i) => `Нас: ${i + 1}`).concat('Нас: 10+').map((c) => (
+                        {['Только парни', 'Только девочки', 'Не важно'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -729,25 +746,25 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Ищу: сожителей</label>
+                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Ищу:</label>
                     <button
                       type="button"
-                      onClick={() => toggleDropdown('canLiveWith')}
-                      className={dropdownToggleClass(errors.canLiveWith)}
+                      onClick={() => toggleDropdown('searchingCount')}
+                      className={dropdownToggleClass(!!errors.searchingCount)}
                     >
-                      <span>{canLiveWith || 'Ищу:'}</span>
+                      <span>{searchingCount ? `Ищу: ${searchingCount}` : 'Ищу:'}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
-                    {activeDropdown === 'canLiveWith' && (
+                    {activeDropdown === 'searchingCount' && (
                       <div className={dropdownListClass}>
-                        {['Только парни', 'Только девочки', 'Не важно'].map((item) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
-                            key={item}
+                            key={c}
                             type="button"
-                            onClick={() => handleDropdownSelect('canLiveWith', item)}
+                            onClick={() => handleDropdownSelect('searchingCount', c)}
                             className={dropdownItemClass}
                           >
-                            {item}
+                            {c}
                           </button>
                         ))}
                       </div>
@@ -1014,7 +1031,8 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 ))}
 
-                {photos.length < 3 && (
+                {/* Upload button */}
+                {photos.length < (listing.mode === 'apartment' ? 5 : 3) && (
                   <div className={`relative w-16 h-16 border border-dashed rounded-xl flex items-center justify-center bg-white dark:bg-brand-card-dark hover:bg-zinc-50 cursor-pointer ${
                     errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-800'
                   }`}>
