@@ -17,11 +17,17 @@ interface PriceSetting {
 
 export default function ProfilePage() {
   const router = useRouter()
-  const { user, setUser } = useAppStore()
+  const { 
+    user, 
+    setUser, 
+    userListings, 
+    setUserListings, 
+    hasFetchedUserListings, 
+    setHasFetchedUserListings 
+  } = useAppStore()
 
   // Authorized user states
-  const [listings, setListings] = useState<Listing[]>([])
-  const [isLoadingListings, setIsLoadingListings] = useState(false)
+  const [isLoadingListings, setIsLoadingListings] = useState(!hasFetchedUserListings)
 
   // Admin states
   const isAdmin = user?.email === 'n.erdaullet@gmail.com'
@@ -51,7 +57,8 @@ export default function ProfilePage() {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       setUser(null)
-      setListings([])
+      setUserListings([])
+      setHasFetchedUserListings(false)
     } catch (err) {
       console.error('Error logging out:', err)
     }
@@ -60,7 +67,10 @@ export default function ProfilePage() {
   // Fetch listings for current user
   const fetchUserListings = useCallback(async () => {
     if (!user) return
-    setIsLoadingListings(true)
+    const storeState = useAppStore.getState()
+    if (!storeState.hasFetchedUserListings) {
+      setIsLoadingListings(true)
+    }
     try {
       const { data, error } = await supabase
         .from('listings')
@@ -68,13 +78,15 @@ export default function ProfilePage() {
         .eq('owner_id', user.id)
 
       if (error) throw error
-      setListings((data as Listing[]) || [])
+      const result = (data as Listing[]) || []
+      setUserListings(result)
+      setHasFetchedUserListings(true)
     } catch (err) {
       console.error('Error fetching user listings:', err)
     } finally {
       setIsLoadingListings(false)
     }
-  }, [user])
+  }, [user, setUserListings, setHasFetchedUserListings])
 
   // Fetch Admin Settings
   const fetchAdminPrices = useCallback(async () => {
@@ -141,7 +153,7 @@ export default function ProfilePage() {
 
       if (error) throw error
       // Filter out of view
-      setListings((prev) => prev.filter((item) => item.id !== id))
+      setUserListings(userListings.filter((item) => item.id !== id))
     } catch (err) {
       console.error('Error deleting listing:', err)
       alert('Ошибка при удалении объявления.')
@@ -161,7 +173,7 @@ export default function ProfilePage() {
   }, [user, isAdmin, fetchUserListings, fetchAdminPrices])
 
   // Count of active listings
-  const activeCount = listings.filter((l) => l.status === 'active').length
+  const activeCount = userListings.filter((l) => l.status === 'active').length
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -290,7 +302,7 @@ export default function ProfilePage() {
             {/* MY LISTINGS BANNER ROW */}
             <div className="flex flex-col">
               {/* Header Banner — black capsule as per Figma */}
-              <div className="w-full flex items-center justify-between px-5 py-3.5 rounded-full bg-black dark:bg-zinc-900 border border-zinc-800 shadow-sm select-none mb-5">
+              <div className="w-[338px] mx-auto flex items-center justify-between px-5 py-3.5 rounded-full bg-black dark:bg-zinc-900 border border-zinc-800 shadow-sm select-none mb-5">
                 <div className="flex items-center gap-3">
                   <div className="w-7 h-7 rounded-full bg-[#007BFF] flex items-center justify-center">
                     <Flame className="w-4 h-4 fill-white text-white" />
@@ -302,7 +314,7 @@ export default function ProfilePage() {
 
                 {/* Count Badge */}
                 <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center font-extrabold text-sm text-black dark:text-white">
-                  {listings.length}
+                  {userListings.length}
                 </div>
               </div>
 
@@ -313,8 +325,8 @@ export default function ProfilePage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
                     <span className="text-xs text-brand-gray">Загрузка ваших объявлений...</span>
                   </div>
-                ) : listings.length === 0 ? (
-                  <div className="w-full py-10 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-4 text-center">
+                ) : userListings.length === 0 ? (
+                  <div className="w-[338px] mx-auto py-10 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-4 text-center">
                     <span className="text-xs font-semibold text-brand-black dark:text-brand-white mb-3">
                       У вас пока нет объявлений
                     </span>
@@ -330,7 +342,7 @@ export default function ProfilePage() {
                   <div className="flex flex-col">
                     {/* Exceeded listings warnings */}
                     {activeCount >= 5 && (
-                      <div className="mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-xs select-none">
+                      <div className="w-[338px] mx-auto mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-xs select-none">
                         <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
                         <span className="text-amber-800 dark:text-amber-300 font-semibold leading-relaxed">
                           Достигнут лимит (максимум 5 активных объявлений). Чтобы опубликовать новое, удалите или деактивируйте одно из старых.
@@ -339,7 +351,7 @@ export default function ProfilePage() {
                     )}
 
                     {/* Listings render list */}
-                    {listings.map((item) => {
+                    {userListings.map((item) => {
                       // Check for payment / validation error status
                       const hasReceiptError = item.status === 'receipt_error'
                       return (

@@ -9,6 +9,91 @@ import Image from 'next/image'
 import { Heart, ChevronLeft, MapPin, Home, User, Users, Calendar, Coins, FileText, ChevronRight, Clock, ExternalLink } from 'lucide-react'
 import { BottomNav } from '@/components/bottom-nav'
 
+const formatCanLiveWith = (val?: string | null) => {
+  if (!val) return 'Не важно'
+  const v = val.toLowerCase().trim()
+  if (v === 'парни' || v === 'мужской' || v === 'только парни' || v.includes('парн')) return 'Только парни'
+  if (v === 'девушки' || v === 'девочки' || v === 'женский' || v === 'только девушки' || v === 'только девочки' || v.includes('дев')) return 'Только девочки'
+  return 'Не важно'
+}
+
+const formatRoommateSearching = (val?: string | null) => {
+  if (!val) return 'всех'
+  const v = val.toLowerCase().trim()
+  if (v === 'не важно' || v === 'все') return 'всех'
+  if (v.includes('парн') || v.includes('муж')) return 'парней'
+  if (v.includes('дев') || v.includes('жен')) return 'девушек'
+  return 'пару'
+}
+
+const getCityAbbreviation = (city: string) => {
+  const c = city.toLowerCase().trim()
+  if (c.includes('алматы')) return 'АЛА'
+  if (c.includes('астана')) return 'АСТ'
+  if (c.includes('шымкент')) return 'ШЫМ'
+  if (c.includes('караганда') || c.includes('караганды')) return 'КГД'
+  if (c.includes('актобе')) return 'АКБ'
+  if (c.includes('тараз')) return 'ТРЗ'
+  if (c.includes('павлодар')) return 'ПВД'
+  if (c.includes('семей')) return 'СМЙ'
+  if (c.includes('кызылорда')) return 'КЗД'
+  if (c.includes('атырау')) return 'АТУ'
+  if (c.includes('костанай')) return 'КСТ'
+  if (c.includes('уральск')) return 'УРЛ'
+  if (c.includes('петропавловск')) return 'ПТП'
+  if (c.includes('актау')) return 'АКТ'
+  if (c.includes('темиртау')) return 'ТМТ'
+  if (c.includes('туркестан')) return 'ТРК'
+  if (c.includes('кокшетау')) return 'КШТ'
+  if (c.includes('талдыкорган')) return 'ТЛД'
+  if (c.includes('жезказган')) return 'ЖЗК'
+  return city.substring(0, 3).toUpperCase()
+}
+
+const formatDistrict = (district?: string | null) => {
+  if (!district || district === '-' || district === 'Не важно' || district === 'all') return ''
+  const d = district.trim()
+  
+  // Mapping for Almaty districts
+  if (d.includes('Алатау')) return 'Алатау'
+  if (d.includes('Алмали')) return 'Алмалы'
+  if (d.includes('Ауэзов')) return 'Ауэзов'
+  if (d.includes('Бостандык')) return 'Бостандык'
+  if (d.includes('Жетысу')) return 'Жетысу'
+  if (d.includes('Медеу')) return 'Медеу'
+  if (d.includes('Наурызбай')) return 'Наурызбай'
+  if (d.includes('Турксиб')) return 'Турксиб'
+  
+  // Mapping for Shymkent districts
+  if (d.includes('Абай')) return 'Абай'
+  if (d.includes('Аль-Фараби')) return 'Аль-Фараби'
+  if (d.includes('Енбекши')) return 'Енбекши'
+  if (d.includes('Каратау')) return 'Каратау'
+  if (d.includes('Туран')) return 'Туран'
+  
+  // Strip "ский" or "ская" suffix
+  return d.replace(/ский$/, '').replace(/ская$/, '')
+}
+
+const getAgePlural = (age: number) => {
+  const lastDigit = age % 10
+  const lastTwoDigits = age % 100
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return 'лет'
+  if (lastDigit === 1) return 'год'
+  if (lastDigit >= 2 && lastDigit <= 4) return 'года'
+  return 'лет'
+}
+
+const formatAge = (from: number, to: number) => {
+  if (from === to) return `${from} ${getAgePlural(from)}`
+  return `${from}-${to} лет`
+}
+
+const formatTerm = (term?: string | null) => {
+  if (!term) return ''
+  return term.replace(/месяца|месяцев/i, 'месяц')
+}
+
 interface PageProps {
   params: Promise<{ id: string }>
 }
@@ -81,6 +166,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   }
 
   const isFav = favorites.includes(listing.id)
+  const cityAbbr = getCityAbbreviation(listing.city)
 
   const formatPrice = (price: number) => {
     return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
@@ -194,6 +280,22 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   />
                 </div>
 
+                {/* Heart Button in the corner */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleGuardAction(() => toggleFavorite(listing.id))
+                  }}
+                  className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+                  aria-label="В избранное"
+                >
+                  <Heart
+                    className={`w-6 h-6 drop-shadow-md transition-colors duration-200 ${
+                      isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-white fill-none'
+                    }`}
+                  />
+                </button>
+
                 {/* Left/Right controls (only if multiple images) */}
                 {displayPhotos.length > 1 && (
                   <>
@@ -233,8 +335,24 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 </div>
               </div>
             ) : (
-              <div className="w-full aspect-[4/3] bg-zinc-100 dark:bg-zinc-850 rounded-3xl flex items-center justify-center text-brand-gray text-xs mb-6 border border-gray-200/50 dark:border-zinc-800/50">
+              <div className="w-full aspect-[4/3] bg-zinc-100 dark:bg-zinc-850 rounded-3xl flex items-center justify-center text-brand-gray text-xs mb-6 border border-gray-200/50 dark:border-zinc-800/50 relative">
                 Нет фотографий
+
+                {/* Heart Button in the corner (when no photos) */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleGuardAction(() => toggleFavorite(listing.id))
+                  }}
+                  className="absolute top-4 right-4 z-20 w-10 h-10 flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer"
+                  aria-label="В избранное"
+                >
+                  <Heart
+                    className={`w-6 h-6 transition-colors duration-200 ${
+                      isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-zinc-400 dark:text-zinc-550 fill-none'
+                    }`}
+                  />
+                </button>
               </div>
             )}
 
@@ -246,49 +364,75 @@ export default function ListingDetailsPage({ params }: PageProps) {
               </p>
             </div>
 
-            {/* Parameter Matrix (10 tags / 2 columns) */}
-            <div className="mb-8">
+            {/* Parameter Matrix (8 tags / 2 columns) — matches card exactly, scaled to match photo width */}
+            <div className="mb-8 w-full">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Детали сожительства</h3>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-2 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-4 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <MapPin className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="truncate text-xs">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
+              <div className="flex w-full justify-between my-1.5">
+                {/* Left Column (Long parameters - 56%) */}
+                <div className="flex flex-col gap-1 w-[56%]">
+                  {/* Badge 1: Address */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Location.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Location-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {cityAbbr}
+                      {formatDistrict(listing.district) ? `, ${formatDistrict(listing.district)}` : ''}
+                    </span>
+                  </div>
+
+                  {/* Badge 2: Rooms */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Room.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Room-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комнатный`}</span>
+                  </div>
+
+                  {/* Badge 3: Gender / Can live with */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Toilet.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Toilet-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {formatCanLiveWith(listing.can_live_with || listing.gender)}
+                    </span>
+                  </div>
+
+                  {/* Badge 4: Total People */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Batch Assign.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Batch Assign-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">Общий: {listing.total_people}</span>
+                  </div>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Home className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.rooms}-комн.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <User className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.gender}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Calendar className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.age_from}–{listing.age_to} л.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs truncate">С кем: {listing.can_live_with || 'Не важно'}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Нас: {listing.people_count} ч.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Clock className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs truncate">Срок: {listing.term}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Всего: {listing.total_people} ч.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Coins className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.deposit > 0 ? `Деп: ${formatPrice(listing.deposit)} ₸` : 'Деп: нет'}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <FileText className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Дог: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
+
+                {/* Right Column (Short parameters - 41%) */}
+                <div className="flex flex-col gap-1 w-[41%]">
+                  {/* Badge 5: Searching Count (Ищу) */}
+                  <div className="flex items-center gap-1.5 pr-1.5 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Google Web Search.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Google Web Search-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">Ищу: {listing.searching_count}</span>
+                  </div>
+
+                  {/* Badge 6: Age */}
+                  <div className="flex items-center gap-1.5 pr-1.5 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Birthday.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Birthday-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.age_from}-{listing.age_to} лет</span>
+                  </div>
+
+                  {/* Badge 7: Deposit */}
+                  <div className="flex items-center gap-1.5 pr-1.5 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Us Dollar Circled.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Us Dollar Circled-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
+                  </div>
+
+                  {/* Badge 8: Contract */}
+                  <div className="flex items-center gap-1.5 pr-1.5 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Document.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Document-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.contract === 'yes' ? 'Есть' : 'Не важно'}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -369,60 +513,99 @@ export default function ListingDetailsPage({ params }: PageProps) {
             </div>
 
             {/* Parameter Matrix (10 tags / 2 columns) */}
-            <div className="mb-8">
+            <div className="mb-8 w-full">
               <h3 className="text-xs uppercase font-extrabold text-brand-gray tracking-wider mb-3">Параметры анкеты</h3>
-              <div className="grid grid-cols-2 gap-y-4 gap-x-2 border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-4 bg-white dark:bg-brand-card-dark transition-colors duration-200 text-sm">
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <MapPin className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="truncate text-xs">{listing.city}{listing.district ? `, ${listing.district}` : ''}</span>
+              <div className="flex w-full justify-between my-1.5 gap-[14px]">
+                {/* Left Column (5 badges - 50%) */}
+                <div className="flex flex-col gap-1 w-[50%]">
+                  {/* Badge 1: Address */}
+                  <div
+                    onClick={handle2GIS}
+                    className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF] cursor-pointer hover:bg-blue-50/50 dark:hover:bg-zinc-800/80 active:scale-[0.99] transition-all"
+                  >
+                    <img src="/icons/Location.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Location-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {cityAbbr}
+                      {formatDistrict(listing.district) ? `, ${formatDistrict(listing.district)}` : ''}
+                    </span>
+                  </div>
+
+                  {/* Badge 2: Rooms */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Room.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Room-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.rooms}</span>
+                  </div>
+
+                  {/* Badge 3: Gender */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Toilet.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Toilet-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {listing.gender}
+                    </span>
+                  </div>
+
+                  {/* Badge 4: Can live with */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Gender Preference.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Gender Preference-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {listing.can_live_with || 'Не важно'}
+                    </span>
+                  </div>
+
+                  {/* Badge 5: Total People */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Batch Assign.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Batch Assign-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">Общий: {listing.total_people}</span>
+                  </div>
                 </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Home className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.rooms}-комн.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Жить: {listing.people_count} ч.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Ищу: {listing.searching_count} ч.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Users className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Всего: {listing.total_people} ч.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Calendar className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.age_from}–{listing.age_to} л.</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <User className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs truncate">Пол: {listing.gender}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <Coins className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">{listing.deposit > 0 ? `Деп: ${formatPrice(listing.deposit)} ₸` : 'Деп: нет'}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <FileText className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  <span className="text-xs">Дог: {listing.contract === 'yes' ? 'да' : 'нет'}</span>
-                </div>
-                <div className="flex items-center text-zinc-700 dark:text-zinc-300 min-w-0">
-                  <ExternalLink className="w-4 h-4 mr-2 text-brand-blue shrink-0" />
-                  {listing.address_link ? (
-                    <a
-                      href={listing.address_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-xs text-brand-blue underline truncate"
-                    >
-                      2GIS карта
-                    </a>
-                  ) : (
-                    <span className="text-xs text-brand-gray">2GIS: нет</span>
-                  )}
+
+                {/* Right Column (5 badges - 50%) */}
+                <div className="flex flex-col gap-1 w-[50%]">
+                  {/* Badge 6: People Count (Нас) */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Google Web Search.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Google Web Search-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">Нас: {listing.people_count}</span>
+                  </div>
+
+                  {/* Badge 7: Age */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Birthday.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Birthday-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {listing.age_from} {getAgePlural(listing.age_from)}
+                    </span>
+                  </div>
+
+                  {/* Badge 8: Deposit */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Us Dollar Circled.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Us Dollar Circled-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {listing.deposit > 0 ? 'Есть' : 'Нет'}
+                    </span>
+                  </div>
+
+                  {/* Badge 9: Contract */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Document.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Document-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">
+                      {listing.contract === 'yes' ? 'Есть' : 'Нет'}
+                    </span>
+                  </div>
+
+                  {/* Badge 10: Term */}
+                  <div className="flex items-center gap-2 pr-2 pl-0 w-full h-[28px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[5px] overflow-hidden text-[13px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
+                    <img src="/icons/Term.svg" alt="" className="w-[28px] h-[28px] shrink-0 dark:hidden" />
+                    <img src="/icons/Term-1.svg" alt="" className="w-[28px] h-[28px] shrink-0 hidden dark:block" />
+                    <span className="truncate leading-none">{listing.term}</span>
+                  </div>
                 </div>
               </div>
             </div>

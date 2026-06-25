@@ -41,8 +41,8 @@ export default function AddListingPage() {
   const [searchingCount, setSearchingCount] = useState('') // "Ищу"
   const [term, setTerm] = useState('') // Срок
   const [totalPeople, setTotalPeople] = useState('') // "Общий"
-  const [deposit, setDeposit] = useState('0')
-  const [contract, setContract] = useState('yes')
+  const [deposit, setDeposit] = useState('')
+  const [contract, setContract] = useState('')
   const [priceFrom, setPriceFrom] = useState('')
   const [priceTo, setPriceTo] = useState('')
   const [description, setDescription] = useState('')
@@ -115,8 +115,20 @@ export default function AddListingPage() {
     if (dropdown === 'canLiveWith') setCanLiveWith(val)
     if (dropdown === 'term') setTerm(val)
     if (dropdown === 'contract') setContract(val)
-    if (dropdown === 'ageFrom') setAgeFrom(val)
-    if (dropdown === 'ageTo') setAgeTo(val)
+    if (dropdown === 'ageFrom') {
+      setAgeFrom(val)
+      const num = parseInt(val)
+      if (ageTo && parseInt(ageTo) < num) {
+        setAgeTo(val)
+      }
+    }
+    if (dropdown === 'ageTo') {
+      setAgeTo(val)
+      const num = parseInt(val)
+      if (ageFrom && parseInt(ageFrom) > num) {
+        setAgeFrom(val)
+      }
+    }
     if (dropdown === 'peopleCount') setPeopleCount(val)
     if (dropdown === 'searchingCount') setSearchingCount(val)
     if (dropdown === 'totalPeople') setTotalPeople(val)
@@ -147,7 +159,7 @@ export default function AddListingPage() {
     setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = formMode === 'apartment' ? 5 : 3
+    const limit = 3
     const availableSlots = limit - photos.length
 
     if (availableSlots <= 0) return
@@ -175,7 +187,7 @@ export default function AddListingPage() {
     setSubmitErrorMsg('')
     const newErrors: Record<string, boolean> = {}
 
-    if (userListingsCount >= 5) {
+    if (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com') {
       setSubmitErrorMsg('Достигнут лимит (максимум 5 объявлений). Чтобы опубликовать новое, удалите одно из старых.')
       return
     }
@@ -196,24 +208,59 @@ export default function AddListingPage() {
       }
     }
 
-    if (!priceFrom) newErrors.priceFrom = true
-    if (!priceTo) newErrors.priceTo = true
-    if (priceFrom && priceTo && parseInt(priceFrom) > parseInt(priceTo)) {
+    if (formMode === 'roommate') {
+      if (!gender) newErrors.gender = true
+      if (!rooms) newErrors.rooms = true
+      if (!peopleCount) newErrors.peopleCount = true
+      if (!searchingCount) newErrors.searchingCount = true
+      if (!totalPeople) newErrors.totalPeople = true
+      if (!deposit) newErrors.deposit = true
+      if (!contract) newErrors.contract = true
+    } else {
+      if (!gender) newErrors.gender = true
+      if (!rooms) newErrors.rooms = true
+      if (!term) newErrors.term = true
+      if (!deposit) newErrors.deposit = true
+      if (!contract) newErrors.contract = true
+    }
+
+    const fromVal = priceFrom ? parseInt(priceFrom) : 0
+    const toVal = priceTo ? parseInt(priceTo) : 0
+
+    if (!priceFrom) {
+      newErrors.priceFrom = true
+    } else if (fromVal < 10000 || fromVal > 900000) {
+      newErrors.priceFrom = true
+      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+    }
+
+    if (!priceTo) {
+      newErrors.priceTo = true
+    } else if (toVal < 10000 || toVal > 900000) {
+      newErrors.priceTo = true
+      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+    }
+
+    if (priceFrom && priceTo && fromVal > toVal) {
       newErrors.priceFrom = true
       newErrors.priceTo = true
       setSubmitErrorMsg('Минимальный бюджет (от) не может быть больше максимального (до).')
     }
 
     if (!ageFrom) newErrors.ageFrom = true
-    if (!ageTo) newErrors.ageTo = true
-    if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
-      newErrors.ageFrom = true
-      newErrors.ageTo = true
-      setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+    if (formMode === 'roommate') {
+      if (!ageTo) newErrors.ageTo = true
+      if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
+        newErrors.ageFrom = true
+        newErrors.ageTo = true
+        setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+      }
     }
 
     if (!phone || phone.length < 10) newErrors.phone = true
-    if (!description || description.trim().length < 10) newErrors.description = true
+    if (formMode === 'roommate') {
+      if (!description || description.trim().length < 10) newErrors.description = true
+    }
 
     if (formMode === 'roommate') {
       if (!addressLink) {
@@ -227,17 +274,10 @@ export default function AddListingPage() {
       }
     }
 
-    // Photo limits validation
-    if (formMode === 'apartment') {
-      if (photos.length < 3 || photos.length > 5) {
-        newErrors.photos = true
-        setSubmitErrorMsg('Для квартиры необходимо добавить от 3 до 5 фотографий.')
-      }
-    } else {
-      if (photos.length > 3) {
-        newErrors.photos = true
-        setSubmitErrorMsg('Для соседа можно добавить не более 3 фотографий.')
-      }
+    // Photo limits validation (optional, max 3)
+    if (photos.length > 3) {
+      newErrors.photos = true
+      setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -253,19 +293,19 @@ export default function AddListingPage() {
       mode: formMode,
       city,
       district: hasDistricts && district !== 'Не важно' && district !== '' ? district : null,
-      gender: gender || 'любой',
+      gender,
       age_from: parseInt(ageFrom),
-      age_to: parseInt(ageTo),
-      rooms: rooms || '1',
+      age_to: formMode === 'apartment' ? parseInt(ageFrom) : parseInt(ageTo),
+      rooms: rooms || '1-комнатный',
       can_live_with: formMode === 'apartment' ? (canLiveWith || 'Не важно') : null,
-      people_count: parseInt(peopleCount) || 1,
-      searching_count: parseInt(searchingCount) || 1,
-      term: term || 'длительно',
-      total_people: parseInt(totalPeople) || 1,
-      deposit: parseInt(deposit) || 0,
-      contract,
-      price_from: parseInt(priceFrom),
-      price_to: parseInt(priceTo),
+      people_count: formMode === 'roommate' ? parseInt(peopleCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
+      searching_count: formMode === 'roommate' ? parseInt(searchingCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
+      term: term || '1 месяц',
+      total_people: formMode === 'roommate' ? parseInt(totalPeople.replace(/\D/g, '')) : (parseInt(totalPeople) || 1),
+      deposit: deposit === 'Есть' ? 1 : 0,
+      contract: contract === 'Есть' ? 'yes' : 'no',
+      price_from: fromVal,
+      price_to: toVal,
       photos,
       description,
       phone: `+7${phone}`,
@@ -291,16 +331,15 @@ export default function AddListingPage() {
     }
   }
 
-  // Format phone for display
+  // Format phone for display as 777 777 7777
   const formatPhoneDisplay = (val: string) => {
     if (!val) return ''
-    const match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/)
+    const match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/)
     if (!match) return val
     let res = ''
     if (match[1]) res += `${match[1]}`
     if (match[2]) res += ` ${match[2]}`
     if (match[3]) res += ` ${match[3]}`
-    if (match[4]) res += ` ${match[4]}`
     return res.trim()
   }
 
@@ -310,7 +349,7 @@ export default function AddListingPage() {
       err ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
     } ${value ? 'text-zinc-900 dark:text-white font-semibold text-xs' : 'text-[#9D9D9D] font-medium text-xs'}`
 
-  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl max-h-48 overflow-y-auto"
+  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl max-h-80 overflow-y-auto"
   const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
   const dropdownChevron = <span className="text-[10px] text-[#9D9D9D] shrink-0">▼</span>
 
@@ -365,7 +404,7 @@ export default function AddListingPage() {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3 select-none">
 
             {/* Warning block if at limit */}
-            {userListingsCount >= 5 && (
+            {userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com' && (
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
                 <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
                 <span>
@@ -415,17 +454,14 @@ export default function AddListingPage() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('gender')}
-                  className={dropdownToggleClass(false, 'Пол', gender)}
+                  className={dropdownToggleClass(!!errors.gender, 'Пол', gender)}
                 >
                   <span className="truncate">{gender || 'Пол'}</span>
                   {dropdownChevron}
                 </button>
                 {activeDropdown === 'gender' && (
                   <div className={dropdownListClass}>
-                    {(formMode === 'apartment'
-                      ? ['любой', 'парень', 'девушка']
-                      : ['парень', 'девушка', 'семейная пара']
-                    ).map((g) => (
+                    {['Парень', 'Девушка'].map((g) => (
                       <button
                         key={g}
                         type="button"
@@ -484,31 +520,32 @@ export default function AddListingPage() {
               )}
             </div>
 
-            {/* Row 3: Возраст (🎂 от & до) & Комнатность */}
+            {/* Row 3: Возраст & Комнатность */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Age selectors block */}
-              <div className="flex items-center gap-1.5">
-                <span className="text-sm shrink-0">🎂</span>
-                {/* Age From */}
-                <div className="relative flex-1">
+              {formMode === 'apartment' ? (
+                /* Single Age Select for Apartment Mode */
+                <div className="relative">
                   <button
                     type="button"
                     onClick={() => toggleDropdown('ageFrom')}
-                    className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
-                      errors.ageFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
-                    } ${ageFrom ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
+                    className={dropdownToggleClass(!!errors.ageFrom, 'Возраст', ageFrom)}
                   >
-                    <span>{ageFrom || 'от'}</span>
-                    <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                    <span className="truncate">{ageFrom || 'Возраст'}</span>
+                    {dropdownChevron}
                   </button>
                   {activeDropdown === 'ageFrom' && (
                     <div className={dropdownListClass}>
-                      {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
+                      {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
                         <button
                           key={a}
                           type="button"
-                          onClick={() => handleDropdownSelect('ageFrom', a)}
-                          className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+                          onClick={() => {
+                            setAgeFrom(a)
+                            setAgeTo(a)
+                            setErrors((prev) => ({ ...prev, ageFrom: false, ageTo: false }))
+                            setActiveDropdown(null)
+                          }}
+                          className={dropdownItemClass}
                         >
                           {a}
                         </button>
@@ -516,55 +553,95 @@ export default function AddListingPage() {
                     </div>
                   )}
                 </div>
-                {/* Age To */}
-                <div className="relative flex-1">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('ageTo')}
-                    className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
-                      errors.ageTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
-                    } ${ageTo ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
-                  >
-                    <span>{ageTo || 'до'}</span>
-                    <span className="text-[9px] text-[#9D9D9D]">▼</span>
-                  </button>
-                  {activeDropdown === 'ageTo' && (
-                    <div className={dropdownListClass}>
-                      {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
-                        <button
-                          key={a}
-                          type="button"
-                          onClick={() => handleDropdownSelect('ageTo', a)}
-                          className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
-                        >
-                          {a}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+              ) : (
+                /* Double Age Select for Roommate Mode */
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm shrink-0">🎂</span>
+                  {/* Age From */}
+                  <div className="relative flex-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('ageFrom')}
+                      className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
+                        errors.ageFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                      } ${ageFrom ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
+                    >
+                      <span>{ageFrom || 'от'}</span>
+                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                    </button>
+                    {activeDropdown === 'ageFrom' && (
+                      <div className={dropdownListClass}>
+                        {Array.from(
+                          { length: (ageTo ? parseInt(ageTo) : 50) - 16 + 1 },
+                          (_, i) => (16 + i).toString()
+                        ).map((a) => (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => handleDropdownSelect('ageFrom', a)}
+                            className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+                          >
+                            {a}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {/* Age To */}
+                  <div className="relative flex-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleDropdown('ageTo')}
+                      className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
+                        errors.ageTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                      } ${ageTo ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
+                    >
+                      <span>{ageTo || 'до'}</span>
+                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                    </button>
+                    {activeDropdown === 'ageTo' && (
+                      <div className={dropdownListClass}>
+                        {Array.from(
+                          { length: 50 - (ageFrom ? parseInt(ageFrom) : 16) + 1 },
+                          (_, i) => ((ageFrom ? parseInt(ageFrom) : 16) + i).toString()
+                        ).map((a) => (
+                          <button
+                            key={a}
+                            type="button"
+                            onClick={() => handleDropdownSelect('ageTo', a)}
+                            className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+                          >
+                            {a}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Rooms */}
               <div className="relative">
                 <button
                   type="button"
                   onClick={() => toggleDropdown('rooms')}
-                  className={dropdownToggleClass(false, 'Комната', rooms)}
+                  className={dropdownToggleClass(!!errors.rooms, 'Комната', rooms)}
                 >
-                  <span className="truncate">{rooms ? `${rooms}-комн.` : 'Комната'}</span>
+                  <span className="truncate">
+                    {rooms || 'Комната'}
+                  </span>
                   {dropdownChevron}
                 </button>
                 {activeDropdown === 'rooms' && (
                   <div className={dropdownListClass}>
-                    {['1', '2', '3', '4', '5+'].map((r) => (
+                    {['1-комнатный', '2-комнатный', '3-комнатный', '4-комнатный', '5-комнатный', '6-комнатный', '7-комнатный', '8-комнатный', '9-комнатный', '10+-комнатный'].map((r) => (
                       <button
                         key={r}
                         type="button"
                         onClick={() => handleDropdownSelect('rooms', r)}
                         className={dropdownItemClass}
                       >
-                        {r}-комнатная
+                        {r}
                       </button>
                     ))}
                   </div>
@@ -581,7 +658,7 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('canLiveWith')}
-                      className={dropdownToggleClass(false, 'Могу жить с', canLiveWith)}
+                      className={dropdownToggleClass(!!errors.canLiveWith, 'Могу жить с', canLiveWith)}
                     >
                       <span className="truncate">{canLiveWith || 'Могу жить с'}</span>
                       {dropdownChevron}
@@ -607,14 +684,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
-                      className={dropdownToggleClass(false, 'Нас:', peopleCount)}
+                      className={dropdownToggleClass(!!errors.peopleCount, 'Нас:', peopleCount)}
                     >
                       <span className="truncate">{peopleCount ? `Нас: ${peopleCount}` : 'Нас:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -635,14 +712,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
-                      className={dropdownToggleClass(false, 'Будет жить', peopleCount)}
+                      className={dropdownToggleClass(!!errors.peopleCount, 'Будет жить', peopleCount)}
                     >
-                      <span className="truncate">{peopleCount ? `Будет жить ${peopleCount}` : 'Будет жить'}</span>
+                      <span className="truncate">{peopleCount || 'Будет жить'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {Array.from({ length: 9 }, (_, i) => `Нас: ${i + 1}`).concat('Нас: 10+').map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -661,14 +738,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('searchingCount')}
-                      className={dropdownToggleClass(false, 'Ищу:', searchingCount)}
+                      className={dropdownToggleClass(!!errors.searchingCount, 'Ищу:', searchingCount)}
                     >
-                      <span className="truncate">{searchingCount ? `Ищу: ${searchingCount}` : 'Ищу:'}</span>
+                      <span className="truncate">{searchingCount || 'Ищу:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'searchingCount' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -694,14 +771,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('term')}
-                      className={dropdownToggleClass(false, 'Срок', term)}
+                      className={dropdownToggleClass(!!errors.term, 'Срок', term)}
                     >
                       <span className="truncate">{term || 'Срок'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'term' && (
                       <div className={dropdownListClass}>
-                        {['длительно', 'посуточно', '1 месяц', '2 месяца', '3 месяца', '6 месяцев', '9 месяцев', '1 год'].map((t) => (
+                        {Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`).map((t) => (
                           <button
                             key={t}
                             type="button"
@@ -720,14 +797,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('totalPeople')}
-                      className={dropdownToggleClass(false, 'Общий:', totalPeople)}
+                      className={dropdownToggleClass(!!errors.totalPeople, 'Общий:', totalPeople)}
                     >
                       <span className="truncate">{totalPeople ? `Общий: ${totalPeople}` : 'Общий:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -748,14 +825,14 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('totalPeople')}
-                      className={dropdownToggleClass(false, 'Общий:', totalPeople)}
+                      className={dropdownToggleClass(!!errors.totalPeople, 'Общий:', totalPeople)}
                     >
-                      <span className="truncate">{totalPeople ? `Общий: ${totalPeople}` : 'Общий:'}</span>
+                      <span className="truncate">{totalPeople || 'Общий:'}</span>
                       {dropdownChevron}
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {Array.from({ length: 9 }, (_, i) => `Общий: ${i + 1}`).concat('Общий: 10+').map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -795,21 +872,21 @@ export default function AddListingPage() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('deposit')}
-                  className={dropdownToggleClass(false, 'Депозит', deposit)}
+                  className={dropdownToggleClass(!!errors.deposit, 'Депозит', deposit)}
                 >
-                  <span className="truncate">{deposit === '0' ? 'Депозит' : `${formatBudgetDisplay(deposit)} ₸`}</span>
+                  <span className="truncate">{deposit ? `Депозит: ${deposit}` : 'Депозит'}</span>
                   {dropdownChevron}
                 </button>
                 {activeDropdown === 'deposit' && (
                   <div className={dropdownListClass}>
-                    {[0, 30000, 50000, 70000, 100000, 150000, 200000, 250000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000].map((d) => (
+                    {['Есть', 'Нет'].map((d) => (
                       <button
                         key={d}
                         type="button"
-                        onClick={() => handleDropdownSelect('deposit', d.toString())}
+                        onClick={() => handleDropdownSelect('deposit', d)}
                         className={dropdownItemClass}
                       >
-                        {d === 0 ? 'без депозита' : `${formatBudgetDisplay(d.toString())} ₸`}
+                        {d}
                       </button>
                     ))}
                   </div>
@@ -821,27 +898,23 @@ export default function AddListingPage() {
                 <button
                   type="button"
                   onClick={() => toggleDropdown('contract')}
-                  className={dropdownToggleClass(false, 'Договор', contract)}
+                  className={dropdownToggleClass(!!errors.contract, 'Договор', contract)}
                 >
-                  <span className="truncate">{contract === 'yes' ? 'Договор есть' : 'Без договора'}</span>
+                  <span className="truncate">{contract ? `Договор: ${contract}` : 'Договор'}</span>
                   {dropdownChevron}
                 </button>
                 {activeDropdown === 'contract' && (
                   <div className={dropdownListClass}>
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownSelect('contract', 'yes')}
-                      className={dropdownItemClass}
-                    >
-                      Договор есть
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownSelect('contract', 'no')}
-                      className={dropdownItemClass}
-                    >
-                      Без договора
-                    </button>
+                    {['Есть', 'Нет'].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleDropdownSelect('contract', c)}
+                        className={dropdownItemClass}
+                      >
+                        {c}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
@@ -904,7 +977,7 @@ export default function AddListingPage() {
               ))}
 
               {/* Upload button */}
-              {photos.length < (formMode === 'apartment' ? 5 : 3) && (
+              {photos.length < 3 && (
                 <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
                   errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
                 }`}>
@@ -955,7 +1028,7 @@ export default function AddListingPage() {
 
               <button
                 type="submit"
-                disabled={isSubmitting || userListingsCount >= 5}
+                disabled={isSubmitting || (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com')}
                 className="flex-[50] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 disabled:opacity-50 transition-all text-xs select-none shadow-sm uppercase tracking-wide"
               >
                 {isSubmitting ? 'Создание...' : `${publishPrice} ₸`}

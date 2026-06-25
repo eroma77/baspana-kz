@@ -7,18 +7,23 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 
 export default function FavoritesPage() {
-  const { favorites } = useAppStore()
-  const [listings, setListings] = useState<Listing[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { favorites, favoritesListings, setFavoritesListings } = useAppStore()
+  const hasPreloaded = favoritesListings.length > 0
+  const [isLoading, setIsLoading] = useState(!hasPreloaded)
+  const [isReversed, setIsReversed] = useState(false)
 
   const fetchFavorites = useCallback(async () => {
     if (favorites.length === 0) {
-      setListings([])
+      setFavoritesListings([])
       setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
+    const storeState = useAppStore.getState()
+    const hasPreloadedCurrent = storeState.favoritesListings.length > 0
+    if (!hasPreloadedCurrent) {
+      setIsLoading(true)
+    }
     try {
       const { data, error } = await supabase
         .from('listings')
@@ -27,19 +32,31 @@ export default function FavoritesPage() {
 
       if (error) throw error
       
-      // Sort favorites in order of the ID list (so newest added remains in place)
+      // Sort favorites in order of the ID list (newest or reversed)
       const mapped = (data as Listing[]) || []
-      mapped.sort((a, b) => favorites.indexOf(a.id) - favorites.indexOf(b.id))
+      mapped.sort((a, b) => {
+        const order = favorites.indexOf(a.id) - favorites.indexOf(b.id)
+        return isReversed ? -order : order
+      })
       
-      setListings(mapped)
+      setFavoritesListings(mapped)
     } catch (err) {
       console.error('Error fetching favorites:', err)
     } finally {
       setIsLoading(false)
     }
-  }, [favorites])
+  }, [favorites, isReversed, setFavoritesListings])
 
-  // Refetch when favorites array updates
+  // Listen to header sort click event
+  useEffect(() => {
+    const handleToggleSort = () => {
+      setIsReversed((prev) => !prev)
+    }
+    window.addEventListener('toggle-favorites-sort', handleToggleSort)
+    return () => window.removeEventListener('toggle-favorites-sort', handleToggleSort)
+  }, [])
+
+  // Refetch when favorites array or sort direction updates
   useEffect(() => {
     const t = setTimeout(() => {
       fetchFavorites()
@@ -59,14 +76,14 @@ export default function FavoritesPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
             <span className="text-xs text-brand-gray">Загрузка избранного...</span>
           </div>
-        ) : listings.length === 0 ? (
+        ) : favoritesListings.length === 0 ? (
           <div className="w-full py-16 flex flex-col items-center justify-center text-center px-4">
             <span className="text-sm font-semibold text-brand-black dark:text-brand-white mb-1">Корзина пуста</span>
             <span className="text-xs text-brand-gray max-w-[240px]">Добавляйте объявления в избранное, нажимая на сердечко</span>
           </div>
         ) : (
           <div className="flex flex-col animate-fade-in">
-            {listings.map((item) => (
+            {favoritesListings.map((item) => (
               <ListingCard key={item.id} listing={item} />
             ))}
           </div>

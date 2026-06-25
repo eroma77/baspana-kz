@@ -7,7 +7,8 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronDown, ArrowUpDown, Sun, Moon, HelpCircle, X, Camera, Eye, SlidersHorizontal } from 'lucide-react'
+import { ChevronLeft, ChevronDown, X, Camera, Eye, SlidersHorizontal } from 'lucide-react'
+import { SortIcon, SunIcon, MoonIcon, HelpIcon } from '@/components/icons'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -26,35 +27,29 @@ export default function FeedPage() {
     apartmentListings, 
     roommateListings, 
     setApartmentListings, 
-    setRoommateListings 
+    setRoommateListings,
+    filters,
+    hasFetchedApartments,
+    hasFetchedRoommates,
+    setHasFetchedApartments,
+    setHasFetchedRoommates
   } = useAppStore()
   
   const listings = mode === 'apartment' ? apartmentListings : roommateListings
   
   // Data States
-  const hasPreloadedData = listings.length > 0
-  const [isLoading, setIsLoading] = useState(!hasPreloadedData)
+  const hasFetched = mode === 'apartment' ? hasFetchedApartments : hasFetchedRoommates
+  const [isLoading, setIsLoading] = useState(!hasFetched)
+  const [prevMode, setPrevMode] = useState(mode)
+
+  if (mode !== prevMode) {
+    setPrevMode(mode)
+    const hasFetchedCurrent = mode === 'apartment' ? hasFetchedApartments : hasFetchedRoommates
+    setIsLoading(!hasFetchedCurrent)
+  }
 
   // Modal Toggles
-  const [showFilters, setShowFilters] = useState(false)
   const [showSort, setShowSort] = useState(false)
-
-  // Filter States
-  const [filterCity, setFilterCity] = useState('')
-  const [filterDistrict, setFilterDistrict] = useState('Не важно') // Default for apartment
-  const [filterGender, setFilterGender] = useState('любой')
-  const [filterAgeFrom, setFilterAgeFrom] = useState('')
-  const [filterAgeTo, setFilterAgeTo] = useState('')
-  const [filterRooms, setFilterRooms] = useState('любая')
-  const [filterPeopleCount, setFilterPeopleCount] = useState('')
-  const [filterSearchingCount, setFilterSearchingCount] = useState('')
-  const [filterCanLiveWith, setFilterCanLiveWith] = useState('Не важно')
-  const [filterDeposit, setFilterDeposit] = useState('не важно')
-  const [filterContract, setFilterContract] = useState('не важно')
-  const [filterPriceFrom, setFilterPriceFrom] = useState('')
-  const [filterPriceTo, setFilterPriceTo] = useState('')
-  const [filterOnlyPhotos, setFilterOnlyPhotos] = useState(false)
-  const [filterHideViewed, setFilterHideViewed] = useState(false)
 
   // Request counter ref to prevent race conditions
   const fetchCounter = useRef(0)
@@ -62,47 +57,21 @@ export default function FeedPage() {
   // Sort State
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'price_asc' | 'price_desc'>('newest')
 
-  // Dropdown UI states (stores key of active open dropdown)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-
   // Active City districts matrix
-  const currentCityData = CITIES_DATA.find((c) => c.city === filterCity)
+  const currentCityData = CITIES_DATA.find((c) => c.city === filters.city)
   const hasDistricts = currentCityData && currentCityData.districts.length > 0
 
-  // If city changes, reset district
-  useEffect(() => {
-    const t = setTimeout(() => {
-      if (hasDistricts) {
-        setFilterDistrict(mode === 'apartment' ? 'Не важно' : (currentCityData?.districts[0] || ''))
-      } else {
-        setFilterDistrict('-')
-      }
-    }, 0)
-    return () => clearTimeout(t)
-  }, [filterCity, hasDistricts, mode, currentCityData])
-
-  // Prefetch instruction page for instant load
+  // Prefetch instruction and filter page for instant load
   useEffect(() => {
     router.prefetch('/instruction')
+    router.prefetch('/filter')
   }, [router])
-
-  // Sync district filter when mode changes
-  useEffect(() => {
-    if (hasDistricts) {
-      if (mode === 'roommate' && filterDistrict === 'Не важно') {
-        setFilterDistrict(currentCityData?.districts[0] || '')
-      } else if (mode === 'apartment' && filterDistrict !== 'Не важно' && !currentCityData?.districts.includes(filterDistrict)) {
-        setFilterDistrict('Не важно')
-      }
-    }
-  }, [mode, hasDistricts, currentCityData, filterDistrict])
 
   const fetchListings = useCallback(async () => {
     const fetchId = ++fetchCounter.current
     const storeState = useAppStore.getState()
-    const currentListings = mode === 'apartment' ? storeState.apartmentListings : storeState.roommateListings
-    const hasPreloaded = currentListings.length > 0
-    if (!hasPreloaded) {
+    const hasFetchedCurrent = mode === 'apartment' ? storeState.hasFetchedApartments : storeState.hasFetchedRoommates
+    if (!hasFetchedCurrent) {
       setIsLoading(true)
     }
     try {
@@ -118,39 +87,48 @@ export default function FeedPage() {
         .eq('status', 'active')
 
       // Apply DB filters
-      if (filterCity) {
-        query = query.eq('city', filterCity)
+      if (filters.city) {
+        query = query.eq('city', filters.city)
       }
-      if (hasDistricts && filterDistrict !== 'Не важно' && filterDistrict !== '-') {
-        query = query.eq('district', filterDistrict)
+      if (hasDistricts && filters.district !== 'Не важно' && filters.district !== '-') {
+        query = query.eq('district', filters.district)
       }
-      if (filterGender && filterGender !== 'любой') {
-        // Can be male, female or any
-        query = query.eq('gender', filterGender)
+      if (filters.gender && filters.gender !== 'Не важно') {
+        if (filters.gender === 'Парень') {
+          query = query.in('gender', ['Парень', 'мужской', 'Только парни'])
+        } else if (filters.gender === 'Девушка') {
+          query = query.in('gender', ['Девушка', 'женский', 'Только девочки'])
+        } else {
+          query = query.eq('gender', filters.gender)
+        }
       }
-      if (filterRooms && filterRooms !== 'любая') {
-        query = query.eq('rooms', filterRooms)
+      if (filters.rooms && filters.rooms !== 'Не важно') {
+        const legacyRooms = filters.rooms.replace('-комнатный', '').replace('+-комнатный', '+')
+        query = query.in('rooms', [filters.rooms, legacyRooms])
       }
-      if (filterDeposit === 'да') {
+      if (filters.deposit === 'Есть') {
         query = query.gt('deposit', 0)
-      } else if (filterDeposit === 'нет') {
+      } else if (filters.deposit === 'Нет') {
         query = query.eq('deposit', 0)
       }
-      if (filterContract === 'да') {
+      if (filters.contract === 'Есть') {
         query = query.eq('contract', 'yes')
-      } else if (filterContract === 'нет') {
+      } else if (filters.contract === 'Нет') {
         query = query.eq('contract', 'no')
       }
-      if (mode === 'apartment' && filterCanLiveWith && filterCanLiveWith !== 'Не важно') {
-        query = query.eq('can_live_with', filterCanLiveWith)
+      if (filters.canLiveWith && filters.canLiveWith !== 'Не важно') {
+        query = query.eq('can_live_with', filters.canLiveWith)
+      }
+      if (filters.term && filters.term !== 'Не важно') {
+        query = query.eq('term', filters.term)
       }
 
       // Budget Ranges
-      if (filterPriceFrom) {
-        query = query.gte('price_from', parseInt(filterPriceFrom.replace(/\s/g, '')))
+      if (filters.priceFrom) {
+        query = query.gte('price_from', parseInt(filters.priceFrom.replace(/\s/g, '')))
       }
-      if (filterPriceTo) {
-        query = query.lte('price_from', parseInt(filterPriceTo.replace(/\s/g, '')))
+      if (filters.priceTo) {
+        query = query.lte('price_from', parseInt(filters.priceTo.replace(/\s/g, '')))
       }
 
       const { data, error } = await query
@@ -160,31 +138,48 @@ export default function FeedPage() {
       let result = (data as Listing[]) || []
 
       // Client-side post filtering
-      // Age Range match
-      if (filterAgeFrom) {
-        const from = parseInt(filterAgeFrom)
-        result = result.filter((item) => item.age_from >= from || item.age_to >= from)
-      }
-      if (filterAgeTo) {
-        const to = parseInt(filterAgeTo)
-        result = result.filter((item) => item.age_from <= to || item.age_to <= to)
+      if (mode === 'apartment') {
+        if (filters.ageFrom && filters.ageFrom !== 'Не важно') {
+          const ageVal = parseInt(filters.ageFrom.replace(/\D/g, ''))
+          result = result.filter((item) => item.age_from === ageVal)
+        }
+      } else {
+        if (filters.ageFrom) {
+          const from = parseInt(filters.ageFrom)
+          result = result.filter((item) => item.age_from >= from || item.age_to >= from)
+        }
+        if (filters.ageTo) {
+          const to = parseInt(filters.ageTo)
+          result = result.filter((item) => item.age_from <= to || item.age_to <= to)
+        }
       }
 
       // Capacity filters
-      if (filterPeopleCount) {
-        result = result.filter((item) => item.people_count === parseInt(filterPeopleCount))
-      }
-      if (filterSearchingCount) {
-        result = result.filter((item) => item.searching_count === parseInt(filterSearchingCount))
+      if (mode === 'roommate') {
+        if (filters.peopleCount && filters.peopleCount !== 'Не важно') {
+          const val = parseInt(filters.peopleCount.replace(/\D/g, ''))
+          result = result.filter((item) => item.total_people === val)
+        }
+        if (filters.searchingCount && filters.searchingCount !== 'Не важно') {
+          const val = parseInt(filters.searchingCount.replace(/\D/g, ''))
+          result = result.filter((item) => item.people_count === val)
+        }
+      } else {
+        if (filters.peopleCount && filters.peopleCount !== 'Не важно') {
+          result = result.filter((item) => item.total_people === parseInt(filters.peopleCount))
+        }
+        if (filters.searchingCount && filters.searchingCount !== 'Не важно') {
+          result = result.filter((item) => item.searching_count === parseInt(filters.searchingCount))
+        }
       }
 
       // Only Photos Toggle
-      if (filterOnlyPhotos) {
+      if (filters.onlyPhotos) {
         result = result.filter((item) => item.photos && item.photos.length > 0)
       }
 
       // Hide Viewed Toggle
-      if (filterHideViewed) {
+      if (filters.hideViewed) {
         result = result.filter((item) => !viewed.includes(item.id))
       }
 
@@ -211,8 +206,10 @@ export default function FeedPage() {
 
       if (mode === 'apartment') {
         setApartmentListings(result)
+        setHasFetchedApartments(true)
       } else {
         setRoommateListings(result)
+        setHasFetchedRoommates(true)
       }
     } catch (err) {
       if (fetchId === fetchCounter.current) {
@@ -225,29 +222,17 @@ export default function FeedPage() {
     }
   }, [
     mode,
-    filterCity,
+    filters,
     hasDistricts,
-    filterDistrict,
-    filterGender,
-    filterRooms,
-    filterDeposit,
-    filterContract,
-    filterCanLiveWith,
-    filterPriceFrom,
-    filterPriceTo,
-    filterAgeFrom,
-    filterAgeTo,
-    filterPeopleCount,
-    filterSearchingCount,
-    filterOnlyPhotos,
-    filterHideViewed,
     viewed,
     sortBy,
     setApartmentListings,
     setRoommateListings,
+    setHasFetchedApartments,
+    setHasFetchedRoommates
   ])
 
-  // Refetch when search mode changes
+  // Refetch when search mode changes or filters change
   useEffect(() => {
     const t = setTimeout(() => {
       fetchListings()
@@ -255,42 +240,9 @@ export default function FeedPage() {
     return () => clearTimeout(t)
   }, [fetchListings])
 
-  // Filter application handler
-  const handleApplyFilters = () => {
-    setShowFilters(false)
-    if (mode === 'roommate' && filterDistrict === 'Не важно' && currentCityData && currentCityData.districts.length > 0) {
-      setFilterDistrict(currentCityData.districts[0])
-    }
-    fetchListings()
-  }
-
-  // Filter reset handler
-  const handleResetFilters = () => {
-    setFilterCity('')
-    setFilterDistrict(mode === 'apartment' ? 'Не важно' : '-')
-    setFilterGender('любой')
-    setFilterAgeFrom('')
-    setFilterAgeTo('')
-    setFilterRooms('любая')
-    setFilterPeopleCount('')
-    setFilterSearchingCount('')
-    setFilterCanLiveWith('Не важно')
-    setFilterDeposit('не важно')
-    setFilterContract('не важно')
-    setFilterPriceFrom('')
-    setFilterPriceTo('')
-    setFilterOnlyPhotos(false)
-    setFilterHideViewed(false)
-    setActiveDropdown(null)
-  }
-
   const handleApplySort = () => {
     setShowSort(false)
     fetchListings()
-  }
-
-  const toggleDropdown = (name: string) => {
-    setActiveDropdown(activeDropdown === name ? null : name)
   }
 
   return (
@@ -300,11 +252,11 @@ export default function FeedPage() {
         <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
 
         {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
-        <div className="w-full flex justify-center px-4 pt-[8px] pb-[6px] border-b border-zinc-200/20 dark:border-zinc-800/20 transition-colors duration-200">
+        <div className="w-full flex justify-center px-4 pt-[2px] pb-[6px] border-b border-zinc-200/20 dark:border-zinc-800/20 transition-colors duration-200">
           <div className="flex justify-between w-[339px] mx-auto gap-[5px] font-unbounded text-[16px]">
             {/* Left Filter Pill */}
             <button
-              onClick={() => setShowFilters(true)}
+              onClick={() => router.push('/filter')}
               className="w-[210px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center pl-[11px] gap-[31px] shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               <SlidersHorizontal className="w-[24px] h-[24px] text-white stroke-[2.25px] flex-shrink-0" />
@@ -319,9 +271,7 @@ export default function FeedPage() {
                 className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
                 aria-label="Сортировка"
               >
-                <svg className="w-[23px] h-[23px] text-white fill-current" viewBox="0 0 24 24">
-                  <path d="M12 3l-5 6h10l-5-6zm0 18l5-6H7l5 6z" />
-                </svg>
+                <SortIcon className="text-white shrink-0" />
               </button>
 
               {/* Theme toggle */}
@@ -331,11 +281,9 @@ export default function FeedPage() {
                 aria-label="Смена темы"
               >
                 {theme === 'light' ? (
-                  <Sun className="w-[18px] h-[18px] text-white fill-white" />
+                  <SunIcon className="text-white shrink-0" />
                 ) : (
-                  <div className="scale-[0.85] flex items-center justify-center">
-                    <Moon className="w-[17px] h-[17px] text-white fill-white" />
-                  </div>
+                  <MoonIcon className="text-white shrink-0" />
                 )}
               </button>
 
@@ -345,9 +293,7 @@ export default function FeedPage() {
                 className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
                 aria-label="Инструкция"
               >
-                <div className="w-[23px] h-[23px] rounded-full bg-white text-black flex items-center justify-center font-unbounded font-bold text-[13px] select-none leading-none">
-                  ?
-                </div>
+                <HelpIcon className="text-white shrink-0" />
               </button>
             </div>
           </div>
@@ -427,558 +373,6 @@ export default function FeedPage() {
             >
               Готово
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* --- FILTERS DRAWER / MODAL --- */}
-      {showFilters && (
-        <div className="fixed inset-0 z-50 flex flex-col justify-end">
-          {/* Overlay */}
-          <div
-            onClick={() => setShowFilters(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-200"
-          ></div>
-
-          {/* Drawer Content */}
-          <div className="relative w-full max-w-md mx-auto h-[85vh] bg-[#FFFFFF] dark:bg-[#313131] border-t border-gray-200 dark:border-zinc-800 rounded-t-[32px] flex flex-col shadow-2xl overflow-hidden select-none animate-slide-up font-montserrat">
-            {/* Header Capsule - Matches Figma header style exactly */}
-            <div className="w-full flex items-center justify-between px-4 py-3 sticky top-0 z-40 bg-[#FFFFFF] dark:bg-[#313131] border-b border-gray-200/50 dark:border-zinc-800 transition-all duration-200 ease-in-out shrink-0">
-              {/* Left filter capsule */}
-              <div className="bg-[#000000] text-white rounded-full flex items-center pl-[6px] pr-4 h-[36px] shadow-md transition-all duration-200 ease-in-out">
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowFilters(false)}
-                    className="text-white hover:text-zinc-300 transition-colors duration-200 ease-in-out flex items-center justify-center animate-none"
-                    aria-label="Назад"
-                  >
-                    <div className="w-[24px] h-[24px] rounded-full border border-white/20 flex items-center justify-center">
-                      <ChevronLeft className="w-3.5 h-3.5 text-white" />
-                    </div>
-                  </button>
-                  <span className="font-normal text-[16px] tracking-wide lowercase">
-                    фильтр
-                  </span>
-                </div>
-              </div>
-
-              {/* Right theme and help capsule */}
-              <div className="w-[100px] h-[36px] bg-[#000000] text-white rounded-full flex items-center justify-between px-[12px] shadow-md transition-all duration-200 ease-in-out">
-                <button
-                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200 ease-in-out"
-                  aria-label="Смена темы"
-                >
-                  {theme === 'light' ? (
-                    <Sun className="w-[18px] h-[18px] text-white fill-white" />
-                  ) : (
-                    <Moon className="w-[17px] h-[17px] text-white fill-white" />
-                  )}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowFilters(false)
-                    router.push('/instruction')
-                  }}
-                  className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-200 ease-in-out"
-                  aria-label="Инструкция"
-                >
-                  <div className="w-[20px] h-[20px] rounded-full border border-white/50 flex items-center justify-center text-white font-bold text-[11px] select-none leading-none">
-                    ?
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Fields grid scroll container */}
-            <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4 text-[16px] font-normal">
-              
-              {/* Row 1: Город & Пол */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* City Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('city')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterCity
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">{filterCity || 'Город'}</span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'city' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFilterCity('')
-                          setActiveDropdown(null)
-                        }}
-                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white border-b border-zinc-200/10 dark:border-zinc-800/10 transition-colors duration-200 ease-in-out"
-                      >
-                        Все города
-                      </button>
-                      {CITIES_DATA.map((c) => (
-                        <button
-                          key={c.city}
-                          type="button"
-                          onClick={() => {
-                            setFilterCity(c.city)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {c.city}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Gender Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('gender')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterGender !== 'любой'
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">{filterGender === 'любой' ? 'Пол' : filterGender}</span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'gender' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['любой', 'мужской', 'женский'].map((g) => (
-                        <button
-                          key={g}
-                          type="button"
-                          onClick={() => {
-                            setFilterGender(g)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {g}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Row 2: Район (Disabled if empty) */}
-              <div className="relative">
-                <button
-                  type="button"
-                  disabled={!hasDistricts}
-                  onClick={() => toggleDropdown('district')}
-                  className={`w-full border rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                    hasDistricts
-                      ? filterDistrict && filterDistrict !== 'Не важно' && filterDistrict !== '-'
-                        ? 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#000000] dark:text-white font-semibold'
-                        : 'bg-[#FFFFFF] dark:bg-[#202020] border-gray-200 dark:border-zinc-800 text-[#9D9D9D] font-normal'
-                      : 'bg-[#F7F7F7] dark:bg-[#202020] border-zinc-200 dark:border-zinc-800 text-[#9D9D9D] opacity-50 cursor-not-allowed font-normal'
-                  }`}
-                >
-                  <span className="truncate">
-                    {!hasDistricts
-                      ? '-'
-                      : filterDistrict === 'Не важно'
-                      ? 'Район'
-                      : filterDistrict}
-                  </span>
-                  <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                </button>
-                {activeDropdown === 'district' && hasDistricts && (
-                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl max-h-48 overflow-y-auto transition-all duration-200 ease-in-out">
-                    {mode === 'apartment' && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFilterDistrict('Не важно')
-                          setActiveDropdown(null)
-                        }}
-                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                      >
-                        Не важно
-                      </button>
-                    )}
-                    {currentCityData?.districts.map((d) => (
-                      <button
-                        key={d}
-                        type="button"
-                        onClick={() => {
-                          setFilterDistrict(d)
-                          setActiveDropdown(null)
-                        }}
-                        className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                      >
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Row 3: Возраст (от / до) & Комната */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Age Range Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('age')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterAgeFrom || filterAgeTo
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {(filterAgeFrom || filterAgeTo)
-                        ? (filterAgeFrom && filterAgeTo
-                          ? `${filterAgeFrom} - ${filterAgeTo}`
-                          : filterAgeFrom
-                          ? `от ${filterAgeFrom}`
-                          : `до ${filterAgeTo}`)
-                        : 'Возраст'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'age' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl p-3 flex flex-col gap-2 transition-all duration-200 ease-in-out">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="от"
-                          value={filterAgeFrom}
-                          onChange={(e) => setFilterAgeFrom(e.target.value.replace(/\D/g, ''))}
-                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out text-[16px]"
-                        />
-                        <input
-                          type="text"
-                          placeholder="до"
-                          value={filterAgeTo}
-                          onChange={(e) => setFilterAgeTo(e.target.value.replace(/\D/g, ''))}
-                          className="w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-2 px-3 text-center text-[#000000] dark:text-white font-bold placeholder:text-[#9D9D9D] focus:outline-none transition-colors duration-200 ease-in-out text-[16px]"
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setActiveDropdown(null)}
-                        className="w-full bg-[#007BFF] text-white py-1.5 rounded-xl font-bold text-[10px] uppercase hover:bg-blue-600 active:scale-95 transition-all duration-150 ease-in-out"
-                      >
-                        Готово
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Rooms Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('rooms')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterRooms !== 'любая'
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterRooms === 'любая' ? 'Комната' : `${filterRooms} комн.`}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'rooms' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['любая', '1', '2', '3', '4+'].map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => {
-                            setFilterRooms(r)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {r === 'любая' ? 'любая комната' : `${r} комната`}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Row 4: Общий & Нас Dropdowns */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Total People Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('peopleCount')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterPeopleCount
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterPeopleCount ? `Общий: ${filterPeopleCount}` : 'Общий:'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'peopleCount' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['любое', '1', '2', '3', '4', '5+'].map((p) => (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => {
-                            setFilterPeopleCount(p === 'любое' ? '' : p)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {p === 'любое' ? 'любое число' : p}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Searching Count Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('searchingCount')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterSearchingCount
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterSearchingCount ? `Нас: ${filterSearchingCount}` : 'Нас:'}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'searchingCount' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['любое', '1', '2', '3', '4+'].map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => {
-                            setFilterSearchingCount(s === 'любое' ? '' : s)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {s === 'любое' ? 'любое число' : s}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Row 5: С кем могу жить (Only in Apartment mode) */}
-              {mode === 'apartment' && (
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('canLiveWith')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterCanLiveWith !== 'Не важно'
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterCanLiveWith === 'Не важно' ? 'Могу жить с' : filterCanLiveWith}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'canLiveWith' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['Не важно', 'Только парни', 'Только девочки'].map((item) => (
-                        <button
-                          key={item}
-                          type="button"
-                          onClick={() => {
-                            setFilterCanLiveWith(item)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Row 6: Депозит & Договор */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Deposit Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('deposit')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterDeposit !== 'не важно'
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterDeposit === 'не важно' ? 'Депозит' : `Депозит: ${filterDeposit}`}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'deposit' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['не важно', 'да', 'нет'].map((d) => (
-                        <button
-                          key={d}
-                          type="button"
-                          onClick={() => {
-                            setFilterDeposit(d)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {d}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Contract Dropdown */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => toggleDropdown('contract')}
-                    className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left flex justify-between items-center min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                      filterContract !== 'не важно'
-                        ? 'text-[#000000] dark:text-white font-semibold'
-                        : 'text-[#9D9D9D] font-normal'
-                    }`}
-                  >
-                    <span className="truncate">
-                      {filterContract === 'не важно' ? 'Договор' : `Договор: ${filterContract}`}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
-                  </button>
-                  {activeDropdown === 'contract' && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-800 rounded-xl shadow-xl transition-all duration-200 ease-in-out">
-                      {['не важно', 'да', 'нет'].map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() => {
-                            setFilterContract(c)
-                            setActiveDropdown(null)
-                          }}
-                          className="w-full text-left py-2.5 px-4 text-[16px] font-bold hover:bg-zinc-50 dark:hover:bg-[#202020] text-brand-black dark:text-brand-white transition-colors duration-200 ease-in-out"
-                        >
-                          {c}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Row 7: Бюджет от / до */}
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="От"
-                  value={formatBudgetDisplay(filterPriceFrom)}
-                  onChange={(e) => setFilterPriceFrom(e.target.value.replace(/\D/g, ''))}
-                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                    filterPriceFrom
-                      ? 'text-[#000000] dark:text-white font-semibold'
-                      : 'text-[#9D9D9D] font-normal'
-                  }`}
-                />
-                <input
-                  type="text"
-                  placeholder="До"
-                  value={formatBudgetDisplay(filterPriceTo)}
-                  onChange={(e) => setFilterPriceTo(e.target.value.replace(/\D/g, ''))}
-                  className={`w-full bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 text-left placeholder:text-[#9D9D9D] focus:outline-none min-h-[44px] text-[16px] transition-all duration-200 ease-in-out ${
-                    filterPriceTo
-                      ? 'text-[#000000] dark:text-white font-semibold'
-                      : 'text-[#9D9D9D] font-normal'
-                  }`}
-                />
-              </div>
-
-              {/* Row 8: Toggles (Only Photos / Hide Viewed) */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Only Photos Toggle */}
-                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
-                  <Camera className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filterOnlyPhotos ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
-                  <button
-                    type="button"
-                    onClick={() => setFilterOnlyPhotos(!filterOnlyPhotos)}
-                    className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center ${
-                      filterOnlyPhotos ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'
-                    }`}
-                  >
-                    <div
-                      className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                        filterOnlyPhotos ? 'translate-x-4' : 'translate-x-0'
-                      }`}
-                    ></div>
-                  </button>
-                </div>
-
-                {/* Hide Viewed Toggle */}
-                <div className="flex items-center justify-between bg-[#FFFFFF] dark:bg-[#202020] border border-gray-200 dark:border-zinc-800 rounded-xl py-3 px-4 min-h-[44px] transition-all duration-200 ease-in-out">
-                  <Eye className={`w-5 h-5 transition-colors duration-200 ease-in-out ${filterHideViewed ? 'text-[#007BFF]' : 'text-[#9D9D9D]'}`} />
-                  <button
-                    type="button"
-                    onClick={() => setFilterHideViewed(!filterHideViewed)}
-                    className={`w-9 h-5 rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none flex items-center ${
-                      filterHideViewed ? 'bg-[#007BFF]' : 'bg-gray-200 dark:bg-zinc-800'
-                    }`}
-                  >
-                    <div
-                      className={`bg-[#FFFFFF] w-4 h-4 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${
-                        filterHideViewed ? 'translate-x-4' : 'translate-x-0'
-                      }`}
-                    ></div>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Bottom Actions Footer */}
-            <div className="w-full p-5 border-t border-gray-150 dark:border-zinc-850 flex justify-between gap-3 shrink-0 transition-all duration-200 ease-in-out">
-              <button
-                onClick={handleResetFilters}
-                className="flex-1 bg-[#007BFF]/10 text-[#007BFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-[#007BFF]/20 active:scale-[0.98] transition-all duration-200 ease-in-out text-[16px]"
-              >
-                Сбросить
-              </button>
-              <button
-                onClick={handleApplyFilters}
-                className="flex-1 bg-[#007BFF] text-[#FFFFFF] rounded-xl py-3.5 px-4 font-bold text-center hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 ease-in-out text-[16px]"
-              >
-                Применить
-              </button>
-            </div>
           </div>
         </div>
       )}

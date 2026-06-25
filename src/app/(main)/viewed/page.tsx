@@ -7,18 +7,22 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 
 export default function ViewedPage() {
-  const { viewed } = useAppStore()
-  const [listings, setListings] = useState<Listing[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const { viewed, viewedListings, setViewedListings } = useAppStore()
+  const hasPreloaded = viewedListings.length > 0
+  const [isLoading, setIsLoading] = useState(!hasPreloaded)
 
   const fetchViewed = useCallback(async () => {
     if (viewed.length === 0) {
-      setListings([])
+      setViewedListings([])
       setIsLoading(false)
       return
     }
 
-    setIsLoading(true)
+    const storeState = useAppStore.getState()
+    const hasPreloadedCurrent = storeState.viewedListings.length > 0
+    if (!hasPreloadedCurrent) {
+      setIsLoading(true)
+    }
     try {
       const { data, error } = await supabase
         .from('listings')
@@ -31,13 +35,13 @@ export default function ViewedPage() {
       // Sort in the exact order of 'viewed' array (most recently viewed first)
       mapped.sort((a, b) => viewed.indexOf(a.id) - viewed.indexOf(b.id))
 
-      setListings(mapped)
+      setViewedListings(mapped)
     } catch (err) {
       console.error('Error fetching viewed history:', err)
     } finally {
       setIsLoading(false)
     }
-  }, [viewed])
+  }, [viewed, setViewedListings])
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -58,14 +62,14 @@ export default function ViewedPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
             <span className="text-xs text-brand-gray">Загрузка истории...</span>
           </div>
-        ) : listings.length === 0 ? (
+        ) : viewedListings.length === 0 ? (
           <div className="w-full py-16 flex flex-col items-center justify-center text-center px-4">
             <span className="text-sm font-semibold text-brand-black dark:text-brand-white mb-1">История пуста</span>
             <span className="text-xs text-brand-gray max-w-[240px]">Здесь появятся объявления, которые вы детально просматривали</span>
           </div>
         ) : (
           <div className="flex flex-col animate-fade-in">
-            {listings.map((item) => (
+            {viewedListings.map((item) => (
               <ListingCard key={item.id} listing={item} />
             ))}
           </div>

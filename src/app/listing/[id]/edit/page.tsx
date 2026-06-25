@@ -93,17 +93,35 @@ export default function EditListingPage({ params }: PageProps) {
         setListing(item)
         setCity(item.city)
         setDistrict(item.district || (item.mode === 'apartment' ? 'Не важно' : '-'))
-        setGender(item.gender)
-        setAgeFrom(item.age_from.toString())
-        setAgeTo(item.age_to.toString())
-        setRooms(item.rooms)
+        
+        // Gender mapping (literal: "Парень", "Девушка")
+        const mappedGender = item.gender === 'мужской' || item.gender === 'Только парни'
+          ? 'Парень'
+          : (item.gender === 'женский' || item.gender === 'Только девочки' ? 'Девушка' : item.gender)
+        setGender(mappedGender)
+
+        // Age mapping: single age for apartment mode, range for roommate mode
+        if (item.mode === 'apartment') {
+          setAgeFrom(`${item.age_from} лет`)
+          setAgeTo(`${item.age_from} лет`)
+        } else {
+          setAgeFrom(item.age_from.toString())
+          setAgeTo(item.age_to.toString())
+        }
+
+        // Rooms mapping (ensure literal suffix)
+        const mappedRooms = item.rooms.includes('-комн')
+          ? item.rooms
+          : `${item.rooms}-комнатный`
+        setRooms(mappedRooms)
+
         setCanLiveWith(item.can_live_with || 'Не важно')
-        setPeopleCount(item.people_count.toString())
+        setPeopleCount(item.mode === 'roommate' ? `Нас: ${item.people_count}` : item.people_count.toString())
         setSearchingCount(item.searching_count.toString())
         setTerm(item.term)
-        setTotalPeople(item.total_people.toString())
-        setDeposit(item.deposit.toString())
-        setContract(item.contract)
+        setTotalPeople(item.mode === 'roommate' ? `Общий: ${item.total_people}` : item.total_people.toString())
+        setDeposit(item.deposit > 0 ? 'Есть' : 'Нет')
+        setContract(item.contract === 'yes' ? 'Есть' : 'Нет')
         setPriceFrom(item.price_from.toString())
         setPriceTo(item.price_to.toString())
         setDescription(item.description)
@@ -141,8 +159,20 @@ export default function EditListingPage({ params }: PageProps) {
     if (dropdown === 'canLiveWith') setCanLiveWith(val)
     if (dropdown === 'term') setTerm(val)
     if (dropdown === 'contract') setContract(val)
-    if (dropdown === 'ageFrom') setAgeFrom(val)
-    if (dropdown === 'ageTo') setAgeTo(val)
+    if (dropdown === 'ageFrom') {
+      setAgeFrom(val)
+      const num = parseInt(val)
+      if (ageTo && parseInt(ageTo) < num) {
+        setAgeTo(val)
+      }
+    }
+    if (dropdown === 'ageTo') {
+      setAgeTo(val)
+      const num = parseInt(val)
+      if (ageFrom && parseInt(ageFrom) > num) {
+        setAgeFrom(val)
+      }
+    }
     if (dropdown === 'peopleCount') setPeopleCount(val)
     if (dropdown === 'searchingCount') setSearchingCount(val)
     if (dropdown === 'totalPeople') setTotalPeople(val)
@@ -172,7 +202,7 @@ export default function EditListingPage({ params }: PageProps) {
     setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = listing?.mode === 'apartment' ? 5 : 3
+    const limit = 3
     const availableSlots = limit - photos.length
 
     if (availableSlots <= 0) {
@@ -218,24 +248,52 @@ export default function EditListingPage({ params }: PageProps) {
       }
     }
 
-    if (!priceFrom) newErrors.priceFrom = true
-    if (!priceTo) newErrors.priceTo = true
-    if (priceFrom && priceTo && parseInt(priceFrom) > parseInt(priceTo)) {
+    const fromVal = priceFrom ? parseInt(priceFrom) : 0
+    const toVal = priceTo ? parseInt(priceTo) : 0
+
+    if (!priceFrom) {
+      newErrors.priceFrom = true
+    } else if (fromVal < 10000 || fromVal > 900000) {
+      newErrors.priceFrom = true
+      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+    }
+
+    if (!priceTo) {
+      newErrors.priceTo = true
+    } else if (toVal < 10000 || toVal > 900000) {
+      newErrors.priceTo = true
+      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+    }
+
+    if (priceFrom && priceTo && fromVal > toVal) {
       newErrors.priceFrom = true
       newErrors.priceTo = true
       setSubmitErrorMsg('Минимальный бюджет (от) не может быть больше максимального (до).')
     }
 
     if (!ageFrom) newErrors.ageFrom = true
-    if (!ageTo) newErrors.ageTo = true
-    if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
-      newErrors.ageFrom = true
-      newErrors.ageTo = true
-      setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+    if (listing.mode === 'roommate') {
+      if (!ageTo) newErrors.ageTo = true
+      if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
+        newErrors.ageFrom = true
+        newErrors.ageTo = true
+        setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+      }
+    }
+
+    if (!rooms) newErrors.rooms = true
+    if (!term) newErrors.term = true
+    if (listing.mode === 'roommate') {
+      if (!gender) newErrors.gender = true
+      if (!canLiveWith) newErrors.canLiveWith = true
+      if (!peopleCount) newErrors.peopleCount = true
+      if (!totalPeople) newErrors.totalPeople = true
     }
 
     if (!phone || phone.length < 10) newErrors.phone = true
-    if (!description || description.trim().length < 10) newErrors.description = true
+    if (listing.mode === 'roommate') {
+      if (!description || description.trim().length < 10) newErrors.description = true
+    }
 
     if (listing.mode === 'roommate') {
       if (!addressLink) {
@@ -249,17 +307,10 @@ export default function EditListingPage({ params }: PageProps) {
       }
     }
 
-    // Photo limits validation
-    if (listing.mode === 'apartment') {
-      if (photos.length < 3 || photos.length > 5) {
-        newErrors.photos = true
-        setSubmitErrorMsg('Для квартиры необходимо добавить от 3 до 5 фотографий.')
-      }
-    } else {
-      if (photos.length > 3) {
-        newErrors.photos = true
-        setSubmitErrorMsg('Для соседа можно добавить не более 3 фотографий.')
-      }
+    // Photo limits validation (optional, max 3)
+    if (photos.length > 3) {
+      newErrors.photos = true
+      setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -276,15 +327,15 @@ export default function EditListingPage({ params }: PageProps) {
       district: hasDistricts && district !== 'Не важно' && district !== '-' ? district : null,
       gender,
       age_from: parseInt(ageFrom),
-      age_to: parseInt(ageTo),
+      age_to: listing.mode === 'apartment' ? parseInt(ageFrom) : parseInt(ageTo),
       rooms,
-      can_live_with: listing.mode === 'apartment' ? canLiveWith : null,
-      people_count: parseInt(peopleCount),
-      searching_count: parseInt(searchingCount),
+      can_live_with: listing.mode === 'apartment' ? (canLiveWith || 'Не важно') : canLiveWith,
+      people_count: listing.mode === 'roommate' ? parseInt(peopleCount.replace(/\D/g, '')) : (parseInt(peopleCount) || 1),
+      searching_count: listing.mode === 'roommate' ? 1 : (parseInt(searchingCount) || 1),
       term,
-      total_people: parseInt(totalPeople),
-      deposit: parseInt(deposit) || 0,
-      contract,
+      total_people: listing.mode === 'roommate' ? parseInt(totalPeople.replace(/\D/g, '')) : (parseInt(totalPeople) || 1),
+      deposit: deposit === 'Есть' ? 1 : 0,
+      contract: contract === 'Есть' ? 'yes' : 'no',
       price_from: parseInt(priceFrom),
       price_to: parseInt(priceTo),
       photos,
@@ -312,17 +363,16 @@ export default function EditListingPage({ params }: PageProps) {
     }
   }
 
-  // Format phone output for visual convenience
+  // Format phone output for visual convenience as 777 777 7777
   const formatPhoneDisplay = (val: string) => {
     if (!val) return ''
-    const match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/)
+    const match = val.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/)
     if (!match) return val
     let res = ''
-    if (match[1]) res += `(${match[1]}`
-    if (match[2]) res += `) ${match[2]}`
-    if (match[3]) res += `-${match[3]}`
-    if (match[4]) res += `-${match[4]}`
-    return res
+    if (match[1]) res += `${match[1]}`
+    if (match[2]) res += ` ${match[2]}`
+    if (match[3]) res += ` ${match[3]}`
+    return res.trim()
   }
 
   const dropdownToggleClass = (err: boolean) =>
@@ -330,7 +380,7 @@ export default function EditListingPage({ params }: PageProps) {
       err ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
     }`
 
-  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-48 overflow-y-auto"
+  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-80 overflow-y-auto"
   const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
 
   if (!listing) {
@@ -390,7 +440,7 @@ export default function EditListingPage({ params }: PageProps) {
               {/* Gender */}
               <div className="relative">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">
-                  {listing.mode === 'apartment' ? 'Ваш пол' : 'Ищу сожителя'}
+                  {listing.mode === 'apartment' ? 'Ваш пол' : 'Пол автора'}
                 </label>
                 <button
                   type="button"
@@ -402,7 +452,7 @@ export default function EditListingPage({ params }: PageProps) {
                 </button>
                 {activeDropdown === 'gender' && (
                   <div className={dropdownListClass}>
-                    {['любой', 'мужской', 'женский'].map((g) => (
+                    {['Парень', 'Девушка'].map((g) => (
                       <button
                         key={g}
                         type="button"
@@ -460,58 +510,34 @@ export default function EditListingPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Row 3: Возраст & Комната */}
+            {/* Row 3: Возраст & Комнатность */}
             <div className="grid grid-cols-2 gap-3">
-              {/* Age dropdowns */}
-              <div className="flex flex-col">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
-                <div className="grid grid-cols-2 gap-1.5">
+              {listing.mode === 'apartment' ? (
+                /* Apartment Single Age Dropdown */
+                <div className="flex flex-col">
+                  <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
                   <div className="relative">
                     <button
                       type="button"
                       onClick={() => toggleDropdown('ageFrom')}
-                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 text-center text-brand-black dark:text-brand-white font-bold flex justify-between items-center px-3.5 ${
-                        errors.ageFrom ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                      }`}
+                      className={dropdownToggleClass(errors.ageFrom)}
                     >
-                      <span>{ageFrom || 'от'}</span>
-                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
+                      <span>{ageFrom || 'Возраст'}</span>
+                      <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'ageFrom' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
+                        {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
                           <button
                             key={a}
                             type="button"
-                            onClick={() => handleDropdownSelect('ageFrom', a)}
-                            className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
-                          >
-                            {a}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => toggleDropdown('ageTo')}
-                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 text-center text-brand-black dark:text-brand-white font-bold flex justify-between items-center px-3.5 ${
-                        errors.ageTo ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                      }`}
-                    >
-                      <span>{ageTo || 'до'}</span>
-                      <span className="text-[9px] text-[#9D9D9D]">▼</span>
-                    </button>
-                    {activeDropdown === 'ageTo' && (
-                      <div className={dropdownListClass}>
-                        {Array.from({ length: 45 }, (_, i) => (16 + i).toString()).map((a) => (
-                          <button
-                            key={a}
-                            type="button"
-                            onClick={() => handleDropdownSelect('ageTo', a)}
-                            className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+                            onClick={() => {
+                              setAgeFrom(a)
+                              setAgeTo(a)
+                              setActiveDropdown(null)
+                              setErrors((prev) => ({ ...prev, ageFrom: false, ageTo: false }))
+                            }}
+                            className={dropdownItemClass}
                           >
                             {a}
                           </button>
@@ -520,29 +546,95 @@ export default function EditListingPage({ params }: PageProps) {
                     )}
                   </div>
                 </div>
-              </div>
+              ) : (
+                /* Roommate Age Range inline capsule */
+                <div className="flex flex-col">
+                  <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
+                  <div className="flex items-center bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl min-h-[44px] text-xs relative select-none">
+                    {/* Age From */}
+                    <div className="relative flex-1 h-full">
+                      <button
+                        type="button"
+                        onClick={() => toggleDropdown('ageFrom')}
+                        className="w-full h-full py-3 px-2 text-center flex justify-between items-center text-xs font-bold text-brand-black dark:text-brand-white cursor-pointer"
+                      >
+                        <span className="w-full text-center">{ageFrom || 'от'}</span>
+                        <span className="text-[9px] text-[#9D9D9D] shrink-0">▼</span>
+                      </button>
+                      {activeDropdown === 'ageFrom' && (
+                        <div className={dropdownListClass}>
+                          {Array.from(
+                            { length: (ageTo ? parseInt(ageTo) : 50) - 16 + 1 },
+                            (_, i) => (16 + i).toString()
+                          ).map((a) => (
+                            <button
+                              key={a}
+                              type="button"
+                              onClick={() => handleDropdownSelect('ageFrom', a)}
+                              className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white cursor-pointer"
+                            >
+                              {a}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="h-5 w-[1px] bg-zinc-200 dark:bg-zinc-850"></div>
+                    {/* Age To */}
+                    <div className="relative flex-1 h-full">
+                      <button
+                        type="button"
+                        onClick={() => toggleDropdown('ageTo')}
+                        className="w-full h-full py-3 px-2 text-center flex justify-between items-center text-xs font-bold text-brand-black dark:text-brand-white cursor-pointer"
+                      >
+                        <span className="w-full text-center">{ageTo || 'до'}</span>
+                        <span className="text-[9px] text-[#9D9D9D] shrink-0">▼</span>
+                      </button>
+                      {activeDropdown === 'ageTo' && (
+                        <div className={dropdownListClass}>
+                          {Array.from(
+                            { length: 50 - (ageFrom ? parseInt(ageFrom) : 16) + 1 },
+                            (_, i) => ((ageFrom ? parseInt(ageFrom) : 16) + i).toString()
+                          ).map((a) => (
+                            <button
+                              key={a}
+                              type="button"
+                              onClick={() => handleDropdownSelect('ageTo', a)}
+                              className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white cursor-pointer"
+                            >
+                              {a}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Rooms select */}
-              <div className="relative">
+              <div className="relative flex flex-col">
                 <label className="block text-brand-gray text-[10px] uppercase mb-1">Комнатность</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('rooms')}
                   className={dropdownToggleClass(errors.rooms)}
                 >
-                  <span>{rooms} комната</span>
+                  <span>
+                    {rooms || 'Комната'}
+                  </span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'rooms' && (
                   <div className={dropdownListClass}>
-                    {['1', '2', '3', '4+'].map((r) => (
+                    {['1-комнатный', '2-комнатный', '3-комнатный', '4-комнатный', '5-комнатный', '6-комнатный', '7-комнатный', '8-комнатный', '9-комнатный', '10+-комнатный'].map((r) => (
                       <button
                         key={r}
                         type="button"
                         onClick={() => handleDropdownSelect('rooms', r)}
                         className={dropdownItemClass}
                       >
-                        {r} комната
+                        {r}
                       </button>
                     ))}
                   </div>
@@ -593,7 +685,7 @@ export default function EditListingPage({ params }: PageProps) {
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -608,28 +700,28 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 </>
               ) : (
-                /* Roommate mode */
+                /* Roommate mode Row 4: Будет жить (Нас) & Ищу (canLiveWith) */
                 <>
                   <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Будет жить: чел.</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
-                      className={dropdownToggleClass(false)}
+                      className={dropdownToggleClass(errors.peopleCount)}
                     >
-                      <span>{peopleCount} чел.</span>
+                      <span>{peopleCount || 'Нас:'}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {Array.from({ length: 9 }, (_, i) => `Нас: ${i + 1}`).concat('Нас: 10+').map((c) => (
                           <button
                             key={c}
                             type="button"
                             onClick={() => handleDropdownSelect('peopleCount', c)}
                             className={dropdownItemClass}
                           >
-                            {c} чел.
+                            {c}
                           </button>
                         ))}
                       </div>
@@ -640,22 +732,22 @@ export default function EditListingPage({ params }: PageProps) {
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Ищу: сожителей</label>
                     <button
                       type="button"
-                      onClick={() => toggleDropdown('searchingCount')}
-                      className={dropdownToggleClass(false)}
+                      onClick={() => toggleDropdown('canLiveWith')}
+                      className={dropdownToggleClass(errors.canLiveWith)}
                     >
-                      <span>{searchingCount} чел.</span>
+                      <span>{canLiveWith || 'Ищу:'}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
-                    {activeDropdown === 'searchingCount' && (
+                    {activeDropdown === 'canLiveWith' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['Только парни', 'Только девочки', 'Не важно'].map((item) => (
                           <button
-                            key={c}
+                            key={item}
                             type="button"
-                            onClick={() => handleDropdownSelect('searchingCount', c)}
+                            onClick={() => handleDropdownSelect('canLiveWith', item)}
                             className={dropdownItemClass}
                           >
-                            {c} чел.
+                            {item}
                           </button>
                         ))}
                       </div>
@@ -674,14 +766,14 @@ export default function EditListingPage({ params }: PageProps) {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('term')}
-                      className={dropdownToggleClass(false)}
+                      className={dropdownToggleClass(errors.term)}
                     >
                       <span>{term}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'term' && (
                       <div className={dropdownListClass}>
-                        {['длительно', 'посуточно', 'на пару месяцев'].map((t) => (
+                        {Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`).map((t) => (
                           <button
                             key={t}
                             type="button"
@@ -707,7 +799,7 @@ export default function EditListingPage({ params }: PageProps) {
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -722,33 +814,35 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 </>
               ) : (
+                /* Roommate mode Row 5: Общий & Адрес ссылка */
                 <>
                   <div className="relative">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Общий: человек</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('totalPeople')}
-                      className={dropdownToggleClass(false)}
+                      className={dropdownToggleClass(errors.totalPeople)}
                     >
-                      <span>{totalPeople} чел.</span>
+                      <span>{totalPeople || 'Общий:'}</span>
                       <span className="text-[10px] text-brand-gray">▼</span>
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((c) => (
+                        {Array.from({ length: 9 }, (_, i) => `Общий: ${i + 1}`).concat('Общий: 10+').map((c) => (
                           <button
                             key={c}
                             type="button"
                             onClick={() => handleDropdownSelect('totalPeople', c)}
                             className={dropdownItemClass}
                           >
-                            {c} чел.
+                            {c}
                           </button>
                         ))}
                       </div>
                     )}
                   </div>
 
+                  {/* Адрес ссылка (2GIS) */}
                   <div className="flex flex-col">
                     <label className="block text-brand-gray text-[10px] uppercase mb-1">Адрес ссылка (2GIS)</label>
                     <input
@@ -759,7 +853,7 @@ export default function EditListingPage({ params }: PageProps) {
                         setAddressLink(e.target.value)
                         setErrors((prev) => ({ ...prev, addressLink: false }))
                       }}
-                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none ${
+                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none min-h-[44px] ${
                         errors.addressLink ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
                       }`}
                     />
@@ -778,19 +872,21 @@ export default function EditListingPage({ params }: PageProps) {
                   onClick={() => toggleDropdown('deposit')}
                   className={dropdownToggleClass(false)}
                 >
-                  <span>{deposit === '0' ? 'без депозита' : `${formatBudgetDisplay(deposit)} ₸`}</span>
+                  <span>
+                    {listing.mode === 'roommate' ? `Депозит: ${deposit}` : (deposit === 'Есть' ? 'Депозит есть' : 'Без депозита')}
+                  </span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'deposit' && (
                   <div className={dropdownListClass}>
-                    {[0, 30000, 50000, 70000, 100000, 150000, 200000, 250000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000].map((d) => (
+                    {['Есть', 'Нет'].map((d) => (
                       <button
                         key={d}
                         type="button"
-                        onClick={() => handleDropdownSelect('deposit', d.toString())}
+                        onClick={() => handleDropdownSelect('deposit', d)}
                         className={dropdownItemClass}
                       >
-                        {d === 0 ? 'без депозита' : `${formatBudgetDisplay(d.toString())} ₸`}
+                        {d === 'Есть' ? 'Депозит есть' : 'Без депозита'}
                       </button>
                     ))}
                   </div>
@@ -805,29 +901,56 @@ export default function EditListingPage({ params }: PageProps) {
                   onClick={() => toggleDropdown('contract')}
                   className={dropdownToggleClass(false)}
                 >
-                  <span>{contract === 'yes' ? 'да' : 'нет'}</span>
+                  <span>
+                    {listing.mode === 'roommate' ? `Договор: ${contract}` : (contract === 'Есть' ? 'Договор есть' : 'Без договора')}
+                  </span>
                   <span className="text-[10px] text-brand-gray">▼</span>
                 </button>
                 {activeDropdown === 'contract' && (
                   <div className={dropdownListClass}>
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownSelect('contract', 'yes')}
-                      className={dropdownItemClass}
-                    >
-                      да
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDropdownSelect('contract', 'no')}
-                      className={dropdownItemClass}
-                    >
-                      нет
-                    </button>
+                    {['Есть', 'Нет'].map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => handleDropdownSelect('contract', c)}
+                        className={dropdownItemClass}
+                      >
+                        {c === 'Есть' ? 'Договор есть' : 'Без договора'}
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Срок проживания (roommate only) */}
+            {listing.mode === 'roommate' && (
+              <div className="relative">
+                <label className="block text-brand-gray text-[10px] uppercase mb-1">Срок проживания</label>
+                <button
+                  type="button"
+                  onClick={() => toggleDropdown('term')}
+                  className={dropdownToggleClass(errors.term)}
+                >
+                  <span>{term ? `Срок: ${term}` : 'Срок проживания'}</span>
+                  <span className="text-[10px] text-brand-gray">▼</span>
+                </button>
+                {activeDropdown === 'term' && (
+                  <div className={dropdownListClass}>
+                    {Array.from({ length: 12 }, (_, i) => `${i + 1} month`).map((_, i) => `${i + 1} месяц`).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => handleDropdownSelect('term', t)}
+                        className={dropdownItemClass}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Row 7: Бюджет */}
             <div className="grid grid-cols-2 gap-3">
@@ -891,7 +1014,7 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 ))}
 
-                {photos.length < (listing?.mode === 'apartment' ? 5 : 3) && (
+                {photos.length < 3 && (
                   <div className={`relative w-16 h-16 border border-dashed rounded-xl flex items-center justify-center bg-white dark:bg-brand-card-dark hover:bg-zinc-50 cursor-pointer ${
                     errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-800'
                   }`}>
