@@ -8,6 +8,7 @@ import { Heart, MapPin, Home, User, Users, Calendar, Coins, FileText, Clock } fr
 interface ListingCardProps {
   listing: Listing
   isOwnerView?: boolean
+  isFirst?: boolean
   onEdit?: (id: string) => void
   onPromote?: (id: string) => void
   onDelete?: (id: string) => void
@@ -101,6 +102,7 @@ const formatTerm = (term?: string | null) => {
 export function ListingCard({
   listing,
   isOwnerView = false,
+  isFirst = false,
   onEdit,
   onPromote,
   onDelete,
@@ -183,7 +185,7 @@ export function ListingCard({
               alt="Жилье"
               fill
               sizes="338px"
-              priority={listing.is_premium}
+              priority={isFirst || listing.is_premium}
               className="object-cover object-center"
             />
           ) : (

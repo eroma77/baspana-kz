@@ -108,6 +108,7 @@ interface AppState {
   favoritesListings: Listing[]
   viewedListings: Listing[]
   userListings: Listing[]
+  allCachedListings: Listing[] // Cache of all fetched listings for instant favorites
   hasFetchedApartments: boolean
   hasFetchedRoommates: boolean
   hasFetchedUserListings: boolean
@@ -146,6 +147,7 @@ export const useAppStore = create<AppState>()(
       favoritesListings: [],
       viewedListings: [],
       userListings: [],
+      allCachedListings: [],
       hasFetchedApartments: false,
       hasFetchedRoommates: false,
       hasFetchedUserListings: false,
@@ -193,9 +195,16 @@ export const useAppStore = create<AppState>()(
           const newFavs = isFav
             ? state.favorites.filter((id) => id !== listingId)
             : [...state.favorites, listingId]
+          // On add: find listing in all cached lists and add to favoritesListings
           const newFavListings = isFav
             ? state.favoritesListings.filter((item) => item.id !== listingId)
-            : state.favoritesListings
+            : (() => {
+                const found = [...state.apartmentListings, ...state.roommateListings, ...state.userListings, ...state.allCachedListings]
+                  .find((l) => l.id === listingId)
+                return found && !state.favoritesListings.find((l) => l.id === listingId)
+                  ? [found, ...state.favoritesListings]
+                  : state.favoritesListings
+              })()
           return { favorites: newFavs, favoritesListings: newFavListings }
         }),
       addToViewed: (listingId) =>
@@ -205,8 +214,14 @@ export const useAppStore = create<AppState>()(
           const newViewed = [listingId, ...filtered].slice(0, 30)
           return { viewed: newViewed }
         }),
-      setApartmentListings: (listings) => set({ apartmentListings: listings }),
-      setRoommateListings: (listings) => set({ roommateListings: listings }),
+      setApartmentListings: (listings) => set((state) => ({
+        apartmentListings: listings,
+        allCachedListings: [...listings, ...state.roommateListings],
+      })),
+      setRoommateListings: (listings) => set((state) => ({
+        roommateListings: listings,
+        allCachedListings: [...state.apartmentListings, ...listings],
+      })),
       setFavoritesListings: (listings) => set({ favoritesListings: listings }),
       setViewedListings: (listings) => set({ viewedListings: listings }),
       setUserListings: (listings) => set({ userListings: listings }),

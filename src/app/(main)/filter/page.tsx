@@ -627,7 +627,7 @@ export default function FilterPage() {
                   }`}
                 >
                   <span className="truncate">
-                    {filters.term === 'Не важно' || !filters.term ? 'Срок проживания' : filters.term}
+                    {filters.term === 'Не важно' || !filters.term ? 'Срок' : filters.term}
                   </span>
                   <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>
@@ -662,7 +662,7 @@ export default function FilterPage() {
                   }`}
                 >
                   <span className="truncate">
-                    {filters.peopleCount && filters.peopleCount !== 'Не важно' ? filters.peopleCount : 'Общее количество людей'}
+                    {filters.peopleCount && filters.peopleCount !== 'Не важно' ? filters.peopleCount : 'Всего жильцов'}
                   </span>
                   <ChevronDown className="w-4 h-4 text-[#9D9D9D] shrink-0" />
                 </button>

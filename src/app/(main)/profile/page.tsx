@@ -194,7 +194,7 @@ export default function ProfilePage() {
                   <User className="w-7 h-7 text-[#007BFF]" />
                 </div>
                 <span className="text-sm font-semibold text-[#9D9D9D] truncate">
-                  account@gmail.com
+                  Войдите, чтобы продолжить
                 </span>
               </div>
 
