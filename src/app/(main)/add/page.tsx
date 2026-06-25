@@ -159,11 +159,11 @@ export default function AddListingPage() {
     setErrors((prev) => ({ ...prev, photos: false }))
     if (!e.target.files) return
     const fileList = Array.from(e.target.files)
-    const limit = 5
+    const limit = formMode === 'apartment' ? 3 : 5
     const availableSlots = limit - photos.length
 
     if (availableSlots <= 0) {
-      alert('Максимум можно добавить 5 фотографий.')
+      alert(`Максимум можно добавить ${limit} фотографий.`)
       return
     }
 
@@ -276,13 +276,20 @@ export default function AddListingPage() {
       }
     }
 
-    // Photo limits: min 3, max 5 for all modes
-    if (photos.length < 3) {
-      newErrors.photos = true
-      setSubmitErrorMsg('Необходимо загрузить от 3 до 5 фотографий.')
-    } else if (photos.length > 5) {
-      newErrors.photos = true
-      setSubmitErrorMsg('Максимум можно добавить 5 фотографий.')
+    // Photo limits: apartment = min 0, max 3; roommate = min 3, max 5
+    if (formMode === 'apartment') {
+      if (photos.length > 3) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
+      }
+    } else {
+      if (photos.length < 3) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Необходимо загрузить от 3 до 5 фотографий.')
+      } else if (photos.length > 5) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Максимум можно добавить 5 фотографий.')
+      }
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -995,7 +1002,7 @@ export default function AddListingPage() {
               ))}
 
               {/* Upload button */}
-              {photos.length < 5 && (
+              {photos.length < (formMode === 'apartment' ? 3 : 5) && (
                 <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
                   errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
                 }`}>
