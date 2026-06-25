@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, uploadListingPhoto, deleteListingPhoto } from '@/lib/supabase'
 import { useAppStore } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { CITIES_DATA } from '@/lib/constants'
@@ -48,7 +48,9 @@ export default function AddListingPage() {
   const [description, setDescription] = useState('')
   const [phone, setPhone] = useState('') // Raw 10-digit string
   const [addressLink, setAddressLink] = useState('') // 2GIS link for roommate
-  const [photos, setPhotos] = useState<string[]>([]) // Array of Base64 strings
+  const [photos, setPhotos] = useState<string[]>([]) // Array of Storage URLs
+  const [uploadingPreviews, setUploadingPreviews] = useState<string[]>([]) // Temp object URLs while uploading
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false)
 
   // Dynamic Validation / Pricing Settings
   const [userListingsCount, setUserListingsCount] = useState(0)
@@ -155,12 +157,13 @@ export default function AddListingPage() {
     setErrors((prev) => ({ ...prev, phone: false }))
   }
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrors((prev) => ({ ...prev, photos: false }))
-    if (!e.target.files) return
+    if (!e.target.files || !user) return
     const fileList = Array.from(e.target.files)
     const limit = formMode === 'apartment' ? 3 : 5
-    const availableSlots = limit - photos.length
+    const totalSlots = photos.length + uploadingPreviews.length
+    const availableSlots = limit - totalSlots
 
     if (availableSlots <= 0) {
       alert(`Максимум можно добавить ${limit} фотографий.`)
@@ -168,19 +171,37 @@ export default function AddListingPage() {
     }
 
     const filesToUpload = fileList.slice(0, availableSlots)
-    filesToUpload.forEach((file) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (reader.result) {
-          setPhotos((prev) => [...prev, reader.result as string])
-        }
-      }
-      reader.readAsDataURL(file)
-    })
+    // Create local object URLs for instant preview
+    const previews = filesToUpload.map((f) => URL.createObjectURL(f))
+    setUploadingPreviews((prev) => [...prev, ...previews])
+    setIsUploadingPhotos(true)
+
+    // Upload all files to Supabase Storage in parallel
+    const results = await Promise.all(
+      filesToUpload.map(async (file, idx) => {
+        const url = await uploadListingPhoto(file, user.id)
+        return { preview: previews[idx], url }
+      })
+    )
+
+    // Remove previews and add confirmed URLs
+    const successPreviews = results.filter((r) => r.url).map((r) => r.preview)
+    const successUrls = results.filter((r) => r.url).map((r) => r.url as string)
+    setUploadingPreviews((prev) => prev.filter((p) => !successPreviews.includes(p)))
+    setPhotos((prev) => [...prev, ...successUrls])
+    setIsUploadingPhotos(false)
+
+    // Release object URLs to free memory
+    previews.forEach((p) => URL.revokeObjectURL(p))
   }
 
-  const handleRemovePhoto = (idx: number) => {
+  const handleRemovePhoto = async (idx: number) => {
+    const url = photos[idx]
     setPhotos((prev) => prev.filter((_, i) => i !== idx))
+    // Delete from Storage if it's a Storage URL (not legacy Base64)
+    if (url && !url.startsWith('data:')) {
+      await deleteListingPhoto(url)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -986,7 +1007,7 @@ export default function AddListingPage() {
 
             {/* Row 8: +фото button */}
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Thumbnails preview */}
+              {/* Confirmed photos */}
               {photos.map((ph, idx) => (
                 <div key={idx} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700 bg-zinc-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1001,8 +1022,19 @@ export default function AddListingPage() {
                 </div>
               ))}
 
-              {/* Upload button */}
-              {photos.length < (formMode === 'apartment' ? 3 : 5) && (
+              {/* Uploading previews with spinner */}
+              {uploadingPreviews.map((preview, idx) => (
+                <div key={`up-${idx}`} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700 bg-zinc-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={preview} className="w-full h-full object-cover object-center opacity-50" alt="Загрузка" />
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                  </div>
+                </div>
+              ))}
+
+              {/* Upload button — hidden while uploading or at limit */}
+              {(photos.length + uploadingPreviews.length) < (formMode === 'apartment' ? 3 : 5) && !isUploadingPhotos && (
                 <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
                   errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
                 }`}>
@@ -1053,10 +1085,10 @@ export default function AddListingPage() {
 
               <button
                 type="submit"
-                disabled={isSubmitting || (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com')}
+                disabled={isSubmitting || isUploadingPhotos || (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com')}
                 className="flex-[50] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 disabled:opacity-50 transition-all text-xs select-none shadow-sm uppercase tracking-wide"
               >
-                {isSubmitting ? 'Создание...' : `${publishPrice} ₸`}
+                {isUploadingPhotos ? 'Загрузка фото...' : isSubmitting ? 'Создание...' : `${publishPrice} ₸`}
               </button>
             </div>
 

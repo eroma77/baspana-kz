@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, use } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, uploadListingPhoto, deleteListingPhoto } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { CITIES_DATA } from '@/lib/constants'
@@ -53,7 +53,9 @@ export default function EditListingPage({ params }: PageProps) {
   const [description, setDescription] = useState('')
   const [phone, setPhone] = useState('')
   const [addressLink, setAddressLink] = useState('')
-  const [photos, setPhotos] = useState<string[]>([])
+  const [photos, setPhotos] = useState<string[]>([]) // Storage URLs or legacy Base64
+  const [uploadingPreviews, setUploadingPreviews] = useState<string[]>([]) // Temp object URLs while uploading
+  const [isUploadingPhotos, setIsUploadingPhotos] = useState(false)
 
   // UI state
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
@@ -198,12 +200,13 @@ export default function EditListingPage({ params }: PageProps) {
     setErrors((prev) => ({ ...prev, phone: false }))
   }
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrors((prev) => ({ ...prev, photos: false }))
-    if (!e.target.files) return
+    if (!e.target.files || !user) return
     const fileList = Array.from(e.target.files)
-    const limit = listing?.mode === 'apartment' ? 5 : 3
-    const availableSlots = limit - photos.length
+    const limit = listing?.mode === 'apartment' ? 3 : 5
+    const totalSlots = photos.length + uploadingPreviews.length
+    const availableSlots = limit - totalSlots
 
     if (availableSlots <= 0) {
       alert(`Максимум фотографий для этого режима: ${limit}`)
@@ -211,19 +214,31 @@ export default function EditListingPage({ params }: PageProps) {
     }
 
     const filesToUpload = fileList.slice(0, availableSlots)
-    filesToUpload.forEach((file) => {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        if (reader.result) {
-          setPhotos((prev) => [...prev, reader.result as string])
-        }
-      }
-      reader.readAsDataURL(file)
-    })
+    const previews = filesToUpload.map((f) => URL.createObjectURL(f))
+    setUploadingPreviews((prev) => [...prev, ...previews])
+    setIsUploadingPhotos(true)
+
+    const results = await Promise.all(
+      filesToUpload.map(async (file, idx) => {
+        const url = await uploadListingPhoto(file, user.id)
+        return { preview: previews[idx], url }
+      })
+    )
+
+    const successPreviews = results.filter((r) => r.url).map((r) => r.preview)
+    const successUrls = results.filter((r) => r.url).map((r) => r.url as string)
+    setUploadingPreviews((prev) => prev.filter((p) => !successPreviews.includes(p)))
+    setPhotos((prev) => [...prev, ...successUrls])
+    setIsUploadingPhotos(false)
+    previews.forEach((p) => URL.revokeObjectURL(p))
   }
 
-  const handleRemovePhoto = (idx: number) => {
+  const handleRemovePhoto = async (idx: number) => {
+    const url = photos[idx]
     setPhotos((prev) => prev.filter((_, i) => i !== idx))
+    if (url && !url.startsWith('data:')) {
+      await deleteListingPhoto(url)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -306,20 +321,20 @@ export default function EditListingPage({ params }: PageProps) {
       }
     }
 
-    // Photo limits validation: apartment (3-5), roommate (1-3)
-    const minPhotos = listing.mode === 'apartment' ? 3 : 1
-    const maxPhotos = listing.mode === 'apartment' ? 5 : 3
-
-    if (photos.length < minPhotos) {
-      newErrors.photos = true
-      setSubmitErrorMsg(
-        listing.mode === 'apartment'
-          ? 'Для категории «Ищу квартиру» необходимо загрузить от 3 до 5 фотографий.'
-          : 'Для категории «Ищу соседа» необходимо загрузить хотя бы 1 фотографию (селфи).'
-      )
-    } else if (photos.length > maxPhotos) {
-      newErrors.photos = true
-      setSubmitErrorMsg(`Максимум можно добавить ${maxPhotos} фотографии.`)
+    // Photo limits: apartment = min 0, max 3; roommate = min 3, max 5
+    if (listing.mode === 'apartment') {
+      if (photos.length > 3) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
+      }
+    } else {
+      if (photos.length < 3) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Необходимо загрузить от 3 до 5 фотографий.')
+      } else if (photos.length > 5) {
+        newErrors.photos = true
+        setSubmitErrorMsg('Максимум можно добавить 5 фотографий.')
+      }
     }
 
     if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
@@ -1013,10 +1028,11 @@ export default function EditListingPage({ params }: PageProps) {
             {/* Row 8: + фото */}
             <div className="flex flex-col gap-2.5">
               <label className="block text-brand-gray text-[10px] uppercase">
-                Фотографии (загружено {photos.length} из {listing.mode === 'apartment' ? 5 : 3})
+                Фотографии (загружено {photos.length} из {listing.mode === 'apartment' ? 3 : 5})
               </label>
 
               <div className="flex flex-wrap gap-2 items-center">
+                {/* Confirmed photos */}
                 {photos.map((ph, idx) => (
                   <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-zinc-100">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1031,8 +1047,19 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
                 ))}
 
+                {/* Uploading previews with spinner */}
+                {uploadingPreviews.map((preview, idx) => (
+                  <div key={`up-${idx}`} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-zinc-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={preview} className="w-full h-full object-cover opacity-50" alt="Загрузка" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+                    </div>
+                  </div>
+                ))}
+
                 {/* Upload button */}
-                {photos.length < (listing.mode === 'apartment' ? 5 : 3) && (
+                {(photos.length + uploadingPreviews.length) < (listing.mode === 'apartment' ? 3 : 5) && !isUploadingPhotos && (
                   <div className={`relative w-16 h-16 border border-dashed rounded-xl flex items-center justify-center bg-white dark:bg-brand-card-dark hover:bg-zinc-50 cursor-pointer ${
                     errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-800'
                   }`}>
@@ -1085,10 +1112,10 @@ export default function EditListingPage({ params }: PageProps) {
 
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isUploadingPhotos}
                 className="w-[50%] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all text-xs select-none shadow-xs"
               >
-                {isSubmitting ? 'Сохранение...' : 'готово'}
+                {isUploadingPhotos ? 'Загрузка фото...' : isSubmitting ? 'Сохранение...' : 'готово'}
               </button>
 
             </div>
