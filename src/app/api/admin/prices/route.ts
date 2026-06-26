@@ -7,22 +7,6 @@ const ADMIN_EMAIL = 'n.erdaullet@gmail.com'
 // Rate limiter: max 20 requests per IP per minute
 const adminRateLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60 * 1000 })
 
-/** 
- * Creates a Supabase client that uses the user's own JWT (from Authorization header).
- * This means RLS policies will apply — the user can only do what RLS allows.
- */
-function createUserClient(accessToken: string) {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      global: {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      },
-    }
-  )
-}
-
 /**
  * Extracts and verifies the JWT from the Authorization header.
  * Returns { user, error } — user is null if token is missing/invalid.
@@ -74,8 +58,11 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const client = createUserClient(token)
-    const { data, error: dbError } = await client
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data, error: dbError } = await adminClient
       .from('app_settings')
       .select('*')
       .order('key')
@@ -84,7 +71,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'DB error'
+    const msg = (err as { message?: string })?.message ?? 'DB error'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }
@@ -116,13 +103,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid body: prices array required' }, { status: 400 })
     }
 
-    const client = createUserClient(token)
+    // Use service role for write — admin identity already verified above via JWT
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
 
-    // Update each price one by one
     for (const price of body.prices) {
       if (typeof price.key !== 'string' || typeof price.value !== 'number') continue
 
-      const { error: updateError } = await client
+      const { error: updateError } = await adminClient
         .from('app_settings')
         .update({ value: price.value, updated_at: new Date().toISOString() })
         .eq('key', price.key)
@@ -132,7 +122,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    const msg = err instanceof Error ? err.message : 'DB update error'
+    const msg = (err as { message?: string })?.message ?? 'DB update error'
     return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

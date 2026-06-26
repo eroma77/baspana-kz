@@ -7,6 +7,7 @@ import { Header } from '@/components/header'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
 import { Camera, ShieldAlert, RotateCcw, X } from 'lucide-react'
+import { Mi } from '@/components/icons'
 
 const DRAFT_KEY = 'baspana-add-draft'
 
@@ -482,11 +483,11 @@ export default function AddListingPage() {
 
   // Common dropdown styles (matching Figma design exactly)
   const dropdownToggleClass = (err: boolean, placeholder?: string, value?: string) =>
-    `w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all duration-150 ${
-      err ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+    `w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all duration-150 ${
+      err ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
     } ${value ? 'text-zinc-900 dark:text-white font-semibold text-xs' : 'text-[#9D9D9D] font-medium text-xs'}`
 
-  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#313131] border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-xl max-h-80 overflow-y-auto"
+  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#25262D] border border-gray-200 dark:border-[rgba(195,197,217,0.12)] rounded-2xl shadow-xl max-h-80 overflow-y-auto"
   const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
   const dropdownChevron = <span className="text-[10px] text-[#9D9D9D] shrink-0">▼</span>
 
@@ -532,7 +533,7 @@ export default function AddListingPage() {
         {/* STEP 1: Select Type */}
         {step === 'select-type' && (
           <div className="h-full flex flex-col justify-center items-center select-none py-10">
-            <div className="bg-white dark:bg-[#313131] border border-gray-200/80 dark:border-zinc-800/80 rounded-3xl p-6 shadow-sm w-full text-center">
+            <div className="bg-white dark:bg-[#25262D] border border-gray-200/80 dark:border-[rgba(195,197,217,0.12)] rounded-3xl p-6 shadow-sm w-full text-center">
               <h2 className="text-sm font-extrabold text-zinc-900 dark:text-white uppercase tracking-wider mb-5">
                 Выберите тип объявления
               </h2>
@@ -554,7 +555,7 @@ export default function AddListingPage() {
                     setDistrict('')
                     setStep('fill-form')
                   }}
-                  className="w-full bg-blue-50 dark:bg-zinc-800 text-[#007BFF] dark:text-white rounded-2xl py-4 font-bold text-center hover:bg-blue-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all"
+                  className="w-full bg-blue-50 dark:bg-[rgba(0,67,200,0.20)] text-[#007BFF] dark:text-[#7BA8FF] rounded-2xl py-4 font-bold text-center hover:bg-blue-100 dark:hover:bg-[rgba(0,67,200,0.30)] active:scale-[0.98] transition-all"
                 >
                   Я ищу соседа
                 </button>
@@ -649,11 +650,11 @@ export default function AddListingPage() {
                 className={`w-full border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all text-xs ${
                   hasDistricts
                     ? errors.district
-                      ? 'border-[#FF3662] bg-white dark:bg-[#313131] text-zinc-900 dark:text-white font-semibold'
+                      ? 'border-[#FF3662] bg-white dark:bg-[#25262D] text-zinc-900 dark:text-white font-semibold'
                       : district
-                        ? 'bg-white dark:bg-[#313131] border-gray-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-semibold'
-                        : 'bg-white dark:bg-[#313131] border-gray-200 dark:border-zinc-700 text-[#9D9D9D] font-medium'
-                    : 'bg-zinc-100 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-[#9D9D9D] opacity-50 cursor-not-allowed font-medium'
+                        ? 'bg-white dark:bg-[#25262D] border-gray-200 dark:border-[rgba(195,197,217,0.12)] text-zinc-900 dark:text-white font-semibold'
+                        : 'bg-white dark:bg-[#25262D] border-gray-200 dark:border-[rgba(195,197,217,0.12)] text-[#9D9D9D] font-medium'
+                    : 'bg-zinc-100 dark:bg-zinc-800/50 border-zinc-200 dark:border-[rgba(195,197,217,0.12)] text-[#9D9D9D] opacity-50 cursor-not-allowed font-medium'
                 }`}
               >
                 <span>{district || 'Район'}</span>
@@ -720,17 +721,17 @@ export default function AddListingPage() {
               ) : (
                 /* Double Age Select for Roommate Mode */
                 <div className="flex items-center gap-1.5">
-                  <span className="text-sm shrink-0">🎂</span>
                   {/* Age From */}
                   <div className="relative flex-1">
                     <button
                       type="button"
                       onClick={() => toggleDropdown('ageFrom')}
-                      className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
-                        errors.ageFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center gap-1 ${
+                        errors.ageFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       } ${ageFrom ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
                     >
-                      <span>{ageFrom || 'от'}</span>
+                      <Mi name="cake" size={13} color="var(--on-surface-variant)" />
+                      <span className="flex-1">{ageFrom || 'от'}</span>
                       <span className="text-[9px] text-[#9D9D9D]">▼</span>
                     </button>
                     {activeDropdown === 'ageFrom' && (
@@ -756,8 +757,8 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('ageTo')}
-                      className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
-                        errors.ageTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
+                        errors.ageTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       } ${ageTo ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
                     >
                       <span>{ageTo || 'до'}</span>
@@ -1020,8 +1021,8 @@ export default function AddListingPage() {
                         setAddressLink(e.target.value)
                         setErrors((prev) => ({ ...prev, addressLink: false }))
                       }}
-                      className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] ${
-                        errors.addressLink ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] ${
+                        errors.addressLink ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       }`}
                     />
                   </div>
@@ -1100,8 +1101,8 @@ export default function AddListingPage() {
                     const num = parseInt(raw || '0', 10)
                     setErrors((prev) => ({ ...prev, priceFrom: raw.length > 0 && num < 10000 }))
                   }}
-                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
-                    errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                    errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
               </div>
@@ -1120,8 +1121,8 @@ export default function AddListingPage() {
                     const num = parseInt(raw || '0', 10)
                     setErrors((prev) => ({ ...prev, priceTo: raw.length > 0 && num > 900000 }))
                   }}
-                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
-                    errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                    errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
               </div>
@@ -1131,7 +1132,7 @@ export default function AddListingPage() {
             <div className="flex items-center gap-3 flex-wrap">
               {/* Confirmed photos */}
               {photos.map((ph, idx) => (
-                <div key={idx} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700 bg-zinc-100">
+                <div key={idx} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-[rgba(195,197,217,0.12)] bg-zinc-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={ph} className="w-full h-full object-cover object-center" alt="Preview" />
                   <button
@@ -1146,7 +1147,7 @@ export default function AddListingPage() {
 
               {/* Uploading previews with spinner */}
               {uploadingPreviews.map((preview, idx) => (
-                <div key={`up-${idx}`} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-zinc-700 bg-zinc-100">
+                <div key={`up-${idx}`} className="relative w-16 h-16 rounded-2xl overflow-hidden border border-gray-200 dark:border-[rgba(195,197,217,0.12)] bg-zinc-100">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={preview} className="w-full h-full object-cover object-center opacity-50" alt="Загрузка" />
                   <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -1157,8 +1158,8 @@ export default function AddListingPage() {
 
               {/* Upload button — hidden while uploading or at limit */}
               {(photos.length + uploadingPreviews.length) < (formMode === 'apartment' ? 3 : 5) && !isUploadingPhotos && (
-                <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#313131] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
-                  errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-700'
+                <div className={`relative w-16 h-16 border border-dashed rounded-2xl flex flex-col items-center justify-center bg-white dark:bg-[#25262D] hover:bg-zinc-50 cursor-pointer text-[#9D9D9D] ${
+                  errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-[rgba(195,197,217,0.12)]'
                 }`}>
                   <input
                     type="file"
@@ -1183,8 +1184,8 @@ export default function AddListingPage() {
                   setDescription(e.target.value)
                   setErrors((prev) => ({ ...prev, description: false }))
                 }}
-                className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] leading-relaxed resize-none ${
-                  errors.description ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] leading-relaxed resize-none ${
+                  errors.description ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                 }`}
               />
             </div>
@@ -1199,8 +1200,8 @@ export default function AddListingPage() {
                   placeholder="700 000 0000"
                   value={formatPhoneDisplay(phone)}
                   onChange={handlePhoneChange}
-                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 pl-9 pr-3 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] ${
-                    errors.phone ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-700'
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 pl-9 pr-3 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] ${
+                    errors.phone ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
               </div>

@@ -1,17 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Unbounded, Montserrat } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import "./globals.css";
-
-const unbounded = Unbounded({
-  variable: "--font-unbounded",
-  subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
-});
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
   subsets: ["latin", "cyrillic"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -43,11 +37,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="ru"
-      className={`${unbounded.variable} ${montserrat.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="ru" className={`${montserrat.variable} h-full antialiased`} suppressHydrationWarning>
+      <head>
+        {/* Apply saved theme before first paint — prevents flash of wrong theme */}
+        <script dangerouslySetInnerHTML={{ __html: `try{var s=localStorage.getItem('baspana-kz-storage');if(s){var p=JSON.parse(s);if(p&&p.state&&p.state.theme==='dark'){document.documentElement.classList.add('dark');}}}catch(e){}` }} />
+        {/* Preconnect for faster icon font loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Material Symbols Outlined — variable icon font */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,300..600,0..1,-25..0&display=swap"
+        />
+      </head>
+      <body
+        className="min-h-full flex flex-col"
+        style={{ fontFamily: "var(--font-montserrat), Montserrat, -apple-system, sans-serif" }}
+      >
+        {children}
+      </body>
     </html>
   );
 }

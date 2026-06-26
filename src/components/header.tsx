@@ -1,9 +1,9 @@
 'use client'
 
+import React from 'react'
 import { useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
-import { ChevronLeft, Heart, User, Eye, Plus } from 'lucide-react'
-import { SortIcon, SunIcon, MoonIcon, HelpIcon } from '@/components/icons'
+import { Mi } from '@/components/icons'
 
 interface HeaderProps {
   type: 'mode-toggle' | 'title'
@@ -13,6 +13,31 @@ interface HeaderProps {
   onBack?: () => void
   showThemeToggle?: boolean
   showHelpToggle?: boolean
+}
+
+const BLUR_HEADER: React.CSSProperties = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 40,
+  background: 'var(--surface-blur-top)',
+  backdropFilter: 'blur(24px)',
+  WebkitBackdropFilter: 'blur(24px)',
+  borderBottom: '1px solid var(--outline-border)',
+  padding: '12px 20px',
+}
+
+const ICON_BTN = {
+  width: 40,
+  height: 40,
+  borderRadius: 9999,
+  background: 'var(--surface-container-low)',
+  border: '1px solid var(--outline-border)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--on-surface-variant)',
+  cursor: 'pointer',
+  flexShrink: 0,
 }
 
 export function Header({
@@ -27,210 +52,157 @@ export function Header({
   const router = useRouter()
   const { mode, setMode, theme, setTheme } = useAppStore()
 
-  const handleToggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light')
-  }
+  const handleToggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
 
   const handleBack = () => {
-    if (onBack) {
-      onBack()
-    } else if (backUrl) {
-      router.push(backUrl)
-    } else {
-      router.back()
-    }
+    if (onBack) onBack()
+    else if (backUrl) router.push(backUrl)
+    else router.back()
   }
 
-  const showRightActions = showThemeToggle || showHelpToggle
-  const hasLeftIcon = type === 'title'
-
-  return (
-    <div className={`w-full flex items-center transition-all duration-200 ease-in-out justify-between px-4 sticky top-0 z-40 bg-brand-bg-light dark:bg-brand-bg-dark ${
-      type === 'mode-toggle' ? 'pt-3 pb-1' : 'py-3'
-    } ${
-      type !== 'mode-toggle' ? 'gap-[4px]' : ''
-    }`}>
-      <div className={`bg-[#000000] dark:bg-[#313131] text-white rounded-[54px] flex items-center shadow-md isolate transition-all duration-200 ease-in-out ${
-        type === 'mode-toggle' && !showRightActions
-          ? 'w-[339px] p-[3px] min-h-[41px] h-[41px] mx-auto'
-          : type === 'mode-toggle'
-            ? 'flex-grow flex-1 p-[3px] min-h-[41px] h-[41px]'
-            : 'flex-grow flex-1 h-[36px] min-h-[36px] p-[4px] relative'
-      }`}>
-        {type === 'mode-toggle' ? (
-          <div className="w-full h-full relative flex items-center text-[16px]">
-            {/* Layer 1: Background text (White / Inactive) */}
-            <div className="absolute inset-0 flex justify-between items-center z-0">
+  /* ── Mode toggle (feed screen) ──────────────────────────── */
+  if (type === 'mode-toggle') {
+    return (
+      <div style={BLUR_HEADER}>
+        {/* Segmented mode control */}
+        <div style={{
+          display: 'flex',
+          background: 'var(--surface-container-low)',
+          border: '1px solid var(--outline-border)',
+          borderRadius: 16,
+          padding: 4,
+          height: 40,
+          alignItems: 'center',
+          marginBottom: 8,
+        }}>
+          {(['apartment', 'roommate'] as const).map((m) => {
+            const active = mode === m
+            return (
               <button
-                type="button"
-                onClick={() => setMode('apartment')}
-                className="h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
-                style={{ width: 'calc(50% - 1.5px)' }}
-              >
-                ищу квартиру
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode('roommate')}
-                className="h-full flex items-center justify-center text-white opacity-60 tracking-wide font-normal font-unbounded text-[16px] focus:outline-none"
-                style={{ width: 'calc(50% - 1.5px)' }}
-              >
-                ищу соседа
-              </button>
-            </div>
-
-            {/* Sliding Pill Container (Mask) */}
-            <div
-              className="absolute top-0 bottom-0 left-0 rounded-[54px] bg-[#FFFFFF] transition-all duration-300 ease-in-out overflow-hidden z-10 pointer-events-none"
-              style={{
-                width: 'calc(50% - 1.5px)',
-                transform: mode === 'apartment' ? 'translateX(0)' : 'translateX(calc(100% + 3px))'
-              }}
-            >
-              {/* Layer 2: Moving text inside the mask (Black / Active / Bold) */}
-              <div
-                className="absolute top-0 bottom-0 left-0 flex justify-between items-center transition-all duration-300 ease-in-out"
+                key={m}
+                onClick={() => setMode(m)}
                 style={{
-                  width: 'calc(200% + 3px)',
-                  transform: mode === 'apartment' ? 'translateX(0)' : 'translateX(calc(-50% - 1.5px))'
+                  flex: 1,
+                  height: 32,
+                  borderRadius: 12,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: active ? 'var(--surface-container-lowest)' : 'transparent',
+                  color: active ? 'var(--on-surface)' : 'var(--secondary)',
+                  fontSize: 14,
+                  fontWeight: active ? 600 : 500,
+                  letterSpacing: '-0.1px',
+                  boxShadow: active ? 'var(--shadow-sm)' : 'none',
+                  fontFamily: 'inherit',
+                  transition: 'all 200ms var(--ease)',
+                  transform: 'none',
                 }}
               >
-                <div
-                  className="h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]"
-                  style={{ width: 'calc(50% - 1.5px)' }}
-                >
-                  ищу квартиру
-                </div>
-                <div
-                  className="h-full flex items-center justify-center text-[#000000] font-bold tracking-wide font-unbounded text-[16px]"
-                  style={{ width: 'calc(50% - 1.5px)' }}
-                >
-                  ищу соседа
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-full h-full relative px-[36px]">
-            {showBack ? (
-              <button
-                onClick={handleBack}
-                className="absolute left-0 top-0 w-[28px] h-[28px] rounded-full bg-[#FFFFFF] flex items-center justify-center text-[#000000] hover:text-[#007BFF] active:scale-90 transition-all duration-200 cursor-pointer"
-                aria-label="Назад"
-                type="button"
-              >
-                <ChevronLeft className="w-[15px] h-[15px] text-[#000000] stroke-[2.5]" />
+                {m === 'apartment' ? 'ищу квартиру' : 'ищу соседа'}
               </button>
-            ) : (
-              <div className="absolute left-0 top-0 w-[28px] h-[28px] rounded-full bg-[#FFFFFF] flex items-center justify-center shrink-0">
-                {title === 'корзина' ? (
-                  <Heart className="w-[14px] h-[14px] text-[#000000] fill-[#000000]" />
-                ) : title === 'мой кабинет' ? (
-                  <User className="w-[15px] h-[15px] text-[#000000] stroke-[2.5]" />
-                ) : title === 'просмотрено' ? (
-                  <Eye className="w-[15px] h-[15px] text-[#000000] stroke-[2.5]" />
-                ) : (
-                  <Plus className="w-[15px] h-[15px] text-[#000000] stroke-[2.5]" />
-                )}
-              </div>
-            )}
-            <span className={`${
-              (title === 'корзина' || title === 'мой кабинет' || title === 'просмотрено' || title === 'объявление' || title === 'редактировать' || title === 'рекламировать' || title === 'инструкция' || title === 'ищу квартиру' || title === 'ищу соседа' || title === 'фильтр')
-                ? 'font-unbounded font-medium text-[16px]'
-                : 'font-bold text-sm'
-            } tracking-wide lowercase truncate text-center`}>
-              {title}
-            </span>
-          </div>
-        )}
-      </div>
+            )
+          })}
+        </div>
 
-      {/* Right Action Icons / Capsules */}
-      {showRightActions && (
-        <div className="flex items-center shrink-0">
-          {/* Condition 3: 3 icons (Sort, Sun, Help) - favorites/basket ('корзина') */}
-          {title === 'корзина' ? (
-            <div className="w-[124px] h-[36px] min-h-[36px] bg-[#000000] dark:bg-[#313131] text-white rounded-[54px] flex items-center justify-between px-3 shadow-md">
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('toggle-favorites-sort'))
-                }}
-                className="text-white hover:text-brand-blue active:scale-90 transition-all duration-200 cursor-pointer flex items-center justify-center"
-                aria-label="Сортировка"
-              >
-                <SortIcon className="text-white shrink-0" />
-              </button>
-              <button
-                onClick={handleToggleTheme}
-                className="text-white hover:text-brand-blue active:scale-90 transition-all duration-200 cursor-pointer flex items-center justify-center"
-                aria-label="Смена темы"
-              >
-                {theme === 'light' ? (
-                  <SunIcon className="text-white shrink-0" />
-                ) : (
-                  <MoonIcon className="text-white shrink-0" />
-                )}
-              </button>
-              <button
-                onClick={() => router.push('/instruction')}
-                className="text-white hover:text-brand-blue active:scale-90 transition-all duration-200 cursor-pointer flex items-center justify-center"
-                aria-label="Инструкция"
-              >
-                <HelpIcon className="text-white shrink-0" />
-              </button>
-            </div>
-          ) : showThemeToggle && showHelpToggle ? (
-            /* Condition 2: 2 icons (Theme, Help) */
-            <div className="w-[95px] h-[36px] min-h-[36px] bg-[#000000] dark:bg-[#313131] text-white rounded-[54px] flex items-center justify-between px-3 shadow-md">
-              <button
-                onClick={handleToggleTheme}
-                className="text-white hover:text-brand-blue active:scale-90 transition-all duration-200 cursor-pointer flex items-center justify-center"
-                aria-label="Смена темы"
-              >
-                {theme === 'light' ? (
-                  <SunIcon className="text-white shrink-0" />
-                ) : (
-                  <MoonIcon className="text-white shrink-0" />
-                )}
-              </button>
-              <button
-                onClick={() => router.push('/instruction')}
-                className="text-white hover:text-brand-blue active:scale-90 transition-all duration-200 cursor-pointer flex items-center justify-center"
-                aria-label="Инструкция"
-              >
-                <HelpIcon className="text-white shrink-0" />
-              </button>
-            </div>
-          ) : (
-            <>
-              {showThemeToggle && (
-                <button
-                  onClick={handleToggleTheme}
-                  className={`w-[36px] h-[36px] rounded-full flex items-center justify-center ${
-                    theme === 'light' ? 'bg-[#000000] border-transparent' : 'bg-brand-card-dark border-zinc-800'
-                  } border text-brand-black dark:text-brand-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 ease-in-out`}
-                  aria-label="Смена темы"
-                >
-                  {theme === 'light' ? (
-                    <SunIcon className="text-white shrink-0" />
-                  ) : (
-                    <MoonIcon className="text-[#007BFF] shrink-0" />
-                  )}
-                </button>
-              )}
-              {showHelpToggle && (
-                <button
-                  onClick={() => router.push('/instruction')}
-                  className="w-[36px] h-[36px] rounded-full flex items-center justify-center bg-[#FFFFFF] dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white shadow-sm hover:scale-105 active:scale-95 transition-all duration-200 ease-in-out"
-                  aria-label="Инструкция"
-                >
-                  <HelpIcon className="text-[#000000] dark:text-[#FFFFFF] shrink-0" />
-                </button>
-              )}
-            </>
+        {/* Toolbar row */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button
+            onClick={() => router.push('/filter')}
+            style={{
+              flex: 1,
+              height: 40,
+              background: 'var(--surface-container-low)',
+              border: '1px solid var(--outline-border)',
+              borderRadius: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+              color: 'var(--on-surface)',
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: 'pointer',
+              letterSpacing: '-0.1px',
+              fontFamily: 'inherit',
+            }}
+          >
+            <Mi name="tune" size={18} color="var(--on-surface-variant)" />
+            <span>фильтр</span>
+          </button>
+
+          <button
+            style={ICON_BTN}
+            onClick={() => window.dispatchEvent(new CustomEvent('bp:sort'))}
+            aria-label="Сортировка"
+          >
+            <Mi name="swap_vert" size={20} />
+          </button>
+
+          {showThemeToggle && (
+            <button style={ICON_BTN} onClick={handleToggleTheme} aria-label="Тема">
+              <Mi name={theme === 'light' ? 'light_mode' : 'dark_mode'} size={20} />
+            </button>
+          )}
+
+          {showHelpToggle && (
+            <button style={ICON_BTN} onClick={() => router.push('/instruction')} aria-label="Инструкция">
+              <Mi name="help_outline" size={20} />
+            </button>
           )}
         </div>
-      )}
+      </div>
+    )
+  }
+
+  /* ── Title header (other screens) ───────────────────────── */
+  return (
+    <div style={{ ...BLUR_HEADER, display: 'flex', alignItems: 'center', gap: 8 }}>
+      {showBack ? (
+        <button style={ICON_BTN} onClick={handleBack} aria-label="Назад">
+          <Mi name="arrow_back" size={20} />
+        </button>
+      ) : (['корзина', 'мой кабинет', 'просмотрено', 'добавить'].includes(title) ? (
+        <div style={{ ...ICON_BTN, cursor: 'default' }}>
+          {title === 'корзина' && <Mi name="favorite" size={20} />}
+          {title === 'мой кабинет' && <Mi name="person" size={20} />}
+          {title === 'просмотрено' && <Mi name="visibility" size={20} />}
+          {title === 'добавить' && <Mi name="add_circle" size={20} />}
+        </div>
+      ) : (
+        <button style={ICON_BTN} onClick={() => router.back()} aria-label="Назад">
+          <Mi name="arrow_back" size={20} />
+        </button>
+      ))}
+
+      <div style={{
+        flex: 1,
+        textAlign: 'center',
+        fontSize: 18,
+        fontWeight: 600,
+        color: 'var(--on-surface)',
+        letterSpacing: '-0.3px',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      }}>
+        {title}
+      </div>
+
+      <div style={{ display: 'flex', gap: 8 }}>
+        {showThemeToggle && (
+          <button style={ICON_BTN} onClick={handleToggleTheme} aria-label="Тема">
+            <Mi name={theme === 'light' ? 'light_mode' : 'dark_mode'} size={20} />
+          </button>
+        )}
+        {showHelpToggle && (
+          <button style={ICON_BTN} onClick={() => router.push('/instruction')} aria-label="Инструкция">
+            <Mi name="help_outline" size={20} />
+          </button>
+        )}
+        {!showThemeToggle && !showHelpToggle && (
+          <div style={{ width: 40, height: 40, flexShrink: 0 }} />
+        )}
+      </div>
     </div>
   )
 }

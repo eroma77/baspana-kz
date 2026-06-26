@@ -6,7 +6,7 @@ import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { Camera, ShieldAlert } from 'lucide-react'
+import { Mi } from '@/components/icons'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -408,34 +408,33 @@ export default function EditListingPage({ params }: PageProps) {
   }
 
   const dropdownToggleClass = (err: boolean) =>
-    `w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-left text-brand-black dark:text-brand-white font-bold flex justify-between items-center ${
-      err ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
+    `w-full bg-[var(--surface-container-lowest)] border rounded-[12px] py-3 px-4 text-left text-[var(--on-surface)] font-semibold flex justify-between items-center text-sm ${
+      err ? 'border-[var(--brand-red)]' : 'border-[var(--outline-border)]'
     }`
 
-  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-xl max-h-80 overflow-y-auto"
-  const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white"
+  const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-[var(--surface-container-lowest)] border border-[var(--outline-border)] rounded-[16px] shadow-xl max-h-80 overflow-y-auto"
+  const dropdownItemClass = "w-full text-left py-2.5 px-4 text-sm font-medium text-[var(--on-surface)] hover:bg-[var(--surface-container-low)]"
 
   if (!listing) {
     return (
-      <div className="min-h-screen bg-[#F7F7F7] dark:bg-[#202020] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#007BFF]"></div>
+      <div style={{ height: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface)' }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-100 dark:bg-zinc-950 flex flex-col justify-start items-center">
-      <div className="w-full max-w-md min-h-screen bg-brand-bg-light dark:bg-brand-bg-dark flex flex-col pb-12 relative shadow-md border-x border-gray-200 dark:border-zinc-800 transition-colors duration-200 select-none">
-        
-        {/* Header */}
+    <div style={{ minHeight: '100dvh', width: '100%', background: 'var(--surface-container-highest)', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 390, minHeight: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', boxShadow: '0 0 40px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', paddingBottom: 48, userSelect: 'none' }}>
+
         <Header type="title" title="редактировать" showBack={true} showHelpToggle={false} />
 
-        <div className="flex-1 px-5 py-4">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-xs font-semibold">
+        <div style={{ flex: 1, padding: '16px 20px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14, fontSize: 13, fontWeight: 500 }}>
             
             {submitErrorMsg && (
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-brand-red rounded-2xl p-4 flex gap-3 leading-relaxed">
-                <ShieldAlert className="w-5 h-5 shrink-0" />
+              <div style={{ background: 'var(--brand-red-soft)', border: '1px solid var(--brand-red-border)', color: 'var(--brand-red)', borderRadius: 16, padding: '12px 16px', display: 'flex', gap: 10, lineHeight: 1.5 }}>
+                <Mi name="warning" size={18} style={{ flexShrink: 0, marginTop: 1 }} />
                 <span>{submitErrorMsg}</span>
               </div>
             )}
@@ -444,14 +443,14 @@ export default function EditListingPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-3">
               {/* City */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Город</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Город</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('city')}
                   className={dropdownToggleClass(errors.city)}
                 >
                   <span>{city}</span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'city' && (
                   <div className={dropdownListClass}>
@@ -471,7 +470,7 @@ export default function EditListingPage({ params }: PageProps) {
 
               {/* Gender */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>
                   {listing.mode === 'apartment' ? 'Ваш пол' : 'Пол автора'}
                 </label>
                 <button
@@ -480,7 +479,7 @@ export default function EditListingPage({ params }: PageProps) {
                   className={dropdownToggleClass(errors.gender)}
                 >
                   <span>{gender}</span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'gender' && (
                   <div className={dropdownListClass}>
@@ -501,21 +500,16 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 2: Район */}
             <div className="relative">
-              <label className="block text-brand-gray text-[10px] uppercase mb-1">Район</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Район</label>
               <button
                 type="button"
                 disabled={!hasDistricts}
                 onClick={() => toggleDropdown('district')}
-                className={`w-full border rounded-2xl py-3 px-4 text-left font-bold flex justify-between items-center transition-all ${
-                  hasDistricts
-                    ? errors.district
-                      ? 'border-brand-red bg-white dark:bg-brand-card-dark text-brand-black dark:text-brand-white'
-                      : 'bg-white dark:bg-brand-card-dark border-gray-200 dark:border-zinc-800 text-brand-black dark:text-brand-white'
-                    : 'bg-zinc-150 dark:bg-zinc-850 border-zinc-200 dark:border-zinc-800 text-brand-gray opacity-50 cursor-not-allowed'
-                }`}
+                className={dropdownToggleClass(!!errors.district)}
+                style={!hasDistricts ? { opacity: 0.45, cursor: 'not-allowed' } : undefined}
               >
                 <span>{district}</span>
-                <span className="text-[10px] text-brand-gray">▼</span>
+                <Mi name="expand_more" size={16} color="var(--outline)" />
               </button>
               {activeDropdown === 'district' && hasDistricts && (
                 <div className={dropdownListClass}>
@@ -547,7 +541,7 @@ export default function EditListingPage({ params }: PageProps) {
               {listing.mode === 'apartment' ? (
                 /* Apartment Single Age Dropdown */
                 <div className="flex flex-col">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
+                  <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Возраст</label>
                   <div className="relative">
                     <button
                       type="button"
@@ -555,7 +549,7 @@ export default function EditListingPage({ params }: PageProps) {
                       className={dropdownToggleClass(errors.ageFrom)}
                     >
                       <span>{ageFrom || 'Возраст'}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'ageFrom' && (
                       <div className={dropdownListClass}>
@@ -581,17 +575,17 @@ export default function EditListingPage({ params }: PageProps) {
               ) : (
                 /* Roommate Age Range inline capsule */
                 <div className="flex flex-col">
-                  <label className="block text-brand-gray text-[10px] uppercase mb-1">🎂 Возраст</label>
-                  <div className="flex items-center bg-white dark:bg-brand-card-dark border border-gray-200 dark:border-zinc-800 rounded-2xl min-h-[44px] text-xs relative select-none">
+                  <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Возраст</label>
+                  <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface-container-lowest)', border: `1px solid ${(errors.ageFrom || errors.ageTo) ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, minHeight: 44, fontSize: 12, position: 'relative', userSelect: 'none', overflow: 'hidden' }}>
                     {/* Age From */}
                     <div className="relative flex-1 h-full">
                       <button
                         type="button"
                         onClick={() => toggleDropdown('ageFrom')}
-                        className="w-full h-full py-3 px-2 text-center flex justify-between items-center text-xs font-bold text-brand-black dark:text-brand-white cursor-pointer"
+                        style={{ width: '100%', height: '100%', padding: '12px 8px', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 700, color: 'var(--on-surface)', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}
                       >
-                        <span className="w-full text-center">{ageFrom || 'от'}</span>
-                        <span className="text-[9px] text-[#9D9D9D] shrink-0">▼</span>
+                        <span style={{ width: '100%', textAlign: 'center' }}>{ageFrom || 'от'}</span>
+                        <Mi name="expand_more" size={14} color="var(--outline)" />
                       </button>
                       {activeDropdown === 'ageFrom' && (
                         <div className={dropdownListClass}>
@@ -603,7 +597,8 @@ export default function EditListingPage({ params }: PageProps) {
                               key={a}
                               type="button"
                               onClick={() => handleDropdownSelect('ageFrom', a)}
-                              className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white cursor-pointer"
+                              className={dropdownItemClass}
+                              style={{ textAlign: 'center' }}
                             >
                               {a}
                             </button>
@@ -611,16 +606,16 @@ export default function EditListingPage({ params }: PageProps) {
                         </div>
                       )}
                     </div>
-                    <div className="h-5 w-[1px] bg-zinc-200 dark:bg-zinc-850"></div>
+                    <div style={{ height: 20, width: 1, background: 'var(--outline-border)', flexShrink: 0 }}></div>
                     {/* Age To */}
                     <div className="relative flex-1 h-full">
                       <button
                         type="button"
                         onClick={() => toggleDropdown('ageTo')}
-                        className="w-full h-full py-3 px-2 text-center flex justify-between items-center text-xs font-bold text-brand-black dark:text-brand-white cursor-pointer"
+                        style={{ width: '100%', height: '100%', padding: '12px 8px', textAlign: 'center', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 700, color: 'var(--on-surface)', cursor: 'pointer', background: 'none', border: 'none', fontFamily: 'inherit' }}
                       >
-                        <span className="w-full text-center">{ageTo || 'до'}</span>
-                        <span className="text-[9px] text-[#9D9D9D] shrink-0">▼</span>
+                        <span style={{ width: '100%', textAlign: 'center' }}>{ageTo || 'до'}</span>
+                        <Mi name="expand_more" size={14} color="var(--outline)" />
                       </button>
                       {activeDropdown === 'ageTo' && (
                         <div className={dropdownListClass}>
@@ -632,7 +627,8 @@ export default function EditListingPage({ params }: PageProps) {
                               key={a}
                               type="button"
                               onClick={() => handleDropdownSelect('ageTo', a)}
-                              className="w-full text-center py-2 px-3 text-xs font-bold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-brand-black dark:text-brand-white cursor-pointer"
+                              className={dropdownItemClass}
+                              style={{ textAlign: 'center' }}
                             >
                               {a}
                             </button>
@@ -646,7 +642,7 @@ export default function EditListingPage({ params }: PageProps) {
 
               {/* Rooms select */}
               <div className="relative flex flex-col">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Комнатность</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Комнатность</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('rooms')}
@@ -655,7 +651,7 @@ export default function EditListingPage({ params }: PageProps) {
                   <span>
                     {rooms || 'Комната'}
                   </span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'rooms' && (
                   <div className={dropdownListClass}>
@@ -680,14 +676,14 @@ export default function EditListingPage({ params }: PageProps) {
                 /* Apartment mode */
                 <>
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">С кем могу жить</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>С кем могу жить</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('canLiveWith')}
                       className={dropdownToggleClass(false)}
                     >
                       <span>{canLiveWith}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'canLiveWith' && (
                       <div className={dropdownListClass}>
@@ -706,14 +702,14 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Нас: человек</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Нас: человек</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
                       className={dropdownToggleClass(false)}
                     >
                       <span>{peopleCount} чел.</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
@@ -735,14 +731,14 @@ export default function EditListingPage({ params }: PageProps) {
                 /* Roommate mode Row 4: Будет жить & Ищу: */
                 <>
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Будет жить</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Будет жить</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('peopleCount')}
                       className={dropdownToggleClass(!!errors.peopleCount)}
                     >
                       <span>{peopleCount || 'Будет жить'}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'peopleCount' && (
                       <div className={dropdownListClass}>
@@ -761,14 +757,14 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Ищу:</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Ищу:</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('searchingCount')}
                       className={dropdownToggleClass(!!errors.searchingCount)}
                     >
                       <span>{searchingCount ? `Ищу: ${searchingCount}` : 'Ищу:'}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'searchingCount' && (
                       <div className={dropdownListClass}>
@@ -794,14 +790,14 @@ export default function EditListingPage({ params }: PageProps) {
               {listing.mode === 'apartment' ? (
                 <>
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Срок</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Срок</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('term')}
                       className={dropdownToggleClass(errors.term)}
                     >
                       <span>{term}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'term' && (
                       <div className={dropdownListClass}>
@@ -820,14 +816,14 @@ export default function EditListingPage({ params }: PageProps) {
                   </div>
 
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Общий: человек</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Общий: человек</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('totalPeople')}
                       className={dropdownToggleClass(false)}
                     >
                       <span>{totalPeople} чел.</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
@@ -849,14 +845,14 @@ export default function EditListingPage({ params }: PageProps) {
                 /* Roommate mode Row 5: Общий & Адрес ссылка */
                 <>
                   <div className="relative">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Общий: человек</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Общий: человек</label>
                     <button
                       type="button"
                       onClick={() => toggleDropdown('totalPeople')}
                       className={dropdownToggleClass(errors.totalPeople)}
                     >
                       <span>{totalPeople || 'Общий:'}</span>
-                      <span className="text-[10px] text-brand-gray">▼</span>
+                      <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
@@ -876,7 +872,7 @@ export default function EditListingPage({ params }: PageProps) {
 
                   {/* Адрес ссылка (2GIS) */}
                   <div className="flex flex-col">
-                    <label className="block text-brand-gray text-[10px] uppercase mb-1">Адрес ссылка (2GIS)</label>
+                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Адрес ссылка (2GIS)</label>
                     <input
                       type="text"
                       placeholder="https://2gis.kz/..."
@@ -885,9 +881,7 @@ export default function EditListingPage({ params }: PageProps) {
                         setAddressLink(e.target.value)
                         setErrors((prev) => ({ ...prev, addressLink: false }))
                       }}
-                      className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none min-h-[44px] ${
-                        errors.addressLink ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                      }`}
+                      style={{ width: '100%', background: 'var(--surface-container-lowest)', border: `1px solid ${errors.addressLink ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, padding: '12px 16px', color: 'var(--on-surface)', fontWeight: 700, fontSize: 13, outline: 'none', minHeight: 44, fontFamily: 'inherit' }}
                     />
                   </div>
                 </>
@@ -898,7 +892,7 @@ export default function EditListingPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-3">
               {/* Deposit */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Депозит</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Депозит</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('deposit')}
@@ -907,7 +901,7 @@ export default function EditListingPage({ params }: PageProps) {
                   <span>
                     {listing.mode === 'roommate' ? `Депозит: ${deposit}` : (deposit === 'Есть' ? 'Депозит есть' : 'Без депозита')}
                   </span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'deposit' && (
                   <div className={dropdownListClass}>
@@ -927,7 +921,7 @@ export default function EditListingPage({ params }: PageProps) {
 
               {/* Contract */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Официальный договор</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Официальный договор</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('contract')}
@@ -936,7 +930,7 @@ export default function EditListingPage({ params }: PageProps) {
                   <span>
                     {listing.mode === 'roommate' ? `Договор: ${contract}` : (contract === 'Есть' ? 'Договор есть' : 'Без договора')}
                   </span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'contract' && (
                   <div className={dropdownListClass}>
@@ -958,14 +952,14 @@ export default function EditListingPage({ params }: PageProps) {
             {/* Срок проживания (roommate only) */}
             {listing.mode === 'roommate' && (
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Срок проживания</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Срок проживания</label>
                 <button
                   type="button"
                   onClick={() => toggleDropdown('term')}
                   className={dropdownToggleClass(errors.term)}
                 >
                   <span>{term ? `Срок: ${term}` : 'Срок проживания'}</span>
-                  <span className="text-[10px] text-brand-gray">▼</span>
+                  <Mi name="expand_more" size={16} color="var(--outline)" />
                 </button>
                 {activeDropdown === 'term' && (
                   <div className={dropdownListClass}>
@@ -988,7 +982,7 @@ export default function EditListingPage({ params }: PageProps) {
             <div className="grid grid-cols-2 gap-3">
               {/* Budget From */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Бюджет От (₸)</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Бюджет От (₸)</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -999,15 +993,13 @@ export default function EditListingPage({ params }: PageProps) {
                     setPriceFrom(e.target.value.replace(/\D/g, ''))
                     setErrors((prev) => ({ ...prev, priceFrom: false }))
                   }}
-                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
-                    errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-800'
-                  }`}
+                  style={{ width: '100%', background: 'var(--surface-container-lowest)', border: `1px solid ${errors.priceFrom ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, padding: '14px 16px', color: 'var(--on-surface)', fontWeight: 700, fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
                 />
               </div>
 
               {/* Budget To */}
               <div className="relative">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Бюджет До (₸)</label>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Бюджет До (₸)</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1018,23 +1010,21 @@ export default function EditListingPage({ params }: PageProps) {
                     setPriceTo(e.target.value.replace(/\D/g, ''))
                     setErrors((prev) => ({ ...prev, priceTo: false }))
                   }}
-                  className={`w-full bg-white dark:bg-[#313131] border rounded-2xl py-3.5 px-4 text-brand-black dark:text-brand-white font-bold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
-                    errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-zinc-800'
-                  }`}
+                  style={{ width: '100%', background: 'var(--surface-container-lowest)', border: `1px solid ${errors.priceTo ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, padding: '14px 16px', color: 'var(--on-surface)', fontWeight: 700, fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
                 />
               </div>
             </div>
 
             {/* Row 8: + фото */}
             <div className="flex flex-col gap-2.5">
-              <label className="block text-brand-gray text-[10px] uppercase">
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)' }}>
                 Фотографии (загружено {photos.length} из {listing.mode === 'apartment' ? 3 : 5})
               </label>
 
               <div className="flex flex-wrap gap-2 items-center">
                 {/* Confirmed photos */}
                 {photos.map((ph, idx) => (
-                  <div key={idx} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-zinc-100">
+                  <div key={idx} style={{ position: 'relative', width: 64, height: 64, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--outline-border)', background: 'var(--surface-container-low)', flexShrink: 0 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={ph} className="w-full h-full object-cover" alt="Preview" />
                     <button
@@ -1049,7 +1039,7 @@ export default function EditListingPage({ params }: PageProps) {
 
                 {/* Uploading previews with spinner */}
                 {uploadingPreviews.map((preview, idx) => (
-                  <div key={`up-${idx}`} className="relative w-16 h-16 rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-800 bg-zinc-100">
+                  <div key={`up-${idx}`} style={{ position: 'relative', width: 64, height: 64, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--outline-border)', background: 'var(--surface-container-low)', flexShrink: 0 }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={preview} className="w-full h-full object-cover opacity-50" alt="Загрузка" />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30">
@@ -1060,17 +1050,15 @@ export default function EditListingPage({ params }: PageProps) {
 
                 {/* Upload button */}
                 {(photos.length + uploadingPreviews.length) < (listing.mode === 'apartment' ? 3 : 5) && !isUploadingPhotos && (
-                  <div className={`relative w-16 h-16 border border-dashed rounded-xl flex items-center justify-center bg-white dark:bg-brand-card-dark hover:bg-zinc-50 cursor-pointer ${
-                    errors.photos ? 'border-[#FF3662]' : 'border-gray-300 dark:border-zinc-800'
-                  }`}>
+                  <div style={{ position: 'relative', width: 64, height: 64, borderRadius: 12, border: `1px dashed ${errors.photos ? 'var(--brand-red)' : 'var(--outline)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-container-low)', cursor: 'pointer' }}>
                     <input
                       type="file"
                       accept="image/*"
                       multiple
                       onChange={handlePhotoSelect}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                     />
-                    <Camera className="w-5 h-5 text-brand-blue" />
+                    <Mi name="photo_camera" size={20} color="var(--brand-blue)" />
                   </div>
                 )}
               </div>
@@ -1078,7 +1066,7 @@ export default function EditListingPage({ params }: PageProps) {
 
             {/* Row 9: Описание */}
             <div className="flex flex-col">
-              <label className="block text-brand-gray text-[10px] uppercase mb-1">Описание объявления</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Описание объявления</label>
               <textarea
                 rows={4}
                 value={description}
@@ -1086,43 +1074,35 @@ export default function EditListingPage({ params }: PageProps) {
                   setDescription(e.target.value)
                   setErrors((prev) => ({ ...prev, description: false }))
                 }}
-                className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3.5 px-4 text-brand-black dark:text-brand-white focus:outline-none font-medium leading-relaxed resize-none ${
-                  errors.description ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                }`}
+                style={{ width: '100%', background: 'var(--surface-container-lowest)', border: `1px solid ${errors.description ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, padding: '14px 16px', color: 'var(--on-surface)', fontWeight: 500, fontSize: 13, outline: 'none', lineHeight: 1.6, resize: 'none', fontFamily: 'inherit' }}
               />
             </div>
 
             {/* Bottom Row */}
-            <div className="flex justify-between items-end gap-3 mt-4 pt-2 border-t border-gray-150 dark:border-zinc-850">
-              
-              <div className="w-[45%] flex flex-col">
-                <label className="block text-brand-gray text-[10px] uppercase mb-1">Телефон</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-4 font-bold text-brand-black dark:text-brand-white text-sm">+7</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 12, marginTop: 8, paddingTop: 12, borderTop: '1px solid var(--outline-border)' }}>
+              <div style={{ width: '45%', display: 'flex', flexDirection: 'column' }}>
+                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 6 }}>Телефон</label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <span style={{ position: 'absolute', left: 14, fontWeight: 700, color: 'var(--on-surface)', fontSize: 14 }}>+7</span>
                   <input
                     type="text"
                     value={formatPhoneDisplay(phone)}
                     onChange={handlePhoneChange}
-                    className={`w-full bg-white dark:bg-brand-card-dark border rounded-2xl py-3.5 pl-10 pr-3 text-brand-black dark:text-brand-white font-bold text-sm focus:outline-none ${
-                      errors.phone ? 'border-brand-red' : 'border-gray-200 dark:border-zinc-800'
-                    }`}
+                    style={{ width: '100%', background: 'var(--surface-container-lowest)', border: `1px solid ${errors.phone ? 'var(--brand-red)' : 'var(--outline-border)'}`, borderRadius: 12, padding: '10px 12px 10px 40px', color: 'var(--on-surface)', fontWeight: 700, fontSize: 14, outline: 'none', fontFamily: 'inherit' }}
                   />
                 </div>
               </div>
-
               <button
                 type="submit"
                 disabled={isSubmitting || isUploadingPhotos}
-                className="w-[50%] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 transition-all text-xs select-none shadow-xs"
+                style={{ width: '50%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: (isSubmitting || isUploadingPhotos) ? 0.7 : 1 }}
               >
-                {isUploadingPhotos ? 'Загрузка фото...' : isSubmitting ? 'Сохранение...' : 'готово'}
+                {isUploadingPhotos ? 'Загрузка фото…' : isSubmitting ? 'Сохранение…' : 'Готово'}
               </button>
-
             </div>
 
           </form>
         </div>
-
       </div>
     </div>
   )
