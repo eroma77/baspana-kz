@@ -7,7 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 
 export default function FavoritesPage() {
-  const { favorites, favoritesListings, setFavoritesListings } = useAppStore()
+  const { favorites, favoritesListings, setFavoritesListings, toggleFavorite } = useAppStore()
   const hasPreloaded = favoritesListings.length > 0
   const [isLoading, setIsLoading] = useState(!hasPreloaded)
   const [isReversed, setIsReversed] = useState(false)
@@ -38,6 +38,12 @@ export default function FavoritesPage() {
         const order = favorites.indexOf(a.id) - favorites.indexOf(b.id)
         return isReversed ? -order : order
       })
+
+      // #8 Favorites sync: remove IDs of listings that no longer exist in DB
+      // (owner deleted the listing — clean up stale favorites automatically)
+      const existingIds = new Set(mapped.map((l) => l.id))
+      const staleIds = storeState.favorites.filter((id) => !existingIds.has(id))
+      staleIds.forEach((id) => toggleFavorite(id))
       
       setFavoritesListings(mapped)
     } catch (err) {
@@ -45,7 +51,7 @@ export default function FavoritesPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [favorites, isReversed, setFavoritesListings])
+  }, [favorites, isReversed, setFavoritesListings, toggleFavorite])
 
   // Listen to header sort click event
   useEffect(() => {

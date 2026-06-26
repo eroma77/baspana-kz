@@ -15,8 +15,19 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  title: "Baspana.kz",
-  description: "Поиск сожителей и квартир в Казахстане",
+  title: {
+    default: "Baspana.kz — поиск соседей и квартир в Казахстане",
+    template: "%s | Baspana.kz",
+  },
+  description: "Baspana.kz — платформа для поиска соседей и квартир в Казахстане. Алматы, Астана, Шымкент и другие города.",
+  keywords: ["аренда квартиры", "соседи", "руммейт", "Алматы", "Астана", "Казахстан"],
+  openGraph: {
+    title: "Baspana.kz — поиск соседей и квартир",
+    description: "Сотни объявлений от реальных людей. Найди идеального соседа или квартиру рядом.",
+    type: "website",
+    locale: "ru_RU",
+    siteName: "Baspana.kz",
+  },
 };
 
 export const viewport: Viewport = {
