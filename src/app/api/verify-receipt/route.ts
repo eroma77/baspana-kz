@@ -21,6 +21,17 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Verify caller is authenticated
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const token = authHeader.replace('Bearer ', '')
+  const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+  }
+
   try {
     const formData = await req.formData()
     const file = formData.get('receipt') as File | null
@@ -31,7 +42,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
     }
 
-    const priceExpected = parseInt(tariffPrice)
+    // Validate tariffPrice is a positive integer
+    const priceExpected = parseInt(tariffPrice, 10)
+    if (isNaN(priceExpected) || priceExpected <= 0) {
+      return NextResponse.json({ error: 'Invalid tariffPrice' }, { status: 400 })
+    }
+
+    // Verify caller owns the listing — prevent tampering with other users' listings
+    const { data: listing, error: ownerError } = await supabaseAdmin
+      .from('listings')
+      .select('id, owner_id')
+      .eq('id', listingId)
+      .single()
+
+    if (ownerError || !listing) {
+      return NextResponse.json({ error: 'Listing not found' }, { status: 404 })
+    }
+    if (listing.owner_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     
