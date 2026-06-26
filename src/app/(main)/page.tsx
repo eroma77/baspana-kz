@@ -7,8 +7,7 @@ import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, ChevronDown, X, Camera, Eye, SlidersHorizontal } from 'lucide-react'
-import { SortIcon, SunIcon, MoonIcon, HelpIcon } from '@/components/icons'
+import { Mi } from '@/components/icons'
 
 // Formatting helper for budgets (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -19,14 +18,12 @@ function formatBudgetDisplay(val: string) {
 
 export default function FeedPage() {
   const router = useRouter()
-  const { 
-    mode, 
-    viewed, 
-    theme, 
-    setTheme, 
-    apartmentListings, 
-    roommateListings, 
-    setApartmentListings, 
+  const {
+    mode,
+    viewed,
+    apartmentListings,
+    roommateListings,
+    setApartmentListings,
     setRoommateListings,
     filters,
     hasFetchedApartments,
@@ -256,131 +253,114 @@ export default function FeedPage() {
     fetchListings()
   }
 
+  // Listen for sort trigger from Header toolbar
+  useEffect(() => {
+    const open = () => setShowSort(true)
+    window.addEventListener('bp:sort', open)
+    return () => window.removeEventListener('bp:sort', open)
+  }, [])
+
+  const SORT_OPTIONS = [
+    { label: 'Сначала новые', value: 'newest' },
+    { label: 'Сначала старые', value: 'oldest' },
+    { label: 'Низкая цена',   value: 'price_asc' },
+    { label: 'Высокая цена',  value: 'price_desc' },
+  ] as const
+
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="sticky top-0 z-50 bg-brand-bg-light dark:bg-brand-bg-dark w-full">
-        {/* Dynamic Header — mode toggle only, no icons (Figma spec) */}
-        <Header type="mode-toggle" showThemeToggle={false} showHelpToggle={false} />
+      {/* Header includes mode toggle + filter/sort/theme/help toolbar */}
+      <Header type="mode-toggle" showThemeToggle showHelpToggle />
 
-        {/* Toolbar Sub-bar — matches Figma: black pill left, icons right */}
-        <div className="w-full flex justify-center px-4 pt-[2px] pb-[6px] border-b border-zinc-200/20 dark:border-zinc-800/20 transition-colors duration-200">
-          <div className="flex justify-between w-[339px] mx-auto gap-[5px] font-unbounded text-[16px]">
-            {/* Left Filter Pill */}
-            <button
-              onClick={() => router.push('/filter')}
-              className="w-[210px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center pl-[11px] gap-[31px] shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
-            >
-              <SlidersHorizontal className="w-[24px] h-[24px] text-white stroke-[2.25px] flex-shrink-0" />
-              <span className="font-normal leading-none">фильтр</span>
-            </button>
-
-            {/* Right Actions Pill */}
-            <div className="w-[124px] h-[36px] bg-[#000000] text-white rounded-[57px] flex items-center justify-between px-[12px] shadow-md">
-              {/* Sort button */}
-              <button
-                onClick={() => setShowSort(true)}
-                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-                aria-label="Сортировка"
-              >
-                <SortIcon className="text-white shrink-0" />
-              </button>
-
-              {/* Theme toggle */}
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-                aria-label="Смена темы"
-              >
-                {theme === 'light' ? (
-                  <SunIcon className="text-white shrink-0" />
-                ) : (
-                  <MoonIcon className="text-white shrink-0" />
-                )}
-              </button>
-
-              {/* Help / Instruction button */}
-              <button
-                onClick={() => router.push('/instruction')}
-                className="w-[23px] h-[23px] flex items-center justify-center hover:scale-110 active:scale-90 transition-all duration-150"
-                aria-label="Инструкция"
-              >
-                <HelpIcon className="text-white shrink-0" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main listings list */}
-      <div className="flex-1 px-4 py-4 overflow-y-auto">
+      {/* Feed list */}
+      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
         {isLoading && listings.length === 0 ? (
-          <div className="w-full py-12 flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
-            <span className="text-xs text-brand-gray">Загрузка объявлений...</span>
+          <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
+            <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка объявлений…</span>
           </div>
         ) : listings.length === 0 ? (
-          <div className="w-full py-16 flex flex-col items-center justify-center text-center px-4">
-            <span className="text-sm font-semibold text-brand-black dark:text-brand-white mb-1">Ничего не найдено</span>
-            <span className="text-xs text-brand-gray max-w-[240px]">Попробуйте изменить параметры фильтрации или обновить ленту</span>
+          <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <div style={{
+              width: 64, height: 64, margin: '0 auto 18px', borderRadius: 9999,
+              background: 'var(--surface-container-low)',
+              border: '1px solid var(--outline-border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Mi name="search_off" size={32} color="var(--outline)" />
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--on-surface)', marginBottom: 8, letterSpacing: '-0.3px' }}>
+              Ничего не найдено
+            </div>
+            <div style={{ fontSize: 15, color: 'var(--on-surface-variant)', maxWidth: 280, margin: '0 auto', lineHeight: 1.4, letterSpacing: '-0.2px' }}>
+              Попробуйте изменить параметры фильтрации
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col">
-            {listings.map((item, index) => (
-              <ListingCard key={item.id} listing={item} isFirst={index === 0} />
-            ))}
-          </div>
+          listings.map((item, index) => (
+            <ListingCard key={item.id} listing={item} isFirst={index === 0} />
+          ))
         )}
       </div>
 
-      {/* --- SORTING MODAL --- */}
+      {/* Sort modal */}
       {showSort && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Overlay background blur */}
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 50,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
+        }}>
           <div
             onClick={() => setShowSort(false)}
-            className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-200"
-          ></div>
-
-          {/* Modal content */}
-          <div className="relative w-full max-w-[280px] bg-[#FFFFFF] dark:bg-[#313131] border border-gray-250 dark:border-zinc-800 rounded-[28px] p-5 shadow-2xl transition-all duration-200 select-none">
-            <h3 className="text-sm font-black mb-4 text-center text-[#000000] dark:text-white uppercase tracking-wider">
+            style={{ position: 'absolute', inset: 0, background: 'var(--modal-scrim)', backdropFilter: 'blur(8px)' }}
+          />
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 300,
+            background: 'var(--surface-container-lowest)',
+            border: '1px solid var(--outline-border)',
+            borderRadius: 28, padding: 20,
+            boxShadow: 'var(--shadow-modal)',
+            userSelect: 'none',
+          }}>
+            <div style={{ fontSize: 16, fontWeight: 600, textAlign: 'center', color: 'var(--on-surface)', marginBottom: 16, letterSpacing: '-0.3px' }}>
               Сортировка
-            </h3>
-
-            <div className="flex flex-col gap-2.5 mb-5">
-              {([
-                { label: 'Сначала новые', value: 'newest' },
-                { label: 'Сначала старые', value: 'oldest' },
-                { label: 'Низкая цена', value: 'price_asc' },
-                { label: 'Высокая цена', value: 'price_desc' },
-              ] as const).map((opt) => {
-                const isSelected = sortBy === opt.value
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              {SORT_OPTIONS.map((opt) => {
+                const selected = sortBy === opt.value
                 return (
                   <button
                     key={opt.value}
                     onClick={() => setSortBy(opt.value)}
-                    className={`w-full py-3 px-4 rounded-full flex items-center text-xs transition-all duration-150 ${
-                      isSelected
-                        ? 'bg-[#F7F7F7] dark:bg-[#202020] text-[#000000] dark:text-white font-black'
-                        : 'bg-[#F7F7F7] dark:bg-[#202020] text-[#9D9D9D] font-bold'
-                    }`}
+                    style={{
+                      width: '100%', height: 44, borderRadius: 16,
+                      background: selected ? 'var(--brand-blue-soft)' : 'var(--surface-container-low)',
+                      border: `1px solid ${selected ? 'rgba(0,67,200,0.20)' : 'var(--outline-border)'}`,
+                      color: selected ? 'var(--brand-blue)' : 'var(--on-surface)',
+                      fontSize: 14, fontWeight: selected ? 600 : 500,
+                      cursor: 'pointer', fontFamily: 'inherit',
+                      display: 'flex', alignItems: 'center', paddingLeft: 16, gap: 12,
+                      letterSpacing: '-0.1px',
+                    }}
                   >
-                    <div
-                      className={`w-4.5 h-4.5 rounded-full border mr-3 flex items-center justify-center ${
-                        isSelected ? 'border-[#007BFF] bg-[#007BFF]' : 'border-gray-300 dark:border-zinc-700'
-                      }`}
-                    >
-                      {isSelected && <div className="w-1.5 h-1.5 bg-[#FFFFFF] rounded-full"></div>}
-                    </div>
+                    <Mi
+                      name={selected ? 'radio_button_checked' : 'radio_button_unchecked'}
+                      size={18}
+                      color={selected ? 'var(--brand-blue)' : 'var(--outline)'}
+                    />
                     {opt.label}
                   </button>
                 )
               })}
             </div>
-
             <button
               onClick={handleApplySort}
-              className="w-full bg-[#007BFF] text-[#FFFFFF] rounded-full py-3.5 text-xs font-black uppercase tracking-widest active:scale-95 transition-all duration-200"
+              style={{
+                width: '100%', height: 44,
+                background: 'var(--brand-blue-container)', color: '#FFF',
+                border: '1px solid rgba(0,67,200,0.20)', borderRadius: 16,
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+                letterSpacing: '-0.1px',
+              }}
             >
               Готово
             </button>

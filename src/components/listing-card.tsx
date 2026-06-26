@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAppStore, Listing } from '@/store/useAppStore'
-import { Heart, MapPin, Home, User, Users, Calendar, Coins, FileText, Clock } from 'lucide-react'
+import { Mi } from '@/components/icons'
 
 interface ListingCardProps {
   listing: Listing
@@ -14,29 +14,14 @@ interface ListingCardProps {
   onDelete?: (id: string) => void
 }
 
-const formatCanLiveWith = (val?: string | null) => {
-  if (!val) return 'Не важно'
-  const v = val.toLowerCase().trim()
-  if (v === 'парни' || v === 'мужской' || v === 'только парни' || v.includes('парн')) return 'Только парни'
-  if (v === 'девушки' || v === 'девочки' || v === 'женский' || v === 'только девушки' || v === 'только девочки' || v.includes('дев')) return 'Только девочки'
-  return 'Не важно'
-}
+/* ── Helpers ─────────────────────────────────────────────────── */
 
-const formatRoommateSearching = (val?: string | null) => {
-  if (!val) return 'всех'
-  const v = val.toLowerCase().trim()
-  if (v === 'не важно' || v === 'все') return 'всех'
-  if (v.includes('парн') || v.includes('муж')) return 'парней'
-  if (v.includes('дев') || v.includes('жен')) return 'девушек'
-  return 'пару'
-}
-
-const getCityAbbreviation = (city: string) => {
-  const c = city.toLowerCase().trim()
+const getCityAbbr = (city: string) => {
+  const c = city.toLowerCase()
   if (c.includes('алматы')) return 'АЛА'
   if (c.includes('астана')) return 'АСТ'
   if (c.includes('шымкент')) return 'ШЫМ'
-  if (c.includes('караганда') || c.includes('караганды')) return 'КГД'
+  if (c.includes('карагандa') || c.includes('карагандин')) return 'КГД'
   if (c.includes('актобе')) return 'АКБ'
   if (c.includes('тараз')) return 'ТРЗ'
   if (c.includes('павлодар')) return 'ПВД'
@@ -55,49 +40,190 @@ const getCityAbbreviation = (city: string) => {
   return city.substring(0, 3).toUpperCase()
 }
 
-const formatDistrict = (district?: string | null) => {
-  if (!district || district === '-' || district === 'Не важно' || district === 'all') return ''
-  const d = district.trim()
-  
-  // Mapping for Almaty districts
-  if (d.includes('Алатау')) return 'Алатау'
-  if (d.includes('Алмали')) return 'Алмалы'
-  if (d.includes('Ауэзов')) return 'Ауэзов'
-  if (d.includes('Бостандык')) return 'Бостандык'
-  if (d.includes('Жетысу')) return 'Жетысу'
-  if (d.includes('Медеу')) return 'Медеу'
-  if (d.includes('Наурызбай')) return 'Наурызбай'
-  if (d.includes('Турксиб')) return 'Турксиб'
-  
-  // Mapping for Shymkent districts
-  if (d.includes('Абай')) return 'Абай'
-  if (d.includes('Аль-Фараби')) return 'Аль-Фараби'
-  if (d.includes('Енбекши')) return 'Енбекши'
-  if (d.includes('Каратау')) return 'Каратау'
-  if (d.includes('Туран')) return 'Туран'
-  
-  // Strip "ский" or "ская" suffix
-  return d.replace(/ский$/, '').replace(/ская$/, '')
+const formatDistrict = (d?: string | null) => {
+  if (!d || d === '-' || d === 'Не важно' || d === 'all') return ''
+  return d
+    .replace(/ский$/, '').replace(/ская$/, '')
+    .replace(/Алатауский/, 'Алатау').replace(/Алмалинский/, 'Алмалы')
+    .replace(/Ауэзовский/, 'Ауэзов').replace(/Бостандыкский/, 'Бостандык')
+    .replace(/Жетысуский/, 'Жетысу').replace(/Медеуский/, 'Медеу')
+    .replace(/Наурызбайский/, 'Наурызбай').replace(/Турксибский/, 'Турксиб')
+    .trim()
+}
+
+const formatPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+
+const formatDate = (dateStr: string) => {
+  try {
+    const date = new Date(dateStr)
+    const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000)
+    if (diffDays === 0) return 'сегодня'
+    if (diffDays === 1) return 'вчера'
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+  } catch {
+    return dateStr
+  }
+}
+
+const formatCanLiveWith = (val?: string | null) => {
+  if (!val) return 'Не важно'
+  const v = val.toLowerCase()
+  if (v.includes('парн') || v === 'мужской') return 'Только парни'
+  if (v.includes('дев') || v === 'женский') return 'Только девочки'
+  return 'Не важно'
 }
 
 const getAgePlural = (age: number) => {
-  const lastDigit = age % 10
-  const lastTwoDigits = age % 100
-  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return 'лет'
-  if (lastDigit === 1) return 'год'
-  if (lastDigit >= 2 && lastDigit <= 4) return 'года'
+  const d = age % 10
+  const dd = age % 100
+  if (dd >= 11 && dd <= 14) return 'лет'
+  if (d === 1) return 'год'
+  if (d >= 2 && d <= 4) return 'года'
   return 'лет'
 }
 
-const formatAge = (from: number, to: number) => {
-  if (from === to) return `${from} ${getAgePlural(from)}`
-  return `${from}-${to} лет`
+/* ── Shared styles ───────────────────────────────────────────── */
+
+const CARD = {
+  background: 'var(--surface-container-lowest)',
+  border: '1px solid var(--outline-border)',
+  borderRadius: 16,
+  overflow: 'hidden',
+  boxShadow: 'var(--shadow-card)',
+  marginBottom: 16,
+  cursor: 'pointer',
+  userSelect: 'none' as const,
 }
 
-const formatTerm = (term?: string | null) => {
-  if (!term) return ''
-  return term.replace(/месяца|месяцев/i, 'месяц')
+const CHIP = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  padding: '6px 8px',
+  borderRadius: 8,
+  background: 'var(--surface-container-low)',
+  border: '1px solid var(--outline-border-chip)',
+  overflow: 'hidden',
+  minWidth: 0,
 }
+
+const CHIP_TEXT = {
+  fontSize: 13,
+  fontWeight: 500,
+  color: 'var(--on-surface-variant)',
+  overflow: 'hidden',
+  whiteSpace: 'nowrap' as const,
+  textOverflow: 'ellipsis',
+  letterSpacing: '-0.1px',
+  lineHeight: 1.2,
+}
+
+const BTN_WA = {
+  flex: 1,
+  height: 40,
+  background: 'var(--brand-blue-container)',
+  color: '#FFF',
+  border: '1px solid rgba(0,67,200,0.20)',
+  borderRadius: 16,
+  cursor: 'pointer',
+  fontSize: 14,
+  fontWeight: 600,
+  letterSpacing: '-0.1px',
+  fontFamily: 'inherit',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+const BTN_2GIS = {
+  flex: 1,
+  height: 40,
+  background: 'var(--brand-green-soft)',
+  color: 'var(--brand-green-text)',
+  border: '1px solid var(--brand-green-border)',
+  borderRadius: 16,
+  cursor: 'pointer',
+  fontSize: 14,
+  fontWeight: 600,
+  letterSpacing: '-0.1px',
+  fontFamily: 'inherit',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+}
+
+/* ── Sub-components ──────────────────────────────────────────── */
+
+function Chip({ icon, label }: { icon: string; label: string }) {
+  return (
+    <div style={CHIP}>
+      <Mi name={icon} size={16} color="var(--on-surface-variant)" style={{ flexShrink: 0 }} />
+      <span style={CHIP_TEXT}>{label}</span>
+    </div>
+  )
+}
+
+function FavBtn({ isFav, onClick }: { isFav: boolean; onClick: (e: React.MouseEvent) => void }) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        position: 'absolute', top: 12, right: 12, zIndex: 10,
+        width: 36, height: 36, borderRadius: 9999,
+        background: 'var(--surface-blur-top)',
+        backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+        border: '1px solid var(--outline-border)',
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: 'var(--shadow-sm)',
+      }}
+      aria-label="В избранное"
+    >
+      <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface)'} />
+    </button>
+  )
+}
+
+function TopRibbon() {
+  return (
+    <div style={{
+      position: 'absolute', top: 12, left: 12, zIndex: 5,
+      background: 'var(--brand-blue-container)', color: '#FFF',
+      fontSize: 13, fontWeight: 500, letterSpacing: '0.05em',
+      padding: '6px 16px', borderRadius: 16,
+      boxShadow: '0 10px 15px -3px rgba(0,0,0,0.10)',
+      border: '1px solid rgba(0,67,200,0.20)',
+      backdropFilter: 'blur(4px)', lineHeight: 1,
+    }}>
+      В ТОПЕ
+    </div>
+  )
+}
+
+function OwnerActions({ id, onEdit, onPromote, onDelete }: {
+  id: string
+  onEdit?: (id: string) => void
+  onPromote?: (id: string) => void
+  onDelete?: (id: string) => void
+}) {
+  const stop = (e: React.MouseEvent) => e.stopPropagation()
+  const base = {
+    width: '100%', height: 40, borderRadius: 12, cursor: 'pointer',
+    fontSize: 14, fontWeight: 600, fontFamily: 'inherit',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  }
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <button style={{ ...base, background: 'var(--brand-blue-container)', color: '#FFF', border: '1px solid rgba(0,67,200,0.20)' }}
+        onClick={(e) => { stop(e); onEdit?.(id) }}>редактировать</button>
+      <button style={{ ...base, background: 'var(--brand-blue-container)', color: '#FFF', border: '1px solid rgba(0,67,200,0.20)' }}
+        onClick={(e) => { stop(e); onPromote?.(id) }}>рекламировать</button>
+      <button style={{ ...base, background: 'var(--brand-red-soft)', color: 'var(--brand-red-text)', border: '1px solid transparent' }}
+        onClick={(e) => { stop(e); onDelete?.(id) }}>удалить</button>
+    </div>
+  )
+}
+
+/* ── Main component ──────────────────────────────────────────── */
 
 export function ListingCard({
   listing,
@@ -111,441 +237,182 @@ export function ListingCard({
   const { user, favorites, toggleFavorite, addToViewed } = useAppStore()
 
   const isFav = favorites.includes(listing.id)
+  const cityAbbr = getCityAbbr(listing.city)
+  const district = formatDistrict(listing.district)
+  const locationLabel = district ? `${cityAbbr}, ${district}` : cityAbbr
 
-  // Smart currency formatter (automatic thousands separator)
-  const formatPrice = (price: number) => {
-    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-  }
-
-  // Format relative date ("сегодня", "вчера", or short date)
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr)
-      const now = new Date()
-      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-      if (diffDays === 0) return 'сегодня'
-      if (diffDays === 1) return 'вчера'
-      return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-    } catch {
-      return dateStr
-    }
-  }
-
-  // Auth Wall Guard helper
-  const handleGuardAction = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation()
-    if (!user) {
-      router.push('/profile')
-    } else {
-      action()
-    }
-  }
+  const priceLabel = `${formatPrice(listing.price_from)}${
+    listing.price_to && listing.price_to !== listing.price_from
+      ? ` - ${formatPrice(listing.price_to)}`
+      : ''
+  } ₸`
 
   const handleCardClick = () => {
     addToViewed(listing.id)
     router.push(`/listing/${listing.id}`)
   }
 
+  const handleGuard = (e: React.MouseEvent, action: () => void) => {
+    e.stopPropagation()
+    if (!user) router.push('/profile')
+    else action()
+  }
+
   const handleWhatsApp = (e: React.MouseEvent) => {
-    handleGuardAction(e, () => {
-      const cleanPhone = listing.phone.replace(/\D/g, '')
-      const phoneUrl = cleanPhone.startsWith('7') || cleanPhone.startsWith('8')
-        ? cleanPhone.replace(/^8/, '7')
-        : `7${cleanPhone}`
-      window.open(`https://wa.me/${phoneUrl}`, '_blank')
+    handleGuard(e, () => {
+      const clean = listing.phone.replace(/\D/g, '').replace(/^8/, '7')
+      const phone = clean.startsWith('7') ? clean : `7${clean}`
+      window.open(`https://wa.me/${phone}`, '_blank')
     })
   }
 
   const handle2GIS = (e: React.MouseEvent) => {
     e.stopPropagation()
-    if (listing.address_link) {
-      window.open(listing.address_link, '_blank')
-    } else {
-      const query = `${listing.city} ${listing.district || ''}`
-      window.open(`https://2gis.kz/search/${encodeURIComponent(query)}`, '_blank')
-    }
+    window.open(
+      listing.address_link ||
+      `https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`,
+      '_blank'
+    )
   }
 
-  const cityAbbr = getCityAbbreviation(listing.city)
-
-  // Render APARTMENT MODE Card
+  /* ── Roommate card (apartment listing in DB) ── */
   if (listing.mode === 'roommate') {
+    const chips = [
+      { icon: 'location_on',   label: locationLabel },
+      { icon: 'home',          label: listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комн.` },
+      { icon: 'wc',            label: formatCanLiveWith(listing.can_live_with || listing.gender) },
+      { icon: 'groups',        label: `Общий: ${listing.total_people}` },
+      { icon: 'manage_search', label: `Ищу: ${listing.searching_count}` },
+      { icon: 'cake',          label: `${listing.age_from}-${listing.age_to} лет` },
+      { icon: 'attach_money',  label: listing.deposit > 0 ? 'Депозит: есть' : 'Депозит: нет' },
+      { icon: 'description',   label: listing.contract === 'yes' ? 'Договор: есть' : 'Без договора' },
+    ]
+
     return (
-      <div
-        onClick={handleCardClick}
-        className={`w-[338px] mx-auto ${
-          isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'min-h-[288px] h-auto'
-        } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
-      >
-        {/* Media Header */}
-        <div className="relative w-[338px] h-[87px] bg-zinc-150 dark:bg-zinc-900 shrink-0">
-          {listing.photos && listing.photos.length > 0 ? (
+      <article style={CARD} onClick={handleCardClick} role="button" tabIndex={0}>
+        <div style={{ position: 'relative', width: '100%', height: 140, background: 'var(--surface-container-low)' }}>
+          {listing.photos?.length ? (
             <Image
-              src={listing.photos[0]}
-              alt="Жилье"
-              fill
-              sizes="338px"
+              src={listing.photos[0]} alt="Жилье" fill sizes="390px"
               priority={isFirst || listing.is_premium}
-              className="object-cover object-center"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">
-              Нет фото
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Mi name="home" size={48} color="var(--outline)" />
             </div>
           )}
-
-          {/* Favorite Button */}
-          <button
-            onClick={(e) => handleGuardAction(e, () => toggleFavorite(listing.id))}
-            className="absolute top-[10px] right-[10px] z-10 w-[20px] h-[20px] bg-transparent flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
-            aria-label="В избранное"
-          >
-            <Heart
-              className={`w-[20px] h-[20px] transition-colors duration-200 ${
-                isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-white fill-none'
-              }`}
-            />
-          </button>
-
-          {/* В ТОПЕ Banner */}
-          {listing.is_premium && (
-            <div 
-              className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center pr-[14px] font-unbounded font-bold text-[18px] z-10"
-              style={{ clipPath: 'polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)' }}
-            >
-              В ТОПЕ
-            </div>
-          )}
+          {listing.is_premium && <TopRibbon />}
+          <FavBtn isFav={isFav} onClick={(e) => handleGuard(e, () => toggleFavorite(listing.id))} />
         </div>
 
-        {/* Details Area */}
-        <div className="px-[16px] pt-[12px] pb-[12px] flex flex-col flex-1 min-h-0 justify-between">
-          {/* Price & Date */}
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-[17px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-2">
-              {formatPrice(listing.price_from)}
-              {listing.price_to && listing.price_to !== listing.price_from
-                ? ` - ${formatPrice(listing.price_to)}`
-                : ''}{' '}
-              ₸
-            </span>
-            <span className="text-[13px] text-[#9D9D9D] font-normal leading-none shrink-0">
+        <div style={{ padding: 12 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, letterSpacing: '-0.5px', color: 'var(--on-surface)' }}>
+              {priceLabel}
+            </h2>
+            <span style={{ fontSize: 12, color: 'var(--outline)', letterSpacing: '0.05em', whiteSpace: 'nowrap', marginLeft: 8 }}>
               {formatDate(listing.created_at)}
             </span>
           </div>
 
-          {/* 8 Parameters Grid (2-column) — matches Figma exactly */}
-          <div className="flex justify-between gap-[14px] my-1.5">
-            {/* Left Column (Long parameters - 168px) */}
-            <div className="flex flex-col gap-[4px] w-[168px]">
-              {/* Badge 1: Address */}
-              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Location.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Location-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">
-                  {cityAbbr}
-                  {formatDistrict(listing.district) ? `, ${formatDistrict(listing.district)}` : ''}
-                </span>
-              </div>
-
-              {/* Badge 2: Rooms */}
-              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Room.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Room-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">{listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комнатный`}</span>
-              </div>
-
-              {/* Badge 3: Gender / Can live with */}
-              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Toilet.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Toilet-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">
-                  {formatCanLiveWith(listing.can_live_with || listing.gender)}
-                </span>
-              </div>
-
-              {/* Badge 4: Total People */}
-              <div className="flex items-center gap-1.5 pr-2 pl-0 w-[168px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Batch Assign.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Batch Assign-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">Общий: {listing.total_people}</span>
-              </div>
-            </div>
-
-            {/* Right Column (Short parameters - 124px) */}
-            <div className="flex flex-col gap-[4px] w-[124px]">
-              {/* Badge 5: Searching Count (Ищу) */}
-              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Google Web Search.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Google Web Search-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">Ищу: {listing.searching_count}</span>
-              </div>
-
-              {/* Badge 6: Age */}
-              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Birthday.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Birthday-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">{listing.age_from}-{listing.age_to} лет</span>
-              </div>
-
-              {/* Badge 7: Deposit */}
-              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Us Dollar Circled.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Us Dollar Circled-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
-              </div>
-
-              {/* Badge 8: Contract */}
-              <div className="flex items-center gap-1 pr-1.5 pl-0 w-[124px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-                <img src="/icons/Document.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-                <img src="/icons/Document-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-                <span className="truncate leading-none">{listing.contract === 'yes' ? 'Есть' : 'Не важно'}</span>
-              </div>
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px', marginBottom: 14 }}>
+            {chips.map((c, i) => <Chip key={i} icon={c.icon} label={c.label} />)}
           </div>
 
-          {/* Action Buttons */}
-          <div className="mt-auto">
-            {!isOwnerView ? (
-              <div className="flex gap-[14px] justify-center">
-                <button
-                  onClick={handleWhatsApp}
-                  className="w-[168px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-medium text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
-                >
-                  Ватцап
-                </button>
-                <button
-                  onClick={handle2GIS}
-                  className="w-[124px] h-[35px] bg-[#F8F8F8] dark:bg-[#202020] text-[#000000] dark:text-white rounded-[5px] flex items-center justify-center font-unbounded font-medium text-[16px] border border-[#C7C7C7] dark:border-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-[0.98] transition-all duration-200"
-                >
-                  2 гис
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-1.5">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit?.(listing.id)
-                  }}
-                  className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
-                >
-                  Редактировать
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onPromote?.(listing.id)
-                  }}
-                  className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
-                >
-                  Рекламировать
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete?.(listing.id)
-                  }}
-                  className="w-full h-[32px] bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all"
-                >
-                  Удалить
-                </button>
-              </div>
-            )}
-          </div>
+          {!isOwnerView ? (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={BTN_WA} onClick={handleWhatsApp}>Ватцап</button>
+              <button style={BTN_2GIS} onClick={handle2GIS}>2 гис</button>
+            </div>
+          ) : (
+            <OwnerActions id={listing.id} onEdit={onEdit} onPromote={onPromote} onDelete={onDelete} />
+          )}
         </div>
-      </div>
+      </article>
     )
   }
 
-  // ====== ROOMMATE MODE Card ======
-  return (
-    <div
-      onClick={handleCardClick}
-      className={`w-[338px] mx-auto ${
-        isOwnerView ? 'min-h-[288px] h-auto pb-3' : 'min-h-[288px] h-auto'
-      } bg-[#FFFFFF] dark:bg-[#313131] rounded-[14px] border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-sm hover:shadow-md active:scale-[0.99] transition-all duration-200 ease-in-out cursor-pointer flex flex-col mb-4 select-none relative`}
-    >
-      {/* Top Profile Row: Avatar | Price+Date | Heart */}
-      <div className={`p-[12px] pb-2 flex items-center gap-3 relative ${listing.is_premium ? 'pt-[36px]' : ''}`}>
-        {/* В ТОПЕ Banner */}
-        {listing.is_premium && (
-          <div 
-            className="absolute top-0 left-0 w-[117px] h-[33px] bg-[#007BFF] text-white flex items-center justify-center pr-[14px] font-unbounded font-bold text-[18px] z-10"
-            style={{ clipPath: 'polygon(0 0, 100% 0, 88% 50%, 100% 100%, 0 100%)' }}
-          >
-            В ТОПЕ
-          </div>
-        )}
+  /* ── Apartment card (roommate listing in DB) ── */
+  const chips = [
+    { icon: 'location_on',  label: locationLabel },
+    { icon: 'home',         label: listing.rooms },
+    { icon: 'wc',           label: listing.gender },
+    { icon: 'group',        label: listing.can_live_with || 'Не важно' },
+    { icon: 'groups',       label: `Общий: ${listing.total_people}` },
+    { icon: 'group',        label: `Нас: ${listing.people_count}` },
+    { icon: 'cake',         label: `${listing.age_from} ${getAgePlural(listing.age_from)}` },
+    { icon: 'attach_money', label: listing.deposit > 0 ? 'Депозит: есть' : 'Депозит: нет' },
+    { icon: 'description',  label: listing.contract === 'yes' ? 'Договор: есть' : 'Без договора' },
+    ...(listing.term ? [{ icon: 'schedule', label: listing.term }] : []),
+  ]
 
-        {/* Avatar square */}
-        <div className="relative w-[72px] h-[72px] rounded-[14px] overflow-hidden shrink-0 bg-zinc-150 dark:bg-zinc-800 border border-gray-250/50 dark:border-zinc-850">
-          {listing.photos && listing.photos.length > 0 ? (
+  return (
+    <article style={CARD} onClick={handleCardClick} role="button" tabIndex={0}>
+      <div style={{ padding: 12, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+        {/* Square avatar */}
+        <div style={{
+          width: 72, height: 72, borderRadius: 16, overflow: 'hidden',
+          flexShrink: 0, background: 'var(--surface-container-low)',
+          border: '1px solid var(--outline-border)', position: 'relative',
+        }}>
+          {listing.photos?.length ? (
             <Image
-              src={listing.photos[0]}
-              alt="Селфи"
-              fill
-              sizes="72px"
-              className="object-cover object-center"
+              src={listing.photos[0]} alt="Фото" fill sizes="72px"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[#007BFF]">
-              {listing.gender.substring(0, 1).toUpperCase()}
+            <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Mi name="person" size={30} color="var(--outline)" />
             </div>
           )}
         </div>
 
-        {/* Price & Date */}
-        <div className="flex flex-col flex-1 min-w-0 justify-center">
-          <span className="text-[13px] font-bold text-[#000000] dark:text-white leading-none tracking-wide truncate pr-6">
-            {formatPrice(listing.price_from)}
-            {listing.price_to && listing.price_to !== listing.price_from
-              ? ` - ${formatPrice(listing.price_to)}`
-              : ''}{' '}
-            ₸
-          </span>
-          <span className="text-[13px] text-[#9D9D9D] font-normal leading-none mt-2">
+        {/* Price + date */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.4px', color: 'var(--on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: 44 }}>
+            {priceLabel}
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--outline)', marginTop: 4, letterSpacing: '0.05em' }}>
             {formatDate(listing.created_at)}
-          </span>
+          </div>
+          {listing.is_premium && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', marginTop: 6,
+              background: 'var(--brand-blue-container)', color: '#FFF',
+              fontSize: 11, fontWeight: 500, letterSpacing: '0.05em',
+              padding: '3px 10px', borderRadius: 12,
+            }}>В ТОПЕ</div>
+          )}
         </div>
 
-        {/* Heart button */}
+        {/* Heart */}
         <button
-          onClick={(e) => handleGuardAction(e, () => toggleFavorite(listing.id))}
-          className="absolute top-[12px] right-[12px] z-10 w-[20px] h-[20px] bg-transparent flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+          onClick={(e) => handleGuard(e, () => toggleFavorite(listing.id))}
+          style={{
+            position: 'absolute', top: 12, right: 12,
+            width: 36, height: 36, borderRadius: 9999,
+            background: 'var(--surface-container-low)',
+            border: '1px solid var(--outline-border)',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
           aria-label="В избранное"
         >
-          <Heart
-            className={`w-[20px] h-[20px] transition-colors duration-200 ${
-              isFav ? 'text-[#FF3662] fill-[#FF3662]' : 'text-zinc-400 dark:text-zinc-500 fill-none'
-            }`}
-          />
+          <Mi name="favorite" filled={isFav} size={18} color={isFav ? 'var(--brand-red)' : 'var(--outline)'} />
         </button>
       </div>
 
-      {/* Parameters Columns */}
-      <div className="flex justify-between gap-[14px] my-1.5 px-[16px]">
-        {/* Left Column (5 badges - 146px width) */}
-        <div className="flex flex-col gap-[4px] w-[146px]">
-          {/* Badge 1: Address */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Location.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Location-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">
-              {cityAbbr}
-              {formatDistrict(listing.district) ? `, ${formatDistrict(listing.district)}` : ''}
-            </span>
-          </div>
-
-          {/* Badge 2: Rooms */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Room.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Room-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.rooms}</span>
-          </div>
- 
-          {/* Badge 3: Gender */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Toilet.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Toilet-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.gender}</span>
-          </div>
- 
-          {/* Badge 4: Can live with */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Gender Preference.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Gender Preference-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.can_live_with || 'Не важно'}</span>
-          </div>
- 
-          {/* Badge 5: Total People */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Batch Assign.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Batch Assign-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">Общий: {listing.total_people}</span>
-          </div>
-        </div>
- 
-        {/* Right Column (5 badges - 146px width) */}
-        <div className="flex flex-col gap-[4px] w-[146px]">
-          {/* Badge 6: People Count (Нас) */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Google Web Search.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Google Web Search-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">Нас: {listing.people_count}</span>
-          </div>
- 
-          {/* Badge 7: Age */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Birthday.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Birthday-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.age_from} {getAgePlural(listing.age_from)}</span>
-          </div>
- 
-          {/* Badge 8: Deposit */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Us Dollar Circled.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Us Dollar Circled-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.deposit > 0 ? 'Есть' : 'Нет'}</span>
-          </div>
- 
-          {/* Badge 9: Contract */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Document.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Document-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.contract === 'yes' ? 'Есть' : 'Нет'}</span>
-          </div>
- 
-          {/* Badge 10: Term */}
-          <div className="flex items-center gap-1.5 pr-2 pl-0 w-[146px] h-[22px] shrink-0 min-w-0 bg-[#F4F9FF] dark:bg-[#202020] border-[0.5px] border-[#8FCCFF] dark:border-zinc-800 rounded-[4px] overflow-hidden text-[12px] font-medium font-montserrat text-[#000000] dark:text-[#FFFFFF]">
-            <img src="/icons/Term.svg" alt="" className="w-[22px] h-[22px] shrink-0 dark:hidden" />
-            <img src="/icons/Term-1.svg" alt="" className="w-[22px] h-[22px] shrink-0 hidden dark:block" />
-            <span className="truncate leading-none">{listing.term}</span>
-          </div>
-        </div>
+      <div style={{ padding: '4px 12px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px' }}>
+        {chips.map((c, i) => <Chip key={i} icon={c.icon} label={c.label} />)}
       </div>
 
-      {/* Action Buttons — WhatsApp 100% for roommate, no 2GIS */}
-      <div className="mt-auto px-[12px] pb-[12px]">
+      <div style={{ padding: '0 12px 12px' }}>
         {!isOwnerView ? (
-          <button
-            onClick={handleWhatsApp}
-            className="w-[306px] h-[35px] bg-[#007BFF] text-[#FFFFFF] rounded-[5px] flex items-center justify-center font-unbounded font-bold text-[16px] hover:bg-blue-600 active:scale-[0.98] transition-all duration-200"
-          >
-            Ватцап
-          </button>
+          <button style={{ ...BTN_WA, width: '100%', flex: 'none' }} onClick={handleWhatsApp}>Ватцап</button>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onEdit?.(listing.id)
-              }}
-              className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
-            >
-              Редактировать
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onPromote?.(listing.id)
-              }}
-              className="w-full h-[32px] bg-[#007BFF] text-white rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-blue-600 active:scale-[0.98] transition-all"
-            >
-              Рекламировать
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete?.(listing.id)
-              }}
-              className="w-full h-[32px] bg-red-50 dark:bg-zinc-800 text-[#FF3662] dark:text-white border border-red-100 dark:border-zinc-700 rounded-[5px] font-bold text-sm text-center flex items-center justify-center hover:bg-red-100 dark:hover:bg-zinc-700 active:scale-[0.98] transition-all"
-            >
-              Удалить
-            </button>
-          </div>
+          <OwnerActions id={listing.id} onEdit={onEdit} onPromote={onPromote} onDelete={onDelete} />
         )}
       </div>
-    </div>
+    </article>
   )
 }

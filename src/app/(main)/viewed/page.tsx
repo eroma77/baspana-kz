@@ -55,24 +55,24 @@ export default function ViewedPage() {
       {/* Header */}
       <Header type="title" title="просмотрено" showHelpToggle={true} />
 
-      {/* Main Container */}
-      <div className="flex-1 px-4 py-4 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
         {isLoading ? (
-          <div className="w-full py-12 flex flex-col items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
-            <span className="text-xs text-brand-gray">Загрузка истории...</span>
+          <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
+            <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка истории…</span>
           </div>
         ) : viewedListings.length === 0 ? (
-          <div className="w-full py-16 flex flex-col items-center justify-center text-center px-4">
-            <span className="text-sm font-semibold text-brand-black dark:text-brand-white mb-1">История пуста</span>
-            <span className="text-xs text-brand-gray max-w-[240px]">Здесь появятся объявления, которые вы детально просматривали</span>
+          <div style={{ padding: '60px 24px', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, margin: '0 auto 18px', borderRadius: 9999, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="mi" style={{ fontSize: 32, color: 'var(--outline)' }}>radar</span>
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--on-surface)', marginBottom: 8, letterSpacing: '-0.3px' }}>История пуста</div>
+            <div style={{ fontSize: 15, color: 'var(--on-surface-variant)', maxWidth: 280, margin: '0 auto', lineHeight: 1.4, letterSpacing: '-0.2px' }}>
+              Здесь появятся объявления, которые вы просматривали
+            </div>
           </div>
         ) : (
-          <div className="flex flex-col animate-fade-in">
-            {viewedListings.map((item) => (
-              <ListingCard key={item.id} listing={item} />
-            ))}
-          </div>
+          viewedListings.map((item) => <ListingCard key={item.id} listing={item} />)
         )}
       </div>
     </div>

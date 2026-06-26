@@ -1,37 +1,178 @@
 @import "tailwindcss";
+@source not "../../.agents/**";
 
 @variant dark (&:where(.dark, .dark *));
 
+/* ── Tailwind v4 design tokens ─────────────────────────────────────── */
 @theme {
-  --color-brand-bg-light: #F7F7F7;
-  --color-brand-bg-dark: #202020;
-  --color-brand-card-dark: #313131;
-  --color-brand-blue: #007BFF;
-  --color-brand-black: #000000;
-  --color-brand-white: #FFFFFF;
-  --color-brand-gray: #9D9D9D;
-  --color-brand-red: #FF3662;
-  
-  --font-unbounded: var(--font-unbounded);
+  /* Surfaces */
+  --color-surface:                    #FAF9FE;
+  --color-surface-container-lowest:   #FFFFFF;
+  --color-surface-container-low:      #F4F3F8;
+  --color-surface-container:          #EEEDF3;
+  --color-surface-container-high:     #E9E7ED;
+  --color-surface-container-highest:  #E3E2E7;
+
+  /* Foreground */
+  --color-on-surface:         #1A1B1F;
+  --color-on-surface-variant: #434656;
+  --color-outline:            #737688;
+  --color-secondary:          #5E5E5E;
+
+  /* Brand */
+  --color-brand-blue:           #0043C8;
+  --color-brand-blue-container: #0057FF;
+  --color-brand-blue-soft:      #DCE1FF;
+  --color-brand-red:            #FF3662;
+  --color-brand-red-soft:       #FFDAD6;
+  --color-brand-red-text:       #93000A;
+  --color-brand-green-soft:     #E8F5E9;
+  --color-brand-green-text:     #2E7D32;
+  --color-brand-green-border:   #C8E6C9;
+  --color-violet-promo:         #6750A4;
+
+  /* Font */
   --font-montserrat: var(--font-montserrat);
 }
 
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  background-color: var(--color-brand-bg-light);
-  color: var(--color-brand-black);
+/* ── Raw CSS vars (used as var() in components) ─────────────────────── */
+:root {
+  --surface:                    #FAF9FE;
+  --surface-container-lowest:   #FFFFFF;
+  --surface-container-low:      #F4F3F8;
+  --surface-container:          #EEEDF3;
+  --surface-container-high:     #E9E7ED;
+  --surface-container-highest:  #E3E2E7;
+  --on-surface:                 #1A1B1F;
+  --on-surface-variant:         #434656;
+  --outline:                    #737688;
+  --secondary:                  #5E5E5E;
+  --brand-blue:                 #0043C8;
+  --brand-blue-container:       #0057FF;
+  --brand-blue-soft:            #DCE1FF;
+  --brand-blue-hover:           #003AB2;
+  --brand-red:                  #FF3662;
+  --brand-red-soft:             #FFDAD6;
+  --brand-red-text:             #93000A;
+  --brand-red-border:           rgba(255, 54, 98, 0.20);
+  --brand-green:                #2E7D32;
+  --brand-green-soft:           #E8F5E9;
+  --brand-green-text:           #2E7D32;
+  --brand-green-border:         #C8E6C9;
+  --violet-promo:               #6750A4;
+
+  --outline-border:          rgba(195, 197, 217, 0.30);
+  --outline-border-chip:     rgba(195, 197, 217, 0.20);
+  --surface-blur-top:        rgba(250, 249, 254, 0.80);
+  --surface-blur-bot:        rgba(255, 255, 255, 0.90);
+  --modal-scrim:             rgba(20, 22, 35, 0.40);
+  --shadow-nav:              0 -4px 30px rgba(0, 0, 0, 0.04);
+  --shadow-card:             0 1px 2px rgba(20, 22, 35, 0.04);
+  --shadow-sm:               0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-modal:            0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --ease:                    cubic-bezier(0.4, 0, 0.2, 1);
+  --card-green-bg:           #E8F5E9;
+  --card-green-border:       #C8E6C9;
+  --card-yellow-bg:          #FFFBEB;
+  --card-yellow-border:      #FDE68A;
+  --card-purple-bg:          #F5F3FF;
+  --card-purple-border:      #DDD6FE;
+  --card-icon-bg:            rgba(255, 255, 255, 0.60);
 }
 
-html.dark, html.dark body {
-  background-color: var(--color-brand-bg-dark);
-  color: var(--color-brand-white);
+/* ── Dark theme overrides ───────────────────────────────────────────── */
+html.dark {
+  --surface:                    #14151A;
+  --surface-container-lowest:   #1F2026;
+  --surface-container-low:      #25262D;
+  --surface-container:          #2A2B33;
+  --surface-container-high:     #303139;
+  --on-surface:                 #E6E5EA;
+  --on-surface-variant:         #C3C5D9;
+  --outline:                    #8A8DA0;
+  --secondary:                  #8A8DA0;
+  --outline-border:             rgba(195, 197, 217, 0.12);
+  --outline-border-chip:        rgba(195, 197, 217, 0.10);
+  --surface-container-highest:  #2C2D35;
+  --surface-blur-top:           rgba(20, 21, 26, 0.80);
+  --surface-blur-bot:           rgba(31, 32, 38, 0.90);
+  --modal-scrim:                rgba(0, 0, 0, 0.60);
+  --shadow-card:                0 1px 2px rgba(0, 0, 0, 0.30);
+  --shadow-sm:                  0 1px 2px rgba(0, 0, 0, 0.30);
+  --brand-blue-soft:            rgba(0, 67, 200, 0.20);
+  --brand-red-soft:             rgba(255, 54, 98, 0.15);
+  --brand-red-border:           rgba(255, 54, 98, 0.25);
+  --brand-green-soft:           rgba(46, 125, 50, 0.15);
+  --brand-green-border:         rgba(46, 125, 50, 0.30);
+  --brand-green-text:           #81C784;
+  --card-green-bg:              rgba(46, 125, 50, 0.15);
+  --card-green-border:          rgba(46, 125, 50, 0.30);
+  --card-yellow-bg:             rgba(217, 119, 6, 0.12);
+  --card-yellow-border:         rgba(217, 119, 6, 0.30);
+  --card-purple-bg:             rgba(124, 58, 237, 0.15);
+  --card-purple-border:         rgba(124, 58, 237, 0.25);
+  --card-icon-bg:               rgba(255, 255, 255, 0.08);
+}
+
+/* ── Base ───────────────────────────────────────────────────────────── */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: var(--surface);
+  color: var(--on-surface);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  font-family: var(--font-unbounded), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: -0.2px;
   min-height: 100vh;
 }
 
+/* ── Material Symbols helper ────────────────────────────────────────── */
+.mi {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  display: inline-block;
+  white-space: nowrap;
+  letter-spacing: normal;
+  text-transform: none;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.mi.filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Filter page dropdown hover ─────────────────────────────────────── */
+.filter-opt:hover { background: var(--surface-container) !important; }
+
+/* ── 2GIS button ─────────────────────────────────────────────────────── */
+.btn-2gis {
+  background: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+}
+html.dark .btn-2gis {
+  background: rgba(46, 125, 50, 0.15);
+  color: #81C784;
+  border: 1px solid rgba(46, 125, 50, 0.30);
+}
+
+/* ── Transition default ─────────────────────────────────────────────── */
+button,
+[role="button"] {
+  transition: all 200ms var(--ease);
+}
+button:active {
+  transform: scale(0.97);
+}

@@ -3,24 +3,23 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
-import { Flame, Heart, Plus, Eye, User } from 'lucide-react'
+import { Mi } from '@/components/icons'
+
+const TABS = [
+  { name: 'Лента',      path: '/',          icon: 'local_fire_department' },
+  { name: 'Избранное',  path: '/favorites', icon: 'favorite' },
+  { name: 'Добавить',   path: '/add',       icon: 'add_circle', isAction: true },
+  { name: 'Просмотрено',path: '/viewed',    icon: 'visibility' },
+  { name: 'Профиль',    path: '/profile',   icon: 'person' },
+] as const
 
 export function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useAppStore()
 
-  const tabs = [
-    { name: 'Лента', path: '/', icon: Flame },
-    { name: 'Избранное', path: '/favorites', icon: Heart },
-    { name: 'Добавить', path: '/add', icon: Plus, isAction: true },
-    { name: 'Просмотрено', path: '/viewed', icon: Eye },
-    { name: 'Профиль', path: '/profile', icon: User },
-  ]
-
-  const handleTabClick = (e: React.MouseEvent, tab: typeof tabs[0]) => {
-    if (tab.isAction || tab.path === '/add') {
-      // Auth Wall Guard for Add Page
+  const handleTabClick = (e: React.MouseEvent, tab: typeof TABS[number]) => {
+    if ('isAction' in tab && tab.isAction) {
       if (!user) {
         e.preventDefault()
         router.push('/profile')
@@ -29,37 +28,54 @@ export function BottomNav() {
   }
 
   return (
-    <div className="absolute bottom-6 left-0 right-0 z-40 px-4 pointer-events-none select-none">
-      <div className="w-[340px] h-[64px] mx-auto bg-[#000000] rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.3)] flex justify-between items-center px-3 border border-zinc-900 pointer-events-auto transition-all duration-200 ease-in-out">
-        {tabs.map((tab) => {
-          const isActive = pathname === tab.path
-          const Icon = tab.icon
-
-          return (
-            <Link
-              key={tab.path}
-              href={tab.path}
-              onClick={(e) => handleTabClick(e, tab)}
-              className="flex items-center justify-center"
-              aria-label={tab.name}
-            >
-              {isActive ? (
-                // Active: White outer circle, blue inner circle, white icon
-                <div className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center shadow-lg scale-105 transition-all duration-200">
-                  <div className="w-[36px] h-[36px] rounded-full bg-[#007BFF] flex items-center justify-center text-white">
-                    <Icon className="w-5 h-5 stroke-[2.5px] fill-current" />
-                  </div>
-                </div>
-              ) : (
-                // Inactive: Solid white circle with black icon
-                <div className="w-[44px] h-[44px] rounded-full bg-white flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95 shadow-sm">
-                  <Icon className="w-5 h-5 text-black stroke-[2.5px]" />
-                </div>
-              )}
-            </Link>
-          )
-        })}
-      </div>
-    </div>
+    <nav
+      aria-label="Навигация"
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        height: 84,
+        padding: '8px 20px 24px',
+        background: 'var(--surface-blur-bot)',
+        backdropFilter: 'blur(40px)',
+        WebkitBackdropFilter: 'blur(40px)',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        display: 'flex',
+        justifyContent: 'space-around',
+        alignItems: 'center',
+        boxShadow: 'var(--shadow-nav)',
+        userSelect: 'none',
+      }}
+    >
+      {TABS.map((tab) => {
+        const isActive = pathname === tab.path
+        return (
+          <Link
+            key={tab.path}
+            href={tab.path}
+            onClick={(e) => handleTabClick(e, tab)}
+            aria-label={tab.name}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: 4,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              color: isActive ? 'var(--brand-blue)' : 'var(--secondary)',
+              opacity: isActive ? 1 : 0.65,
+              transform: isActive ? 'scale(1.10)' : 'scale(1)',
+              transition: 'all 200ms var(--ease)',
+            }}
+          >
+            <Mi name={tab.icon} filled={isActive} size={26} />
+          </Link>
+        )
+      })}
+    </nav>
   )
 }

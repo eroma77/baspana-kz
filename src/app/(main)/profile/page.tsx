@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { User, Settings, Plus, Flame, ShieldAlert, CheckCircle, Info } from 'lucide-react'
+import { Mi } from '@/components/icons'
 
 interface PriceSetting {
   key: string
@@ -115,7 +115,7 @@ export default function ProfilePage() {
   }, [isAdmin])
 
   // Save Admin Settings — via server-side API route (JWT verified server-side)
-  const handleSavePrices = async (e: React.FormEvent) => {
+  const handleSavePrices = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsAdminSaving(true)
     setAdminMessage('')
@@ -200,61 +200,53 @@ export default function ProfilePage() {
 
   return (
     <div className="flex flex-col w-full h-full">
-      {/* Header */}
       <Header type="title" title="мой кабинет" showHelpToggle={false} />
 
-      {/* Main Content */}
-      <div className="flex-1 px-4 py-5 overflow-y-auto">
-        
-        {/* Profile Card block */}
-        <div className="bg-white dark:bg-[#313131] rounded-3xl p-5 border border-gray-200 dark:border-zinc-700/50 shadow-sm mb-5 select-none transition-colors duration-200">
+      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+
+        {/* Profile card */}
+        <div style={{
+          background: 'var(--surface-container-lowest)',
+          border: '1px solid var(--outline-border)',
+          borderRadius: 20, padding: 20, marginBottom: 16, userSelect: 'none',
+          boxShadow: 'var(--shadow-sm)',
+        }}>
           {!user ? (
-            <div className="flex flex-col gap-4">
-              {/* Horizontal layout: icon + email */}
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-blue-50 dark:bg-zinc-800 border-2 border-[#007BFF]/30 flex items-center justify-center shrink-0">
-                  <User className="w-7 h-7 text-[#007BFF]" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 9999, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Mi name="person" size={28} color="var(--outline)" />
                 </div>
-                <span className="text-sm font-semibold text-[#9D9D9D] truncate">
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--on-surface-variant)' }}>
                   Войдите, чтобы продолжить
                 </span>
               </div>
-
               <button
                 onClick={handleGoogleLogin}
-                className="w-full bg-[#007BFF] text-white rounded-2xl py-3.5 font-bold hover:bg-blue-600 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm shadow-sm"
+                style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
               >
                 Войти через Google
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              {/* Horizontal layout: avatar + email */}
-              <div className="flex items-center gap-4">
-                <div className="relative w-14 h-14 rounded-full overflow-hidden border-2 border-[#007BFF]/30 bg-blue-50 dark:bg-zinc-800 shrink-0">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                <div style={{ position: 'relative', width: 56, height: 56, borderRadius: 9999, overflow: 'hidden', border: '2px solid var(--outline-border)', background: 'var(--surface-container-low)', flexShrink: 0 }}>
                   {user.avatar_url ? (
-                    <Image
-                      src={user.avatar_url}
-                      alt="Аватар"
-                      fill
-                      sizes="56px"
-                      className="object-cover object-center"
-                    />
+                    <Image src={user.avatar_url} alt="Аватар" fill sizes="56px" className="object-cover object-center" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[#007BFF]">
-                      <User className="w-7 h-7" />
+                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Mi name="person" size={28} color="var(--outline)" />
                     </div>
                   )}
                 </div>
-                <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 truncate">
+                <span style={{ fontSize: 14, fontWeight: 500, color: 'var(--on-surface)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {user.email}
                 </span>
               </div>
-
-              {/* Logout Button (Малиновый #FF3662) */}
               <button
                 onClick={handleLogout}
-                className="w-full bg-[#FF3662] text-white rounded-2xl py-3.5 font-bold hover:bg-red-500 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                style={{ width: '100%', height: 44, background: 'var(--brand-red-soft)', color: 'var(--brand-red)', border: '1px solid var(--brand-red-border)', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
               >
                 Выйти
               </button>
@@ -262,148 +254,123 @@ export default function ProfilePage() {
           )}
         </div>
 
-
-        {/* Auth users content */}
+        {/* Auth content */}
         {user && (
-          <div className="flex flex-col gap-6">
-            
-            {/* ADMIN PANEL GUARD SECTION */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* Admin panel */}
             {isAdmin && (
-              <div className="bg-white dark:bg-brand-card-dark rounded-3xl border border-gray-200 dark:border-zinc-800 overflow-hidden shadow-xs">
+              <div style={{ background: 'var(--surface-container-lowest)', border: '1px solid var(--outline-border)', borderRadius: 20, overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
                 <button
                   onClick={() => setShowAdminPanel(!showAdminPanel)}
-                  className="w-full px-5 py-4 flex items-center justify-between font-bold text-xs uppercase tracking-wider text-brand-black dark:text-brand-white bg-zinc-50 dark:bg-zinc-850 border-b border-gray-150 dark:border-zinc-800"
+                  style={{ width: '100%', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--surface-container-low)', border: 'none', borderBottom: '1px solid var(--outline-border)', cursor: 'pointer', fontFamily: 'inherit' }}
                 >
-                  <span className="flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-brand-blue" />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--on-surface)', letterSpacing: '-0.1px' }}>
+                    <Mi name="admin_panel_settings" size={18} color="var(--brand-blue)" />
                     Панель администратора
                   </span>
-                  <span>{showAdminPanel ? '▲' : '▼'}</span>
+                  <Mi name={showAdminPanel ? 'expand_less' : 'expand_more'} size={20} color="var(--on-surface-variant)" />
                 </button>
 
                 {showAdminPanel && (
-                  <form onSubmit={handleSavePrices} className="p-5 flex flex-col gap-4 text-xs">
-                    <span className="font-bold text-zinc-700 dark:text-zinc-300">Настройки тарифов цен:</span>
-                    
-                    <div className="flex flex-col gap-3">
+                  <form onSubmit={handleSavePrices} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--on-surface)' }}>Настройки тарифов:</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {prices.map((p) => (
-                        <div key={p.key} className="flex flex-col gap-1">
-                          <label className="text-brand-gray text-[10px] uppercase font-bold">{p.label}</label>
-                          <div className="relative">
+                        <div key={p.key} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <label style={{ fontSize: 11, fontWeight: 600, color: 'var(--on-surface-variant)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{p.label}</label>
+                          <div style={{ position: 'relative' }}>
                             <input
-                              type="number"
-                              min="0"
+                              type="number" min="0"
                               value={p.value === 0 ? '' : p.value}
                               placeholder="0"
                               onChange={(e) => handlePriceChange(p.key, e.target.value === '' ? 0 : (parseInt(e.target.value) || 0))}
-                              className="w-full bg-zinc-50 dark:bg-zinc-850 border border-gray-200 dark:border-zinc-800 rounded-xl py-2.5 pl-4 pr-10 font-bold text-brand-black dark:text-brand-white focus:outline-none"
+                              style={{ width: '100%', background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', borderRadius: 12, padding: '10px 40px 10px 16px', fontSize: 14, fontWeight: 600, color: 'var(--on-surface)', outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
                             />
-                            <span className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-brand-gray">₸</span>
+                            <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', fontWeight: 600, color: 'var(--on-surface-variant)', fontSize: 14 }}>₸</span>
                           </div>
                         </div>
                       ))}
                     </div>
-
                     {adminMessage && (
-                      <div className="flex items-center gap-1.5 text-[11px] font-bold text-green-600 dark:text-green-400 mt-1">
-                        <CheckCircle className="w-4 h-4 shrink-0" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--brand-green)' }}>
+                        <Mi name="check_circle" size={16} color="var(--brand-green)" />
                         {adminMessage}
                       </div>
                     )}
-
                     <button
-                      type="submit"
-                      disabled={isAdminSaving}
-                      className="w-full bg-brand-blue text-white rounded-xl py-3.5 font-bold hover:bg-blue-600 active:scale-95 transition-all duration-150 text-xs mt-2"
+                      type="submit" disabled={isAdminSaving}
+                      style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', opacity: isAdminSaving ? 0.7 : 1 }}
                     >
-                      {isAdminSaving ? 'Сохранение...' : 'Сохранить изменения'}
+                      {isAdminSaving ? 'Сохранение…' : 'Сохранить изменения'}
                     </button>
                   </form>
                 )}
               </div>
             )}
 
-            {/* MY LISTINGS BANNER ROW */}
-            <div className="flex flex-col">
-              {/* Header Banner — black capsule as per Figma */}
-              <div className="w-[338px] mx-auto flex items-center justify-between px-5 py-3.5 rounded-full bg-black dark:bg-zinc-900 border border-zinc-800 shadow-sm select-none mb-5">
-                <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-full bg-[#007BFF] flex items-center justify-center">
-                    <Flame className="w-4 h-4 fill-white text-white" />
-                  </div>
-                  <span className="font-bold text-sm text-white lowercase tracking-wide">
-                    мои объявления
-                  </span>
-                </div>
-
-                {/* Count Badge */}
-                <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-700 flex items-center justify-center font-extrabold text-sm text-black dark:text-white">
+            {/* My listings */}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 4px' }}>
+                <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--on-surface)', letterSpacing: '-0.3px' }}>Мои объявления</span>
+                <div style={{ height: 28, minWidth: 28, borderRadius: 9999, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 10px', fontSize: 13, fontWeight: 600, color: 'var(--on-surface-variant)' }}>
                   {userListings.length}
                 </div>
               </div>
 
-              {/* Warnings and listings layout */}
-              <div className="flex flex-col">
-                {isLoadingListings ? (
-                  <div className="w-full py-12 flex flex-col items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue mb-2"></div>
-                    <span className="text-xs text-brand-gray">Загрузка ваших объявлений...</span>
-                  </div>
-                ) : userListings.length === 0 ? (
-                  <div className="w-[338px] mx-auto py-10 border-2 border-dashed border-gray-200 dark:border-zinc-800 rounded-3xl flex flex-col items-center justify-center p-4 text-center">
-                    <span className="text-xs font-semibold text-brand-black dark:text-brand-white mb-3">
-                      У вас пока нет объявлений
-                    </span>
-                    <button
-                      onClick={() => router.push('/add')}
-                      className="bg-brand-blue text-white rounded-full py-2.5 px-5 font-bold text-xs flex items-center gap-1.5 active:scale-95 transition-all"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Создать первое
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col">
-                    {/* Exceeded listings warning — not shown to admin */}
-                    {activeCount >= 5 && !isAdmin && (
-                      <div className="w-[338px] mx-auto mb-4 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded-2xl p-4 flex gap-3 text-xs select-none">
-                        <Info className="w-5 h-5 text-green-500 shrink-0" />
-                        <span className="text-green-800 dark:text-green-300 font-semibold leading-relaxed">
-                          Максимальное количество достигнуто. Чтобы опубликовать новое объявление, удалите старое.
-                        </span>
+              {isLoadingListings ? (
+                <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
+                  <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка объявлений…</span>
+                </div>
+              ) : userListings.length === 0 ? (
+                <div style={{ padding: '40px 24px', textAlign: 'center', background: 'var(--surface-container-lowest)', border: '1px dashed var(--outline-border)', borderRadius: 20 }}>
+                  <div style={{ fontSize: 15, fontWeight: 500, color: 'var(--on-surface-variant)', marginBottom: 16, letterSpacing: '-0.2px' }}>У вас пока нет объявлений</div>
+                  <button
+                    onClick={() => router.push('/add')}
+                    style={{ height: 40, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '0 20px', display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: 'inherit' }}
+                  >
+                    <Mi name="add" size={18} color="#FFF" />
+                    Создать первое
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  {activeCount >= 5 && !isAdmin && (
+                    <div style={{ marginBottom: 12, background: '#E8F5E9', border: '1px solid rgba(0,150,50,0.20)', borderRadius: 16, padding: '12px 16px', display: 'flex', gap: 10 }}>
+                      <Mi name="info" size={18} color="#2E7D32" style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ fontSize: 13, fontWeight: 500, color: '#1B5E20', lineHeight: 1.4 }}>
+                        Достигнут лимит объявлений. Удалите старое, чтобы опубликовать новое.
+                      </span>
+                    </div>
+                  )}
+                  {userListings.map((item) => {
+                    const hasReceiptError = item.status === 'receipt_error'
+                    return (
+                      <div key={item.id} style={{ marginBottom: 16 }}>
+                        {hasReceiptError && (
+                          <div style={{ marginBottom: 4, background: 'var(--brand-red-soft)', border: '1px solid var(--brand-red-border)', color: 'var(--brand-red)', borderRadius: '16px 16px 0 0', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>
+                            <span>Ошибка публикации — неверный чек</span>
+                            <button
+                              onClick={() => window.open('https://wa.me/77718359057', '_blank')}
+                              style={{ background: 'var(--brand-red)', color: '#FFF', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+                            >
+                              Связаться
+                            </button>
+                          </div>
+                        )}
+                        <ListingCard
+                          listing={item}
+                          isOwnerView={true}
+                          onEdit={handleEditListing}
+                          onPromote={handlePromoteListing}
+                          onDelete={handleDeleteListing}
+                        />
                       </div>
-                    )}
-
-                    {/* Listings render list */}
-                    {userListings.map((item) => {
-                      // Check for payment / validation error status
-                      const hasReceiptError = item.status === 'receipt_error'
-                      return (
-                        <div key={item.id} className="flex flex-col w-[338px] mx-auto mb-4">
-                          {hasReceiptError && (
-                            <div className="mb-2 bg-brand-red/10 border border-brand-red/20 text-brand-red rounded-t-2xl p-3 flex justify-between items-center text-[11px] font-bold">
-                              <span>Ошибка публикации из-за неверного чека</span>
-                              <button
-                                onClick={() => window.open('https://wa.me/77718359057', '_blank')}
-                                className="bg-brand-red text-white py-1 px-3 rounded-full hover:bg-red-600 transition-colors"
-                              >
-                                Связаться
-                              </button>
-                            </div>
-                          )}
-                          <ListingCard
-                            listing={item}
-                            isOwnerView={true}
-                            onEdit={handleEditListing}
-                            onPromote={handlePromoteListing}
-                            onDelete={handleDeleteListing}
-                          />
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
           </div>
