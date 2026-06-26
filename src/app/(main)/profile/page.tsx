@@ -89,36 +89,58 @@ export default function ProfilePage() {
     }
   }, [user, setUserListings, setHasFetchedUserListings])
 
-  // Fetch Admin Settings
+  // Fetch Admin Settings — via server-side API route (JWT verified server-side)
   const fetchAdminPrices = useCallback(async () => {
     if (!isAdmin) return
     try {
-      const { data, error } = await supabase
-        .from('app_settings')
-        .select('*')
+      // Get real JWT from Supabase session — cannot be faked via localStorage
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No active session')
 
-      if (error) throw error
+      const res = await fetch('/api/admin/prices', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) {
+        const body = await res.json()
+        throw new Error(body.error || 'Server error')
+      }
+
+      const { data } = await res.json()
       setPrices((data as PriceSetting[]) || [])
     } catch (err) {
       console.error('Error loading admin settings:', err)
     }
   }, [isAdmin])
 
-  // Save Admin Settings
+  // Save Admin Settings — via server-side API route (JWT verified server-side)
   const handleSavePrices = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsAdminSaving(true)
     setAdminMessage('')
     try {
-      // Update each price setting
-      for (const price of prices) {
-        const { error } = await supabase
-          .from('app_settings')
-          .update({ value: price.value, updated_at: new Date().toISOString() })
-          .eq('key', price.key)
+      // Get real JWT from Supabase session
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('No active session')
 
-        if (error) throw error
+      const res = await fetch('/api/admin/prices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          prices: prices.map((p) => ({ key: p.key, value: p.value })),
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json()
+        throw new Error(body.error || 'Server error')
       }
+
       setAdminMessage('Цены успешно обновлены!')
       setTimeout(() => setAdminMessage(''), 3000)
     } catch (err) {
