@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createRateLimiter, getClientIp } from '@/lib/rate-limiter'
 
 const ADMIN_EMAIL = 'n.erdaullet@gmail.com'
+
+// Rate limiter: max 20 requests per IP per minute
+const adminRateLimiter = createRateLimiter({ maxRequests: 20, windowMs: 60 * 1000 })
 
 /** 
  * Creates a Supabase client that uses the user's own JWT (from Authorization header).
@@ -56,6 +60,13 @@ async function verifyAdminUser(req: NextRequest) {
  * Requires valid admin JWT in Authorization header.
  */
 export async function GET(req: NextRequest) {
+  // #C: Rate limit
+  const ip = getClientIp(req)
+  const rateResult = adminRateLimiter.check(ip)
+  if (!rateResult.ok) {
+    return NextResponse.json({ error: 'Слишком много запросов.' }, { status: 429 })
+  }
+
   const { user, error, token } = await verifyAdminUser(req)
 
   if (!user || !token) {
@@ -85,6 +96,13 @@ export async function GET(req: NextRequest) {
  * Requires valid admin JWT in Authorization header.
  */
 export async function POST(req: NextRequest) {
+  // #C: Rate limit
+  const ip = getClientIp(req)
+  const rateResult = adminRateLimiter.check(ip)
+  if (!rateResult.ok) {
+    return NextResponse.json({ error: 'Слишком много запросов.' }, { status: 429 })
+  }
+
   const { user, error, token } = await verifyAdminUser(req)
 
   if (!user || !token) {

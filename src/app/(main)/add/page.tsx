@@ -1,12 +1,14 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase, uploadListingPhoto, deleteListingPhoto } from '@/lib/supabase'
 import { useAppStore } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
-import { Camera, ShieldAlert } from 'lucide-react'
+import { Camera, ShieldAlert, RotateCcw, X } from 'lucide-react'
+
+const DRAFT_KEY = 'baspana-add-draft'
 
 // Formatting helper for currency inputs (spaces as thousands separators)
 function formatBudgetDisplay(val: string) {
@@ -62,9 +64,101 @@ export default function AddListingPage() {
   const [submitErrorMsg, setSubmitErrorMsg] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Draft auto-save state
+  const [hasDraftBanner, setHasDraftBanner] = useState(false)
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   // Sync district based on city
   const currentCityData = CITIES_DATA.find((c) => c.city === city)
   const hasDistricts = currentCityData && currentCityData.districts.length > 0
+
+  // ─── #A: Draft save / restore helpers ────────────────────────────────────
+  const getDraftFields = useCallback(() => ({
+    formMode, step, city, district, gender, ageFrom, ageTo, rooms,
+    canLiveWith, peopleCount, searchingCount, term, totalPeople,
+    deposit, contract, priceFrom, priceTo, description, phone, addressLink,
+  }), [formMode, step, city, district, gender, ageFrom, ageTo, rooms,
+    canLiveWith, peopleCount, searchingCount, term, totalPeople,
+    deposit, contract, priceFrom, priceTo, description, phone, addressLink])
+
+  // Save draft to localStorage with debounce (500ms)
+  useEffect(() => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
+    saveTimeoutRef.current = setTimeout(() => {
+      const draft = getDraftFields()
+      // Only save if form has been started
+      const hasAnyData = city || gender || rooms || priceFrom || priceTo || phone || description
+      if (hasAnyData) {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+      }
+    }, 500)
+    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current) }
+  }, [getDraftFields, city, gender, rooms, priceFrom, priceTo, phone, description])
+
+  // Check for existing draft on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(DRAFT_KEY)
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        const hasData = parsed.city || parsed.gender || parsed.rooms || parsed.priceFrom || parsed.phone
+        if (hasData) setHasDraftBanner(true)
+      } catch { /* ignore corrupt draft */ }
+    }
+  }, [])
+
+  // Restore draft fields
+  const handleRestoreDraft = () => {
+    const saved = localStorage.getItem(DRAFT_KEY)
+    if (!saved) return
+    try {
+      const d = JSON.parse(saved)
+      if (d.formMode) setFormMode(d.formMode)
+      if (d.step) setStep(d.step)
+      if (d.city) setCity(d.city)
+      if (d.district) setDistrict(d.district)
+      if (d.gender) setGender(d.gender)
+      if (d.ageFrom) setAgeFrom(d.ageFrom)
+      if (d.ageTo) setAgeTo(d.ageTo)
+      if (d.rooms) setRooms(d.rooms)
+      if (d.canLiveWith) setCanLiveWith(d.canLiveWith)
+      if (d.peopleCount) setPeopleCount(d.peopleCount)
+      if (d.searchingCount) setSearchingCount(d.searchingCount)
+      if (d.term) setTerm(d.term)
+      if (d.totalPeople) setTotalPeople(d.totalPeople)
+      if (d.deposit) setDeposit(d.deposit)
+      if (d.contract) setContract(d.contract)
+      if (d.priceFrom) setPriceFrom(d.priceFrom)
+      if (d.priceTo) setPriceTo(d.priceTo)
+      if (d.description) setDescription(d.description)
+      if (d.phone) setPhone(d.phone)
+      if (d.addressLink) setAddressLink(d.addressLink)
+    } catch { /* ignore */ }
+    setHasDraftBanner(false)
+  }
+
+  // Dismiss draft without restoring
+  const handleDismissDraft = () => {
+    localStorage.removeItem(DRAFT_KEY)
+    setHasDraftBanner(false)
+  }
+
+  // Clear draft after successful submit
+  const clearDraft = () => localStorage.removeItem(DRAFT_KEY)
+
+  // ─── #B: Warn before leaving if form has data ─────────────────────────────
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      const hasData = city || gender || rooms || priceFrom || phone || description
+      if (hasData && step === 'fill-form') {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [city, gender, rooms, priceFrom, phone, description, step])
+  // ──────────────────────────────────────────────────────────────────────────
 
   // Load user listings count and dynamic publish cost
   useEffect(() => {
@@ -356,6 +450,8 @@ export default function AddListingPage() {
 
       if (error) throw error
 
+      // #A: Clear draft on successful submit
+      clearDraft()
       router.push('/profile')
     } catch (err) {
       console.error('Error submitting listing detailed:', err)
@@ -404,6 +500,32 @@ export default function AddListingPage() {
         onBack={step === 'fill-form' ? () => setStep('select-type') : undefined}
         showHelpToggle={true}
       />
+
+      {/* #A: Draft restore banner */}
+      {hasDraftBanner && (
+        <div className="mx-4 mt-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-in">
+          <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Найден незавершённый черновик</p>
+            <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">Восстановить заполненные поля?</p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <button
+              onClick={handleRestoreDraft}
+              className="text-[10px] font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl px-3 py-1.5 transition-all active:scale-95"
+            >
+              Восстановить
+            </button>
+            <button
+              onClick={handleDismissDraft}
+              className="text-amber-600 dark:text-amber-400 hover:text-amber-800 p-1 rounded-lg transition-all active:scale-95"
+              aria-label="Закрыть"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 px-5 py-5 overflow-y-auto pb-24">
 

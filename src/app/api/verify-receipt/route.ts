@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createRateLimiter, getClientIp } from '@/lib/rate-limiter'
+
+// Rate limiter: max 5 receipt uploads per IP per 10 minutes
+const receiptRateLimiter = createRateLimiter({ maxRequests: 5, windowMs: 10 * 60 * 1000 })
 
 // Admin Supabase client to bypass RLS for anti-fraud corrections
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -7,6 +11,16 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(req: NextRequest) {
+  // #C: Rate limit — 5 requests per IP per 10 minutes
+  const ip = getClientIp(req)
+  const rateResult = receiptRateLimiter.check(ip)
+  if (!rateResult.ok) {
+    return NextResponse.json(
+      { error: 'Слишком много запросов. Подождите немного и попробуйте снова.' },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil((rateResult.resetAt - Date.now()) / 1000)) } }
+    )
+  }
+
   try {
     const formData = await req.formData()
     const file = formData.get('receipt') as File | null
