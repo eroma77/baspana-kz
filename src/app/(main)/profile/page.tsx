@@ -36,8 +36,8 @@ export default function ProfilePage() {
   } = useAppStore()
 
   // Detect in-app browsers (Instagram, Threads, Facebook, TikTok, etc.)
-  // Google OAuth is blocked in WebViews — user must open in a real browser
-  const [isWebView, setIsWebView] = useState(false)
+  // null = not yet checked (hide button until we know), true = WebView, false = real browser
+  const [isWebView, setIsWebView] = useState<boolean | null>(null)
   const [linkCopied, setLinkCopied] = useState(false)
   useEffect(() => {
     const ua = navigator.userAgent || ''
@@ -275,7 +275,10 @@ export default function ProfilePage() {
                   Войдите, чтобы продолжить
                 </span>
               </div>
-              {isWebView ? (
+              {isWebView === null ? (
+                // Still detecting — show nothing to prevent accidental tap before detection
+                <div style={{ height: 44 }} />
+              ) : isWebView ? (
                 <div style={{ background: 'rgba(255,152,0,0.10)', border: '1px solid rgba(255,152,0,0.30)', borderRadius: 14, padding: '14px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                     <Mi name="open_in_browser" size={18} color="#e65100" />
