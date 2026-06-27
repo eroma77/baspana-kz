@@ -15,19 +15,50 @@ interface PriceSetting {
   label: string
 }
 
+function parseOverpaid(receiptUrl: string | null | undefined): { paid: number; expected: number } | null {
+  if (!receiptUrl?.startsWith('overpaid:')) return null
+  const parts = receiptUrl.split(':')
+  const paid = parseFloat(parts[1])
+  const expected = parseFloat(parts[2])
+  if (isNaN(paid) || isNaN(expected)) return null
+  return { paid, expected }
+}
+
 export default function ProfilePage() {
   const router = useRouter()
-  const { 
-    user, 
-    setUser, 
-    userListings, 
-    setUserListings, 
-    hasFetchedUserListings, 
-    setHasFetchedUserListings 
+  const {
+    user,
+    setUser,
+    userListings,
+    setUserListings,
+    hasFetchedUserListings,
+    setHasFetchedUserListings
   } = useAppStore()
+
+  // Detect in-app browsers (Instagram, Threads, Facebook, TikTok, etc.)
+  // Google OAuth is blocked in WebViews — user must open in a real browser
+  const [isWebView, setIsWebView] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  useEffect(() => {
+    const ua = navigator.userAgent || ''
+    const webView = /Instagram|FBAN|FBAV|musical_ly|BytedanceWebview|Twitter|Snapchat|LinkedInApp|MicroMessenger|Line\/|GSA\//i.test(ua)
+      || (/Android/i.test(ua) && / wv\)/i.test(ua))
+    setIsWebView(webView)
+  }, [])
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2500)
+    })
+  }
 
   // Authorized user states
   const [isLoadingListings, setIsLoadingListings] = useState(!hasFetchedUserListings)
+  // Track which overpaid notices are dismissed (localStorage-backed)
+  const [dismissedOverpaid, setDismissedOverpaid] = useState<Set<string>>(new Set())
+  // Track which overpaid notices are expanded
+  const [expandedOverpaid, setExpandedOverpaid] = useState<Set<string>>(new Set())
 
   // Admin states
   const isAdmin = user?.email === 'n.erdaullet@gmail.com'
@@ -184,6 +215,29 @@ export default function ProfilePage() {
   }
 
   useEffect(() => {
+    try {
+      const raw = localStorage.getItem('baspana_ov_dismissed')
+      if (raw) setDismissedOverpaid(new Set(JSON.parse(raw) as string[]))
+    } catch { /* ignore */ }
+  }, [])
+
+  const dismissOverpaid = (id: string) => {
+    setDismissedOverpaid(prev => {
+      const next = new Set(prev).add(id)
+      try { localStorage.setItem('baspana_ov_dismissed', JSON.stringify(Array.from(next))) } catch { /* ignore */ }
+      return next
+    })
+  }
+
+  const toggleOverpaidExpand = (id: string) => {
+    setExpandedOverpaid(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  useEffect(() => {
     if (user) {
       const t = setTimeout(() => {
         fetchUserListings()
@@ -221,12 +275,32 @@ export default function ProfilePage() {
                   Войдите, чтобы продолжить
                 </span>
               </div>
-              <button
-                onClick={handleGoogleLogin}
-                style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
-              >
-                Войти через Google
-              </button>
+              {isWebView ? (
+                <div style={{ background: 'rgba(255,152,0,0.10)', border: '1px solid rgba(255,152,0,0.30)', borderRadius: 14, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <Mi name="open_in_browser" size={18} color="#e65100" />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#e65100' }}>Откройте в браузере</span>
+                  </div>
+                  <p style={{ fontSize: 13, color: 'var(--on-surface-variant)', lineHeight: 1.45, margin: '0 0 12px', letterSpacing: '-0.1px' }}>
+                    Google не разрешает вход из приложений соцсетей. Нажмите&nbsp;
+                    <strong>···</strong> в углу и выберите <strong>«Открыть в браузере»</strong>,
+                    или скопируйте ссылку и вставьте в Chrome / Safari.
+                  </p>
+                  <button
+                    onClick={handleCopyLink}
+                    style={{ width: '100%', height: 40, background: linkCopied ? 'rgba(76,175,80,0.15)' : 'var(--surface-container-low)', color: linkCopied ? '#2e7d32' : 'var(--on-surface)', border: `1px solid ${linkCopied ? 'rgba(76,175,80,0.40)' : 'var(--outline-border)'}`, borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px', transition: 'all 200ms' }}
+                  >
+                    {linkCopied ? 'Ссылка скопирована!' : 'Скопировать ссылку'}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleGoogleLogin}
+                  style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
+                >
+                  Войти через Google
+                </button>
+              )}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -346,19 +420,85 @@ export default function ProfilePage() {
                   )}
                   {userListings.map((item) => {
                     const hasReceiptError = item.status === 'receipt_error'
+                    const overpaid = parseOverpaid(item.receipt_url)
+                    const overpaidDismissed = dismissedOverpaid.has(item.id)
+                    const overpaidExpanded = expandedOverpaid.has(item.id)
+
                     return (
                       <div key={item.id} style={{ marginBottom: 16 }}>
+
+                        {/* ── Fraud / price mismatch banner ── */}
                         {hasReceiptError && (
-                          <div style={{ marginBottom: 4, background: 'var(--brand-red-soft)', border: '1px solid var(--brand-red-border)', color: 'var(--brand-red)', borderRadius: '16px 16px 0 0', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600 }}>
-                            <span>Ошибка публикации — неверный чек</span>
-                            <button
-                              onClick={() => window.open('https://wa.me/77718359057', '_blank')}
-                              style={{ background: 'var(--brand-red)', color: '#FFF', border: 'none', borderRadius: 8, padding: '4px 10px', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-                            >
-                              Связаться
-                            </button>
+                          <div style={{ marginBottom: 4, background: 'var(--brand-red-soft)', border: '1px solid var(--brand-red-border)', borderRadius: '16px 16px 0 0', padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                              <Mi name="block" size={16} color="var(--brand-red)" />
+                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand-red)', letterSpacing: '-0.1px' }}>
+                                Объявление снято с публикации
+                              </span>
+                            </div>
+                            <span style={{ fontSize: 12, color: 'var(--brand-red)', lineHeight: 1.4 }}>
+                              Причина: сумма в чеке не соответствует стоимости тарифа.
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                              <span style={{ fontSize: 11, color: 'var(--brand-red)', opacity: 0.8 }}>
+                                Если считаете, что это ошибка — напишите автору
+                              </span>
+                              <button
+                                onClick={() => window.open('https://wa.me/77718359057', '_blank', 'noopener,noreferrer')}
+                                style={{ flexShrink: 0, background: '#25D366', color: '#FFF', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+                              >
+                                <Mi name="chat" size={14} color="#FFF" />
+                                WhatsApp
+                              </button>
+                            </div>
                           </div>
                         )}
+
+                        {/* ── Overpaid notice (dismissable) ── */}
+                        {overpaid && !overpaidDismissed && (
+                          <div style={{ marginBottom: 4, background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: hasReceiptError ? 0 : '16px 16px 0 0', overflow: 'hidden' }}>
+                            {/* Header row — always visible */}
+                            <div
+                              style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
+                              onClick={() => toggleOverpaidExpand(item.id)}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Mi name="info" size={15} color="#B45309" />
+                                <span style={{ fontSize: 12, fontWeight: 600, color: '#92400E' }}>
+                                  Вы оплатили больше, чем нужно
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Mi name={overpaidExpanded ? 'expand_less' : 'expand_more'} size={16} color="#92400E" />
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); dismissOverpaid(item.id) }}
+                                  title="Скрыть навсегда"
+                                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2, display: 'flex', alignItems: 'center', color: '#92400E', opacity: 0.6 }}
+                                >
+                                  <Mi name="close" size={16} color="#92400E" />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Expanded details */}
+                            {overpaidExpanded && (
+                              <div style={{ padding: '0 14px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                <span style={{ fontSize: 12, color: '#78350F', lineHeight: 1.5 }}>
+                                  Тариф стоит <strong>{overpaid.expected} ₸</strong>, в чеке оплачено <strong>{overpaid.paid} ₸</strong>.
+                                  Если это случайность и вы хотите вернуть разницу — обратитесь ко мне.
+                                </span>
+                                <button
+                                  onClick={() => window.open('https://wa.me/77718359057', '_blank', 'noopener,noreferrer')}
+                                  style={{ alignSelf: 'flex-start', background: '#25D366', color: '#FFF', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
+                                >
+                                  <Mi name="chat" size={14} color="#FFF" />
+                                  Написать автору
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
                         <ListingCard
                           listing={item}
                           isOwnerView={true}
