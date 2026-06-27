@@ -262,17 +262,22 @@ export function ListingCard({
     handleGuard(e, () => {
       const clean = listing.phone.replace(/\D/g, '').replace(/^8/, '7')
       const phone = clean.startsWith('7') ? clean : `7${clean}`
-      window.open(`https://wa.me/${phone}`, '_blank')
+      window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer')
     })
   }
 
   const handle2GIS = (e: React.MouseEvent) => {
     e.stopPropagation()
-    window.open(
-      listing.address_link ||
-      `https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`,
-      '_blank'
-    )
+    const url = listing.address_link
+    if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } else {
+      window.open(
+        `https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`,
+        '_blank',
+        'noopener,noreferrer'
+      )
+    }
   }
 
   /* ── Roommate card (apartment listing in DB) ── */
@@ -280,16 +285,23 @@ export function ListingCard({
     const chips = [
       { icon: 'location_on',   label: locationLabel },
       { icon: 'home',          label: listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комн.` },
-      { icon: 'wc',            label: formatCanLiveWith(listing.can_live_with || listing.gender) },
+      { icon: 'wc',            label: formatCanLiveWith(listing.gender) },
       { icon: 'groups',        label: `Общий: ${listing.total_people}` },
       { icon: 'manage_search', label: `Ищу: ${listing.searching_count}` },
       { icon: 'cake',          label: `${listing.age_from}-${listing.age_to} лет` },
-      { icon: 'attach_money',  label: listing.deposit > 0 ? 'Депозит: есть' : 'Депозит: нет' },
-      { icon: 'description',   label: listing.contract === 'yes' ? 'Договор: есть' : 'Без договора' },
+      { icon: 'attach_money',  label: listing.deposit > 0 ? 'Есть' : 'Нет' },
+      { icon: 'description',   label: listing.contract === 'yes' ? 'Есть' : 'Нет' },
     ]
 
     return (
-      <article style={CARD} onClick={handleCardClick} role="button" tabIndex={0}>
+      <article
+        style={CARD}
+        onClick={handleCardClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick() } }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Объявление: ${priceLabel}, ${locationLabel}`}
+      >
         <div style={{ position: 'relative', width: '100%', height: 140, background: 'var(--surface-container-low)' }}>
           {listing.photos?.length ? (
             <Image
@@ -342,13 +354,20 @@ export function ListingCard({
     { icon: 'groups',       label: `Общий: ${listing.total_people}` },
     { icon: 'group',        label: `Нас: ${listing.people_count}` },
     { icon: 'cake',         label: `${listing.age_from} ${getAgePlural(listing.age_from)}` },
-    { icon: 'attach_money', label: listing.deposit > 0 ? 'Депозит: есть' : 'Депозит: нет' },
-    { icon: 'description',  label: listing.contract === 'yes' ? 'Договор: есть' : 'Без договора' },
+    { icon: 'attach_money', label: listing.deposit > 0 ? 'Есть' : 'Нет' },
+    { icon: 'description',  label: listing.contract === 'yes' ? 'Есть' : 'Нет' },
     ...(listing.term ? [{ icon: 'schedule', label: listing.term }] : []),
   ]
 
   return (
-    <article style={CARD} onClick={handleCardClick} role="button" tabIndex={0}>
+    <article
+      style={CARD}
+      onClick={handleCardClick}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleCardClick() } }}
+      role="button"
+      tabIndex={0}
+      aria-label={`Объявление: ${priceLabel}, ${locationLabel}`}
+    >
       <div style={{ padding: 12, paddingBottom: 8, display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
         {/* Square avatar */}
         <div style={{
