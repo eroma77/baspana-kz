@@ -291,7 +291,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   <Chip icon="home"          label={listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комнатный`} />
                   <Chip icon="cake"          label={`${listing.age_from}-${listing.age_to} лет`} />
                   <Chip icon="wc"            label={formatCanLiveWith(listing.can_live_with || listing.gender)} />
-                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Депозит: есть' : 'Нет'} />
+                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Есть' : 'Нет'} />
                   <Chip icon="groups"        label={`Всего: ${listing.total_people}`} />
                   <Chip icon="description"   label={listing.contract === 'yes' ? 'Есть' : 'Нет'} />
                 </div>
@@ -349,7 +349,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
                   <Chip icon="home"          label={listing.rooms} />
                   <Chip icon="cake"          label={`${listing.age_from} ${getAgePlural(listing.age_from)}`} />
                   <Chip icon="wc"            label={listing.gender} />
-                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Депозит: есть' : 'Нет'} />
+                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Есть' : 'Нет'} />
                   <Chip icon="group"         label={listing.can_live_with || 'Не важно'} />
                   <Chip icon="description"   label={listing.contract === 'yes' ? 'Есть' : 'Нет'} />
                   <Chip icon="groups"        label={`Всего: ${listing.total_people}`} />
