@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createRateLimiter, getClientIp } from '@/lib/rate-limiter'
 import { createHash } from 'crypto'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse') as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
 
 // Rate limiter: max 5 receipt uploads per IP per 10 minutes
 const receiptRateLimiter = createRateLimiter({ maxRequests: 5, windowMs: 10 * 60 * 1000 })
@@ -140,7 +138,11 @@ export async function POST(req: NextRequest) {
     let pdfText = ''
     let pdfInfo: Record<string, string> = {}
     try {
-      const parsed = await pdfParse(buffer, { max: 3 }) // read max 3 pages
+      // Dynamic import prevents Turbopack from statically resolving this CJS module at build time.
+      // pdf-parse uses Node.js fs at init time which breaks Turbopack's static analysis.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const pdfParse = ((await import('pdf-parse')) as any).default as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
+      const parsed = await pdfParse(buffer, { max: 3 })
       pdfText = parsed.text
       pdfInfo = (parsed.info as Record<string, string>) || {}
     } catch {
