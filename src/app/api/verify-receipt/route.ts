@@ -138,11 +138,11 @@ export async function POST(req: NextRequest) {
     let pdfText = ''
     let pdfInfo: Record<string, string> = {}
     try {
-      // Dynamic import prevents Turbopack from statically resolving this CJS module at build time.
-      // pdf-parse uses Node.js fs at init time which breaks Turbopack's static analysis.
-      // @ts-ignore – TS can't resolve the module path statically; package is installed and loaded at runtime
+      // Module name in a variable prevents both Turbopack static analysis and TypeScript module resolution.
+      // pdf-parse uses Node.js fs at init time which breaks Turbopack's analysis of string-literal import().
+      const pdfParseId = 'pdf-parse'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfParse = ((await import('pdf-parse')) as any).default as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
+      const pdfParse = ((await import(pdfParseId)) as any).default as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
       const parsed = await pdfParse(buffer, { max: 3 })
       pdfText = parsed.text
       pdfInfo = (parsed.info as Record<string, string>) || {}
