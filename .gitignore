@@ -42,3 +42,15 @@ next-env.d.ts
 
 # playwright test artifacts
 .playwright-mcp/
+
+# claude local settings (contains secrets)
+.claude/settings.local.json
+
+# claude agent skills (excluded from Tailwind scanning)
+.agents/
+
+# local data-seeding scripts (contain Supabase service role key)
+/scripts/
+
+# local listing photos staging folder
+/Обявление фото/

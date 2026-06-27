@@ -313,10 +313,10 @@ export default function EditListingPage({ params }: PageProps) {
       if (!addressLink) {
         newErrors.addressLink = true
       } else {
-        const is2gisLink = /2gis\.(?:kz|ru)/i.test(addressLink)
+        const is2gisLink = /^https?:\/\/(?:[^/]*\.)?2gis\.(?:kz|ru)\//i.test(addressLink)
         if (!is2gisLink) {
           newErrors.addressLink = true
-          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна содержать домен 2gis.kz или 2gis.ru')
+          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz или https://2gis.ru')
         }
       }
     }
@@ -382,14 +382,7 @@ export default function EditListingPage({ params }: PageProps) {
       router.push('/profile')
     } catch (err) {
       console.error('Error updating listing detailed:', err)
-      let errorMsg = 'Ошибка сервера при изменении объявления.'
-      if (err && typeof err === 'object') {
-        const anyErr = err as any
-        errorMsg = anyErr.message || anyErr.details || anyErr.hint || JSON.stringify(anyErr)
-      } else if (err instanceof Error) {
-        errorMsg = err.message
-      }
-      setSubmitErrorMsg(errorMsg)
+      setSubmitErrorMsg('Ошибка сервера при изменении объявления. Попробуйте ещё раз.')
     } finally {
       setIsSubmitting(false)
     }
@@ -851,12 +844,12 @@ export default function EditListingPage({ params }: PageProps) {
                       onClick={() => toggleDropdown('totalPeople')}
                       className={dropdownToggleClass(errors.totalPeople)}
                     >
-                      <span>{totalPeople || 'Общий:'}</span>
+                      <span>{totalPeople ? `Общий: ${totalPeople}` : 'Общий:'}</span>
                       <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'totalPeople' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 9 }, (_, i) => `Общий: ${i + 1}`).concat('Общий: 10+').map((c) => (
+                        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'].map((c) => (
                           <button
                             key={c}
                             type="button"
@@ -876,6 +869,7 @@ export default function EditListingPage({ params }: PageProps) {
                     <input
                       type="text"
                       placeholder="https://2gis.kz/..."
+                      aria-label="Ссылка на адрес (2GIS)"
                       value={addressLink}
                       onChange={(e) => {
                         setAddressLink(e.target.value)
@@ -949,35 +943,6 @@ export default function EditListingPage({ params }: PageProps) {
               </div>
             </div>
 
-            {/* Срок проживания (roommate only) */}
-            {listing.mode === 'roommate' && (
-              <div className="relative">
-                <label style={{ display: 'block', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--outline)', marginBottom: 4 }}>Срок проживания</label>
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown('term')}
-                  className={dropdownToggleClass(errors.term)}
-                >
-                  <span>{term ? `Срок: ${term}` : 'Срок проживания'}</span>
-                  <Mi name="expand_more" size={16} color="var(--outline)" />
-                </button>
-                {activeDropdown === 'term' && (
-                  <div className={dropdownListClass}>
-                    {Array.from({ length: 12 }, (_, i) => `${i + 1} month`).map((_, i) => `${i + 1} месяц`).map((t) => (
-                      <button
-                        key={t}
-                        type="button"
-                        onClick={() => handleDropdownSelect('term', t)}
-                        className={dropdownItemClass}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Row 7: Бюджет */}
             <div className="grid grid-cols-2 gap-3">
               {/* Budget From */}
@@ -987,6 +952,7 @@ export default function EditListingPage({ params }: PageProps) {
                   type="text"
                   inputMode="numeric"
                   placeholder="от"
+                  aria-label="Бюджет от, в тенге"
                   value={formatBudgetDisplay(priceFrom)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
@@ -1004,6 +970,7 @@ export default function EditListingPage({ params }: PageProps) {
                   type="text"
                   inputMode="numeric"
                   placeholder="до"
+                  aria-label="Бюджет до, в тенге"
                   value={formatBudgetDisplay(priceTo)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
