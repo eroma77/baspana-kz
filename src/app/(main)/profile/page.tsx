@@ -35,23 +35,6 @@ export default function ProfilePage() {
     setHasFetchedUserListings
   } = useAppStore()
 
-  // Detect in-app browsers (Instagram, Threads, Facebook, TikTok, etc.)
-  // null = not yet checked (hide button until we know), true = WebView, false = real browser
-  const [isWebView, setIsWebView] = useState<boolean | null>(null)
-  const [linkCopied, setLinkCopied] = useState(false)
-  useEffect(() => {
-    const ua = navigator.userAgent || ''
-    const webView = /Instagram|FBAN|FBAV|musical_ly|BytedanceWebview|Twitter|Snapchat|LinkedInApp|MicroMessenger|Line\/|GSA\//i.test(ua)
-      || (/Android/i.test(ua) && / wv\)/i.test(ua))
-    setIsWebView(webView)
-  }, [])
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      setLinkCopied(true)
-      setTimeout(() => setLinkCopied(false), 2500)
-    })
-  }
 
   // Authorized user states
   const [isLoadingListings, setIsLoadingListings] = useState(!hasFetchedUserListings)
@@ -275,35 +258,12 @@ export default function ProfilePage() {
                   Войдите, чтобы продолжить
                 </span>
               </div>
-              {isWebView === null ? (
-                // Still detecting — show nothing to prevent accidental tap before detection
-                <div style={{ height: 44 }} />
-              ) : isWebView ? (
-                <div style={{ background: 'rgba(255,152,0,0.10)', border: '1px solid rgba(255,152,0,0.30)', borderRadius: 14, padding: '14px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <Mi name="open_in_browser" size={18} color="#e65100" />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: '#e65100' }}>Откройте в браузере</span>
-                  </div>
-                  <p style={{ fontSize: 13, color: 'var(--on-surface-variant)', lineHeight: 1.45, margin: '0 0 12px', letterSpacing: '-0.1px' }}>
-                    Google не разрешает вход из приложений соцсетей. Нажмите&nbsp;
-                    <strong>···</strong> в углу и выберите <strong>«Открыть в браузере»</strong>,
-                    или скопируйте ссылку и вставьте в Chrome / Safari.
-                  </p>
-                  <button
-                    onClick={handleCopyLink}
-                    style={{ width: '100%', height: 40, background: linkCopied ? 'rgba(76,175,80,0.15)' : 'var(--surface-container-low)', color: linkCopied ? '#2e7d32' : 'var(--on-surface)', border: `1px solid ${linkCopied ? 'rgba(76,175,80,0.40)' : 'var(--outline-border)'}`, borderRadius: 12, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px', transition: 'all 200ms' }}
-                  >
-                    {linkCopied ? 'Ссылка скопирована!' : 'Скопировать ссылку'}
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleGoogleLogin}
-                  style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
-                >
-                  Войти через Google
-                </button>
-              )}
+              <button
+                onClick={handleGoogleLogin}
+                style={{ width: '100%', height: 44, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px' }}
+              >
+                Войти через Google
+              </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
