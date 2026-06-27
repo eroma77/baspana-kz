@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, use } from 'react'
+import { useEffect, useState, use, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
@@ -103,6 +103,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
+  const touchStartX = useRef<number | null>(null)
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -170,15 +171,19 @@ export default function ListingDetailsPage({ params }: PageProps) {
       const cleanPhone = listing.phone.replace(/\D/g, '')
       const phone = cleanPhone.startsWith('7') || cleanPhone.startsWith('8')
         ? cleanPhone.replace(/^8/, '7') : `7${cleanPhone}`
-      window.open(`https://wa.me/${phone}`, '_blank')
+      window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer')
     })
   }
 
   const handle2GIS = () => {
     if (listing.address_link) {
-      window.open(listing.address_link, '_blank')
+      const url = listing.address_link
+      // Only open http/https URLs to prevent javascript: scheme exploitation
+      if (url.startsWith('https://') || url.startsWith('http://')) {
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }
     } else {
-      window.open(`https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`, '_blank')
+      window.open(`https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`, '_blank', 'noopener,noreferrer')
     }
   }
 
@@ -217,26 +222,44 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 <button onClick={handle2GIS} style={{ ...BTN_SECONDARY, flex: 1 }}>2ГИС</button>
               </div>
 
-              {/* Photo slider */}
+              {/* Photo slider — film strip: all photos pre-loaded, switching is instant CSS transform */}
               {displayPhotos.length > 0 ? (
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: 20, overflow: 'hidden', marginBottom: 20, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)' }}>
-                  <div onClick={() => openLightbox(activeImageIndex)} style={{ width: '100%', height: '100%', position: 'relative', cursor: 'pointer' }}>
-                    <Image src={displayPhotos[activeImageIndex]} alt="Фото" fill sizes="(max-width:480px) 100vw,400px" className="object-cover object-center" />
+                <div
+                  style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: 20, overflow: 'hidden', marginBottom: 20, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)' }}
+                  onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+                  onTouchEnd={(e) => {
+                    if (touchStartX.current === null) return
+                    const dx = e.changedTouches[0].clientX - touchStartX.current
+                    touchStartX.current = null
+                    if (Math.abs(dx) < 40) return
+                    if (dx < 0) setActiveImageIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1)
+                    else setActiveImageIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1)
+                  }}
+                >
+                  <div
+                    onClick={() => openLightbox(activeImageIndex)}
+                    style={{ display: 'flex', width: `${displayPhotos.length * 100}%`, height: '100%', transform: `translateX(-${(100 / displayPhotos.length) * activeImageIndex}%)`, transition: 'transform 250ms cubic-bezier(0.25,0.46,0.45,0.94)', cursor: 'pointer' }}
+                  >
+                    {displayPhotos.map((src, idx) => (
+                      <div key={idx} style={{ position: 'relative', width: `${100 / displayPhotos.length}%`, height: '100%', flexShrink: 0 }}>
+                        <Image src={src} alt="Фото" fill sizes="(max-width:480px) 100vw,400px" className="object-cover object-center" priority={idx === 0} loading="eager" />
+                      </div>
+                    ))}
                   </div>
-                  <button onClick={(e) => { e.stopPropagation(); handleGuardAction(() => toggleFavorite(listing.id)) }} style={{ ...FAV_BTN, position: 'absolute', top: 12, right: 12 }} aria-label="Избранное">
+                  <button onClick={(e) => { e.stopPropagation(); handleGuardAction(() => toggleFavorite(listing.id)) }} style={{ ...FAV_BTN, position: 'absolute', top: 12, right: 12, zIndex: 1 }} aria-label="Избранное">
                     <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface-variant)'} />
                   </button>
                   {displayPhotos.length > 1 && (
                     <>
-                      <button onClick={() => setActiveImageIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1)} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: 9999, background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(4px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <button onClick={(e) => { e.stopPropagation(); setActiveImageIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1) }} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: 9999, background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(4px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}>
                         <Mi name="chevron_left" size={22} color="#FFF" />
                       </button>
-                      <button onClick={() => setActiveImageIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1)} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: 9999, background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(4px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                      <button onClick={(e) => { e.stopPropagation(); setActiveImageIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1) }} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', width: 36, height: 36, borderRadius: 9999, background: 'rgba(0,0,0,0.40)', backdropFilter: 'blur(4px)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}>
                         <Mi name="chevron_right" size={22} color="#FFF" />
                       </button>
                     </>
                   )}
-                  <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6 }}>
+                  <div style={{ position: 'absolute', bottom: 12, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 1, pointerEvents: 'none' }}>
                     {displayPhotos.map((_, idx) => (
                       <div key={idx} style={{ height: 6, width: activeImageIndex === idx ? 16 : 6, borderRadius: 9999, background: activeImageIndex === idx ? '#FFF' : 'rgba(255,255,255,0.40)', transition: 'all 200ms' }} />
                     ))}
@@ -352,14 +375,31 @@ export default function ListingDetailsPage({ params }: PageProps) {
               <Mi name="favorite" filled={isFav} size={22} color={isFav ? 'var(--brand-red)' : '#FFF'} />
             </button>
           </div>
-          <div style={{ position: 'relative', width: '100%', maxWidth: 450, aspectRatio: '1', padding: '0 8px', display: 'flex', alignItems: 'center' }}>
-            <Image src={displayPhotos[lightboxIndex]} alt="Увеличенное фото" fill sizes="(max-width:480px) 100vw,450px" className="object-contain" />
+          <div
+            style={{ position: 'relative', width: '100%', maxWidth: 450, aspectRatio: '1', overflow: 'hidden' }}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX }}
+            onTouchEnd={(e) => {
+              if (touchStartX.current === null) return
+              const dx = e.changedTouches[0].clientX - touchStartX.current
+              touchStartX.current = null
+              if (Math.abs(dx) < 40) return
+              if (dx < 0) setLightboxIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1)
+              else setLightboxIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1)
+            }}
+          >
+            <div style={{ display: 'flex', width: `${displayPhotos.length * 100}%`, height: '100%', transform: `translateX(-${(100 / displayPhotos.length) * lightboxIndex}%)`, transition: 'transform 250ms cubic-bezier(0.25,0.46,0.45,0.94)' }}>
+              {displayPhotos.map((src, idx) => (
+                <div key={idx} style={{ position: 'relative', width: `${100 / displayPhotos.length}%`, height: '100%', flexShrink: 0 }}>
+                  <Image src={src} alt="Увеличенное фото" fill sizes="(max-width:480px) 100vw,450px" className="object-contain" loading="eager" />
+                </div>
+              ))}
+            </div>
             {displayPhotos.length > 1 && (
               <>
-                <button onClick={() => setLightboxIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1)} style={{ position: 'absolute', left: 16, width: 40, height: 40, borderRadius: 9999, background: 'rgba(0,0,0,0.50)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <button onClick={() => setLightboxIndex(p => p === 0 ? displayPhotos.length - 1 : p - 1)} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: 9999, background: 'rgba(0,0,0,0.50)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}>
                   <Mi name="chevron_left" size={24} color="#FFF" />
                 </button>
-                <button onClick={() => setLightboxIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1)} style={{ position: 'absolute', right: 16, width: 40, height: 40, borderRadius: 9999, background: 'rgba(0,0,0,0.50)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                <button onClick={() => setLightboxIndex(p => p === displayPhotos.length - 1 ? 0 : p + 1)} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: 9999, background: 'rgba(0,0,0,0.50)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 1 }}>
                   <Mi name="chevron_right" size={24} color="#FFF" />
                 </button>
               </>

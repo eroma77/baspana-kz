@@ -9,11 +9,27 @@ import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
 import { Mi } from '@/components/icons'
 
-// Formatting helper for budgets (spaces as thousands separators)
-function formatBudgetDisplay(val: string) {
-  const digits = val.replace(/\D/g, '')
-  if (!digits) return ''
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+function SkeletonCard() {
+  return (
+    <div style={{
+      background: 'var(--surface-container-lowest)',
+      border: '1px solid var(--outline-border)',
+      borderRadius: 16,
+      overflow: 'hidden',
+      marginBottom: 16,
+    }}>
+      <div className="animate-pulse" style={{ width: '100%', height: 140, background: 'var(--surface-container-low)' }} />
+      <div style={{ padding: 12 }}>
+        <div className="animate-pulse" style={{ height: 28, width: '55%', borderRadius: 8, background: 'var(--surface-container-low)', marginBottom: 12 }} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px', marginBottom: 14 }}>
+          {[0,1,2,3,4,5].map((i) => (
+            <div key={i} className="animate-pulse" style={{ height: 34, borderRadius: 8, background: 'var(--surface-container-low)' }} />
+          ))}
+        </div>
+        <div className="animate-pulse" style={{ height: 40, borderRadius: 16, background: 'var(--surface-container-low)' }} />
+      </div>
+    </div>
+  )
 }
 
 export default function FeedPage() {
@@ -77,71 +93,40 @@ export default function FeedPage() {
       const lastCleanup = localStorage.getItem(CLEANUP_KEY)
       const now = Date.now()
       if (!lastCleanup || now - parseInt(lastCleanup) > 24 * 60 * 60 * 1000) {
-        supabase.rpc('cleanup_listings').then(() => {
+        void supabase.rpc('cleanup_listings').then(() => {
           localStorage.setItem(CLEANUP_KEY, String(now))
         })
       }
 
       if (fetchId !== fetchCounter.current) return
 
-      // Build database query with limit for performance
-      let query = supabase
-        .from('listings')
-        .select('id,owner_id,mode,city,district,gender,age_from,age_to,rooms,can_live_with,people_count,searching_count,term,total_people,deposit,contract,price_from,price_to,photos,description,phone,address_link,is_premium,premium_until,status,transaction_id,receipt_url,created_at,updated_at')
-        .eq('mode', mode === 'apartment' ? 'roommate' : 'apartment')
-        .eq('status', 'active')
-        .limit(100)
+      // Build URL params for the cached listings API
+      const params = new URLSearchParams()
+      params.set('mode', mode === 'apartment' ? 'roommate' : 'apartment')
+      if (filters.city) params.set('city', filters.city)
+      if (hasDistricts && filters.district !== 'Не важно' && filters.district !== '-')
+        params.set('district', filters.district)
+      if (filters.gender && filters.gender !== 'Не важно')
+        params.set('gender', filters.gender)
+      if (filters.rooms && filters.rooms !== 'Не важно')
+        params.set('rooms', filters.rooms)
+      if (filters.deposit === 'Есть' || filters.deposit === 'Нет')
+        params.set('deposit', filters.deposit)
+      if (filters.contract === 'Есть' || filters.contract === 'Нет')
+        params.set('contract', filters.contract)
+      if (filters.canLiveWith && filters.canLiveWith !== 'Не важно')
+        params.set('canLiveWith', filters.canLiveWith)
+      if (filters.term && filters.term !== 'Не важно')
+        params.set('term', filters.term)
+      if (filters.priceFrom) params.set('priceFrom', filters.priceFrom.replace(/\D/g, ''))
+      if (filters.priceTo) params.set('priceTo', filters.priceTo.replace(/\D/g, ''))
 
-      // Apply DB filters
-      if (filters.city) {
-        query = query.eq('city', filters.city)
-      }
-      if (hasDistricts && filters.district !== 'Не важно' && filters.district !== '-') {
-        query = query.eq('district', filters.district)
-      }
-      if (filters.gender && filters.gender !== 'Не важно') {
-        if (filters.gender === 'Парень') {
-          query = query.in('gender', ['Парень', 'мужской', 'Только парни'])
-        } else if (filters.gender === 'Девушка') {
-          query = query.in('gender', ['Девушка', 'женский', 'Только девочки'])
-        } else {
-          query = query.eq('gender', filters.gender)
-        }
-      }
-      if (filters.rooms && filters.rooms !== 'Не важно') {
-        const legacyRooms = filters.rooms.replace('-комнатный', '').replace('+-комнатный', '+')
-        query = query.in('rooms', [filters.rooms, legacyRooms])
-      }
-      if (filters.deposit === 'Есть') {
-        query = query.gt('deposit', 0)
-      } else if (filters.deposit === 'Нет') {
-        query = query.eq('deposit', 0)
-      }
-      if (filters.contract === 'Есть') {
-        query = query.eq('contract', 'yes')
-      } else if (filters.contract === 'Нет') {
-        query = query.eq('contract', 'no')
-      }
-      if (filters.canLiveWith && filters.canLiveWith !== 'Не важно') {
-        query = query.eq('can_live_with', filters.canLiveWith)
-      }
-      if (filters.term && filters.term !== 'Не важно') {
-        query = query.eq('term', filters.term)
-      }
-
-      // Budget Ranges
-      if (filters.priceFrom) {
-        query = query.gte('price_from', parseInt(filters.priceFrom.replace(/\D/g, '')) || 0)
-      }
-      if (filters.priceTo) {
-        query = query.lte('price_from', parseInt(filters.priceTo.replace(/\D/g, '')) || 0)
-      }
-
-      const { data, error } = await query
-      if (error) throw error
+      const res = await fetch(`/api/listings?${params.toString()}`)
+      if (!res.ok) throw new Error(`Listings fetch failed: ${res.status}`)
       if (fetchId !== fetchCounter.current) return
+      const data = await res.json() as Listing[]
 
-      let result = (data as Listing[]) || []
+      let result = data || []
 
       // Client-side post filtering
       if (mode === 'apartment') {
@@ -275,10 +260,13 @@ export default function FeedPage() {
       {/* Feed list */}
       <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
         {isLoading && listings.length === 0 ? (
-          <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
-            <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка объявлений…</span>
-          </div>
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
         ) : listings.length === 0 ? (
           <div style={{ padding: '60px 24px', textAlign: 'center' }}>
             <div style={{
