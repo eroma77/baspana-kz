@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const SUPABASE_HOST = "wjjnjcptbqqfitsmppqe.supabase.co"
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -9,9 +11,26 @@ const securityHeaders = [
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
   },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      // Next.js requires 'unsafe-inline' for the app router hydration script
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      `img-src 'self' data: blob: https://${SUPABASE_HOST} https://lh3.googleusercontent.com`,
+      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST}`,
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join("; "),
+  },
 ]
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['pdf-parse'],
   async headers() {
     return [
       {
