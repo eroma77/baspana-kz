@@ -9,7 +9,7 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://baspana.kz"),
+  metadataBase: new URL("https://baspana-kz.onrender.com"),
   title: {
     default: "Baspana.kz — поиск соседей и квартир в Казахстане",
     template: "%s | Baspana.kz",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ru_RU",
     siteName: "Baspana.kz",
-    url: "https://baspana.kz",
+    url: "https://baspana-kz.onrender.com",
     images: [
       {
         url: "/og-image.png",

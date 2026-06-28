@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/profile', '/favorites', '/viewed', '/add', '/listing/*/edit', '/listing/*/promote'],
     },
-    sitemap: 'https://baspana.kz/sitemap.xml',
+    sitemap: 'https://baspana-kz.onrender.com/sitemap.xml',
   }
 }
