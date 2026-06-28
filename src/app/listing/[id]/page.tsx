@@ -103,6 +103,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   const [activeImageIndex, setActiveImageIndex] = useState(0)
   const [lightboxOpen, setLightboxOpen] = useState(false)
   const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [shareToast, setShareToast] = useState(false)
   const touchStartX = useRef<number | null>(null)
 
   useEffect(() => {
@@ -175,6 +176,20 @@ export default function ListingDetailsPage({ params }: PageProps) {
     })
   }
 
+  const handleShare = async () => {
+    const url = `https://baspana-kz.onrender.com/listing/${listing!.id}`
+    const text = listing!.mode === 'roommate'
+      ? `Ищу квартиру — ${formatPrice(listing!.price_from)} ₸`
+      : `Ищу соседа — ${formatPrice(listing!.price_from)} ₸`
+    if (navigator.share) {
+      await navigator.share({ title: text, url }).catch(() => {})
+    } else {
+      await navigator.clipboard.writeText(url).catch(() => {})
+      setShareToast(true)
+      setTimeout(() => setShareToast(false), 2000)
+    }
+  }
+
   const handle2GIS = () => {
     if (listing.address_link) {
       const url = listing.address_link
@@ -216,10 +231,13 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* WA + 2GIS */}
+              {/* WA + 2GIS + Share */}
               <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
                 <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, flex: 1 }}>Ватцап</button>
                 <button onClick={handle2GIS} style={{ ...BTN_SECONDARY, flex: 1 }}>2ГИС</button>
+                <button onClick={handleShare} style={{ ...BTN_SECONDARY, width: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label="Поделиться">
+                  <Mi name="share" size={20} color="var(--on-surface)" />
+                </button>
               </div>
 
               {/* Photo slider — film strip: all photos pre-loaded, switching is instant CSS transform */}
@@ -329,8 +347,13 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 </button>
               </div>
 
-              {/* WhatsApp */}
-              <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, width: '100%', marginBottom: 20 }}>Ватцап</button>
+              {/* WhatsApp + Share */}
+              <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+                <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, flex: 1 }}>Ватцап</button>
+                <button onClick={handleShare} style={{ ...BTN_SECONDARY, width: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label="Поделиться">
+                  <Mi name="share" size={20} color="var(--on-surface)" />
+                </button>
+              </div>
 
               {/* Description */}
               {listing.description?.trim() && (
@@ -363,6 +386,13 @@ export default function ListingDetailsPage({ params }: PageProps) {
         </main>
         <BottomNav />
       </div>
+
+      {/* Share toast */}
+      {shareToast && (
+        <div style={{ position: 'fixed', bottom: 96, left: '50%', transform: 'translateX(-50%)', background: 'var(--on-surface)', color: 'var(--surface)', padding: '10px 20px', borderRadius: 12, fontSize: 13, fontWeight: 600, zIndex: 100, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          Ссылка скопирована
+        </div>
+      )}
 
       {/* Lightbox */}
       {lightboxOpen && displayPhotos.length > 0 && (
