@@ -1,10 +1,9 @@
 import type { MetadataRoute } from 'next'
-import { createClient } from '@/lib/supabase/server'
+import { supabase } from '@/lib/supabase'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://baspana.kz'
+  const baseUrl = 'https://baspana-kz.onrender.com'
 
-  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -26,9 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // Dynamic listing pages
   try {
-    const supabase = await createClient()
     const { data: listings } = await supabase
       .from('listings')
       .select('id, updated_at')
