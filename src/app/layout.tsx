@@ -9,18 +9,43 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://baspana.kz"),
   title: {
     default: "Baspana.kz — поиск соседей и квартир в Казахстане",
     template: "%s | Baspana.kz",
   },
   description: "Baspana.kz — платформа для поиска соседей и квартир в Казахстане. Алматы, Астана, Шымкент и другие города.",
-  keywords: ["аренда квартиры", "соседи", "руммейт", "Алматы", "Астана", "Казахстан"],
+  keywords: ["аренда квартиры", "соседи", "руммейт", "Алматы", "Астана", "Казахстан", "снять квартиру", "поиск соседа"],
+  authors: [{ name: "Baspana.kz" }],
+  creator: "Baspana.kz",
+  publisher: "Baspana.kz",
   openGraph: {
     title: "Baspana.kz — поиск соседей и квартир",
     description: "Сотни объявлений от реальных людей. Найди идеального соседа или квартиру рядом.",
     type: "website",
     locale: "ru_RU",
     siteName: "Baspana.kz",
+    url: "https://baspana.kz",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Baspana.kz — поиск соседей и квартир в Казахстане",
+      },
+    ],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/apple-icon.png",
+  },
+  manifest: "/manifest.json",
+  verification: {
+    google: "AabU3NSCUCWuu5vpB7NK6ak9SIUk-g8WiXpJHRsaMsc",
   },
 };
 
