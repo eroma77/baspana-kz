@@ -231,13 +231,10 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 </div>
               </div>
 
-              {/* WA + 2GIS + Share */}
+              {/* WA + 2GIS */}
               <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
                 <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, flex: 1 }}>Ватцап</button>
                 <button onClick={handle2GIS} style={{ ...BTN_SECONDARY, flex: 1 }}>2ГИС</button>
-                <button onClick={handleShare} style={{ ...BTN_SECONDARY, width: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label="Поделиться">
-                  <Mi name="share" size={20} color="var(--on-surface)" />
-                </button>
               </div>
 
               {/* Photo slider — film strip: all photos pre-loaded, switching is instant CSS transform */}
@@ -264,6 +261,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
                       </div>
                     ))}
                   </div>
+                  <button onClick={(e) => { e.stopPropagation(); handleShare() }} style={{ ...FAV_BTN, position: 'absolute', top: 12, left: 12, zIndex: 1 }} aria-label="Поделиться">
+                    <Mi name="share" size={20} color="var(--on-surface-variant)" />
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); handleGuardAction(() => toggleFavorite(listing.id)) }} style={{ ...FAV_BTN, position: 'absolute', top: 12, right: 12, zIndex: 1 }} aria-label="Избранное">
                     <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface-variant)'} />
                   </button>
@@ -286,6 +286,9 @@ export default function ListingDetailsPage({ params }: PageProps) {
               ) : (
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', borderRadius: 20, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, fontSize: 13, color: 'var(--outline)' }}>
                   Нет фотографий
+                  <button onClick={(e) => { e.stopPropagation(); handleShare() }} style={{ ...FAV_BTN, position: 'absolute', top: 12, left: 12 }} aria-label="Поделиться">
+                    <Mi name="share" size={20} color="var(--on-surface-variant)" />
+                  </button>
                   <button onClick={(e) => { e.stopPropagation(); handleGuardAction(() => toggleFavorite(listing.id)) }} style={{ ...FAV_BTN, position: 'absolute', top: 12, right: 12 }} aria-label="Избранное">
                     <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface-variant)'} />
                   </button>
@@ -342,18 +345,18 @@ export default function ListingDetailsPage({ params }: PageProps) {
                     <div style={{ fontSize: 11, color: 'var(--outline)', marginTop: 3 }}>{formatDate(listing.created_at)}</div>
                   </div>
                 </div>
-                <button onClick={() => handleGuardAction(() => toggleFavorite(listing.id))} style={FAV_BTN} aria-label="Избранное">
-                  <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface-variant)'} />
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={handleShare} style={FAV_BTN} aria-label="Поделиться">
+                    <Mi name="share" size={20} color="var(--on-surface-variant)" />
+                  </button>
+                  <button onClick={() => handleGuardAction(() => toggleFavorite(listing.id))} style={FAV_BTN} aria-label="Избранное">
+                    <Mi name="favorite" filled={isFav} size={20} color={isFav ? 'var(--brand-red)' : 'var(--on-surface-variant)'} />
+                  </button>
+                </div>
               </div>
 
-              {/* WhatsApp + Share */}
-              <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-                <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, flex: 1 }}>Ватцап</button>
-                <button onClick={handleShare} style={{ ...BTN_SECONDARY, width: 44, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }} aria-label="Поделиться">
-                  <Mi name="share" size={20} color="var(--on-surface)" />
-                </button>
-              </div>
+              {/* WhatsApp */}
+              <button onClick={handleWhatsApp} style={{ ...BTN_PRIMARY, width: '100%', marginBottom: 20 }}>Ватцап</button>
 
               {/* Description */}
               {listing.description?.trim() && (
