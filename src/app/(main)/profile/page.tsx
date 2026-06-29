@@ -8,6 +8,7 @@ import { ListingCard } from '@/components/listing-card'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Mi } from '@/components/icons'
+import { useScrollRestoration } from '@/lib/use-scroll-restoration'
 
 interface PriceSetting {
   key: string
@@ -26,6 +27,7 @@ function parseOverpaid(receiptUrl: string | null | undefined): { paid: number; e
 
 export default function ProfilePage() {
   const router = useRouter()
+  const scrollRef = useScrollRestoration<HTMLDivElement>()
   const {
     user,
     setUser,
@@ -42,6 +44,11 @@ export default function ProfilePage() {
   const [dismissedOverpaid, setDismissedOverpaid] = useState<Set<string>>(new Set())
   // Track which overpaid notices are expanded
   const [expandedOverpaid, setExpandedOverpaid] = useState<Set<string>>(new Set())
+
+  // Delete confirmation modal state (replaces native confirm()/alert())
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   // Admin states
   const isAdmin = user?.email === 'n.erdaullet@gmail.com'
@@ -180,20 +187,30 @@ export default function ProfilePage() {
     router.push(`/listing/${id}/promote`)
   }
 
-  const handleDeleteListing = async (id: string) => {
-    if (!confirm('Вы уверены, что хотите навсегда удалить это объявление?')) return
+  const handleDeleteListing = (id: string) => {
+    setDeleteError('')
+    setDeleteTarget(id)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    setIsDeleting(true)
+    setDeleteError('')
     try {
       const { error } = await supabase
         .from('listings')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteTarget)
 
       if (error) throw error
       // Filter out of view
-      setUserListings(userListings.filter((item) => item.id !== id))
+      setUserListings(userListings.filter((item) => item.id !== deleteTarget))
+      setDeleteTarget(null)
     } catch (err) {
       console.error('Error deleting listing:', err)
-      alert('Ошибка при удалении объявления.')
+      setDeleteError('Не удалось удалить объявление. Попробуйте ещё раз.')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -239,7 +256,7 @@ export default function ProfilePage() {
     <div className="flex flex-col w-full h-full">
       <Header type="title" title="мой кабинет" showHelpToggle={false} />
 
-      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
 
         {/* Profile card */}
         <div style={{
@@ -479,6 +496,55 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation modal */}
+      {deleteTarget && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+          <div
+            onClick={() => { if (!isDeleting) setDeleteTarget(null) }}
+            style={{ position: 'absolute', inset: 0, background: 'var(--modal-scrim)', backdropFilter: 'blur(8px)' }}
+          />
+          <div style={{
+            position: 'relative', width: '100%', maxWidth: 320,
+            background: 'var(--surface-container-lowest)',
+            border: '1px solid var(--outline-border)',
+            borderRadius: 28, padding: 24,
+            boxShadow: 'var(--shadow-modal)',
+            userSelect: 'none',
+          }}>
+            <div style={{ width: 52, height: 52, margin: '0 auto 16px', borderRadius: 9999, background: 'var(--brand-red-soft)', border: '1px solid var(--brand-red-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Mi name="delete" size={26} color="var(--brand-red)" />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 600, textAlign: 'center', color: 'var(--on-surface)', marginBottom: 8, letterSpacing: '-0.3px' }}>
+              Удалить объявление?
+            </div>
+            <div style={{ fontSize: 14, textAlign: 'center', color: 'var(--on-surface-variant)', lineHeight: 1.4, marginBottom: deleteError ? 12 : 20 }}>
+              Это действие нельзя отменить.
+            </div>
+            {deleteError && (
+              <div style={{ fontSize: 13, textAlign: 'center', color: 'var(--brand-red)', lineHeight: 1.4, marginBottom: 16 }}>
+                {deleteError}
+              </div>
+            )}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                disabled={isDeleting}
+                style={{ flex: 1, height: 44, background: 'var(--surface-container-low)', color: 'var(--on-surface)', border: '1px solid var(--outline-border)', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: isDeleting ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px', opacity: isDeleting ? 0.6 : 1 }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                style={{ flex: 1, height: 44, background: 'var(--brand-red)', color: '#FFF', border: '1px solid transparent', borderRadius: 16, fontSize: 14, fontWeight: 600, cursor: isDeleting ? 'default' : 'pointer', fontFamily: 'inherit', letterSpacing: '-0.1px', opacity: isDeleting ? 0.7 : 1 }}
+              >
+                {isDeleting ? 'Удаление…' : 'Удалить'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

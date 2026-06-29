@@ -8,6 +8,7 @@ import { ListingCard } from '@/components/listing-card'
 import { CITIES_DATA } from '@/lib/constants'
 import { useRouter } from 'next/navigation'
 import { Mi } from '@/components/icons'
+import { useScrollRestoration } from '@/lib/use-scroll-restoration'
 
 function SkeletonCard() {
   return (
@@ -73,6 +74,10 @@ export default function FeedPage() {
   // Active City districts matrix
   const currentCityData = CITIES_DATA.find((c) => c.city === filters.city)
   const hasDistricts = currentCityData && currentCityData.districts.length > 0
+
+  // Preserve scroll position when leaving and returning to the feed.
+  // Keyed by mode so "Ищу квартиру" / "Ищу соседа" keep separate positions.
+  const scrollRef = useScrollRestoration<HTMLDivElement>(mode)
 
   // Prefetch instruction and filter page for instant load
   useEffect(() => {
@@ -233,6 +238,18 @@ export default function FeedPage() {
     return () => clearTimeout(t)
   }, [fetchListings])
 
+  // When the filter set or sorting changes the results become a different list,
+  // so jump back to the top instead of restoring the old scroll offset.
+  // (Mode switching is intentionally excluded — each mode keeps its own position.)
+  const filterSig = JSON.stringify(filters) + '|' + sortBy
+  const prevFilterSig = useRef(filterSig)
+  useEffect(() => {
+    if (prevFilterSig.current !== filterSig) {
+      prevFilterSig.current = filterSig
+      if (scrollRef.current) scrollRef.current.scrollTop = 0
+    }
+  }, [filterSig, scrollRef])
+
   const handleApplySort = () => {
     setShowSort(false)
     fetchListings()
@@ -258,7 +275,7 @@ export default function FeedPage() {
       <Header type="mode-toggle" showThemeToggle showHelpToggle />
 
       {/* Feed list */}
-      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
         {isLoading && listings.length === 0 ? (
           <>
             <SkeletonCard />

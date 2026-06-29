@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const SUPABASE_HOST = "wjjnjcptbqqfitsmppqe.supabase.co"
 
+const isDev = process.env.NODE_ENV !== "production"
+
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -15,12 +17,14 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next.js requires 'unsafe-inline' for the app router hydration script
-      "script-src 'self' 'unsafe-inline'",
+      // Next.js requires 'unsafe-inline' for the app router hydration script.
+      // In dev, React/Turbopack also need 'unsafe-eval' for fast refresh & callstack reconstruction.
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       `img-src 'self' data: blob: https://${SUPABASE_HOST} https://lh3.googleusercontent.com`,
-      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST}`,
+      // In dev, allow the Turbopack HMR websocket / fetches over localhost.
+      `connect-src 'self' https://${SUPABASE_HOST} wss://${SUPABASE_HOST}${isDev ? " ws://localhost:* http://localhost:*" : ""}`,
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

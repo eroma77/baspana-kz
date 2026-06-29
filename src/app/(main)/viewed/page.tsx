@@ -5,9 +5,11 @@ import { supabase } from '@/lib/supabase'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Header } from '@/components/header'
 import { ListingCard } from '@/components/listing-card'
+import { useScrollRestoration } from '@/lib/use-scroll-restoration'
 
 export default function ViewedPage() {
   const { viewed, viewedListings, setViewedListings } = useAppStore()
+  const scrollRef = useScrollRestoration<HTMLDivElement>()
   const hasPreloaded = viewedListings.length > 0
   const [isLoading, setIsLoading] = useState(!hasPreloaded)
 
@@ -55,7 +57,7 @@ export default function ViewedPage() {
       {/* Header */}
       <Header type="title" title="просмотрено" showHelpToggle={true} />
 
-      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
         {isLoading ? (
           <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
