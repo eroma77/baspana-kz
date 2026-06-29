@@ -31,24 +31,16 @@ export const getCityAbbr = (city: string) => {
   return city.substring(0, 3).toUpperCase()
 }
 
-// Short, human-friendly district names (Almaty).
-const DISTRICT_SHORT: Record<string, string> = {
-  'Алатауский': 'Алатау',
-  'Алмалинский': 'Алмалы',
-  'Ауэзовский': 'Ауэзов',
-  'Бостандыкский': 'Бостандык',
-  'Жетысуский': 'Жетысу',
-  'Медеуский': 'Медеу',
-  'Наурызбайский': 'Наурызбай',
-  'Турксибский': 'Турксиб',
-}
-
-/** District -> short label ('' for the "any district" sentinels). */
+/**
+ * District label for display. Returns the FULL Russian district name exactly
+ * as stored (e.g. "Алмалинский") so it is identical everywhere — feed cards,
+ * detail page and the filter dropdown. Only the "any district" sentinels are
+ * blanked out. Do NOT shorten or translate: mixing "Алмалы"/"Алмалинский"
+ * caused confusion.
+ */
 export const formatDistrict = (d?: string | null) => {
   if (!d || d === '-' || d === 'Не важно' || d === 'all') return ''
-  const t = d.trim()
-  if (DISTRICT_SHORT[t]) return DISTRICT_SHORT[t]
-  return t.replace(/ский$/, '').replace(/ская$/, '')
+  return d.trim()
 }
 
 /** Correct Russian plural for "год/года/лет". */

@@ -59,8 +59,8 @@ export function Header({
   const activeFilterCount =
     (NEUTRAL.includes(f.district) ? 0 : 1) +
     (NEUTRAL.includes(f.gender) ? 0 : 1) +
-    (f.ageFrom ? 1 : 0) +
-    (f.ageTo ? 1 : 0) +
+    // Age is one filter even though apartment mode fills both from/to.
+    (f.ageFrom || f.ageTo ? 1 : 0) +
     (NEUTRAL.includes(f.rooms) ? 0 : 1) +
     (NEUTRAL.includes(f.peopleCount) ? 0 : 1) +
     (NEUTRAL.includes(f.searchingCount) ? 0 : 1) +
