@@ -8,6 +8,10 @@ import { CITIES_DATA } from '@/lib/constants'
 import { Mi } from '@/components/icons'
 import { Header } from '@/components/header'
 
+const AGE_OPTIONS = Array.from({ length: 35 }, (_, i) => 16 + i)
+const AGE_LABEL_OPTIONS = AGE_OPTIONS.map((a) => `${a} лет`)
+const TERM_OPTIONS = Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`)
+
 function formatBudgetDisplay(val: string) {
   const digits = val.replace(/\D/g, '')
   if (!digits) return ''
@@ -175,34 +179,48 @@ export default function FilterPage() {
               </div>
             </div>
 
-            {/* Row 2: District */}
-            <div className="relative">
-              <button
-                type="button"
-                disabled={!hasDistricts}
-                onClick={() => toggleDropdown('district')}
-                style={{
-                  ...FIELD,
-                  ...(hasDistricts
-                    ? fieldText(!!(filters.district && filters.district !== 'Не важно' && filters.district !== '-'))
-                    : { color: 'var(--secondary)', opacity: 0.5, cursor: 'not-allowed' }),
-                }}
-              >
-                <span className="truncate">
-                  {!hasDistricts ? 'Район'
-                    : (filters.district === 'Не важно' || !filters.district || filters.district === '-') ? 'Не важно'
-                    : filters.district}
-                </span>
-                <Mi name="expand_more" size={18} color="var(--secondary)" />
-              </button>
-              {activeDropdown === 'district' && hasDistricts && (
-                <div style={DROPDOWN}>
-                  <DropOpt label="Не важно" onClick={() => { setFilters({ district: 'Не важно' }); setActiveDropdown(null) }} />
-                  {currentCityData?.districts.map((d) => (
-                    <DropOpt key={d} label={d} onClick={() => { setFilters({ district: d }); setActiveDropdown(null) }} />
-                  ))}
-                </div>
-              )}
+            {/* Row 2: District & Gender */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <button
+                  type="button"
+                  disabled={!hasDistricts}
+                  onClick={() => toggleDropdown('district')}
+                  style={{
+                    ...FIELD,
+                    ...(hasDistricts
+                      ? fieldText(!!(filters.district && filters.district !== 'Не важно' && filters.district !== '-'))
+                      : { color: 'var(--secondary)', opacity: 0.5, cursor: 'not-allowed' }),
+                  }}
+                >
+                  <span className="truncate">
+                    {!hasDistricts ? 'Район'
+                      : (filters.district === 'Не важно' || !filters.district || filters.district === '-') ? 'Не важно'
+                      : filters.district}
+                  </span>
+                  <Mi name="expand_more" size={18} color="var(--secondary)" />
+                </button>
+                {activeDropdown === 'district' && hasDistricts && (
+                  <div style={DROPDOWN}>
+                    <DropOpt label="Не важно" onClick={() => { setFilters({ district: 'Не важно' }); setActiveDropdown(null) }} />
+                    {currentCityData?.districts.map((d) => (
+                      <DropOpt key={d} label={d} onClick={() => { setFilters({ district: d }); setActiveDropdown(null) }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="relative">
+                <button type="button" onClick={() => toggleDropdown('gender')} style={{ ...FIELD, ...fieldText(!!(filters.gender && filters.gender !== 'Не важно')) }}>
+                  <span className="truncate">{filters.gender && filters.gender !== 'Не важно' ? filters.gender : 'Пол'}</span>
+                  <Mi name="expand_more" size={18} color="var(--secondary)" />
+                </button>
+                {activeDropdown === 'gender' && (
+                  <div style={DROPDOWN}>
+                    {['Парень','Девушка'].map((g) => <DropOpt key={g} label={g} onClick={() => { setFilters({ gender: g }); setActiveDropdown(null) }} />)}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Row 3: Age & CanLiveWith */}
@@ -214,7 +232,7 @@ export default function FilterPage() {
                 </button>
                 {activeDropdown === 'ageFrom' && (
                   <div style={DROPDOWN}>
-                    {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
+                    {AGE_LABEL_OPTIONS.map((a) => (
                       <DropOpt key={a} label={a} onClick={() => { setFilters({ ageFrom: a, ageTo: a }); setActiveDropdown(null) }} />
                     ))}
                   </div>
@@ -363,7 +381,7 @@ export default function FilterPage() {
                 </button>
                 {activeDropdown === 'ageFrom' && (
                   <div style={DROPDOWN}>
-                    {Array.from({ length: 35 }, (_, i) => 16 + i).map((a) => (
+                    {AGE_OPTIONS.map((a) => (
                       <DropOpt key={a} label={`${a} лет`} onClick={() => {
                         const toVal = filters.ageTo ? parseInt(filters.ageTo) : 50
                         setFilters({ ageFrom: String(a), ageTo: toVal < a ? String(a) : filters.ageTo })
@@ -450,7 +468,7 @@ export default function FilterPage() {
                 </button>
                 {activeDropdown === 'term' && (
                   <div style={DROPDOWN}>
-                    {Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`).map((t) => (
+                    {TERM_OPTIONS.map((t) => (
                       <DropOpt key={t} label={t} onClick={() => { setFilters({ term: t }); setActiveDropdown(null) }} />
                     ))}
                   </div>

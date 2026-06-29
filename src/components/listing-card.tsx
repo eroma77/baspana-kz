@@ -283,12 +283,12 @@ export function ListingCard({
   /* ── Roommate card (apartment listing in DB) ── */
   if (listing.mode === 'roommate') {
     const chips = [
-      { icon: 'location_on',   label: locationLabel },
+      { icon: 'wc',            label: listing.gender || 'Не важно' },
+      { icon: 'group',         label: listing.can_live_with || 'Не важно' },
       { icon: 'home',          label: listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комн.` },
-      { icon: 'wc',            label: formatCanLiveWith(listing.gender) },
-      { icon: 'groups',        label: `Общий: ${listing.total_people}` },
-      { icon: 'manage_search', label: `Ищу: ${listing.searching_count}` },
       { icon: 'cake',          label: `${listing.age_from}-${listing.age_to} лет` },
+      { icon: 'manage_search', label: `Ищу: ${listing.searching_count}` },
+      { icon: 'groups',        label: `Общий: ${listing.total_people}` },
       { icon: 'attach_money',  label: listing.deposit > 0 ? 'Есть' : 'Нет' },
       { icon: 'description',   label: listing.contract === 'yes' ? 'Есть' : 'Нет' },
     ]
@@ -328,8 +328,11 @@ export function ListingCard({
             </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px', marginBottom: 14 }}>
-            {chips.map((c, i) => <Chip key={i} icon={c.icon} label={c.label} />)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
+            <Chip icon="location_on" label={locationLabel} />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 8px' }}>
+              {chips.map((c, i) => <Chip key={i} icon={c.icon} label={c.label} />)}
+            </div>
           </div>
 
           {!isOwnerView ? (
