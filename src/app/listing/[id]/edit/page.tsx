@@ -313,10 +313,10 @@ export default function EditListingPage({ params }: PageProps) {
       if (!addressLink) {
         newErrors.addressLink = true
       } else {
-        const is2gisLink = /^https?:\/\/(?:[^/]*\.)?2gis\.(?:kz|ru)\//i.test(addressLink)
+        const is2gisLink = /^https?:\/\/(?:[^/]*\.)?2gis\.(?:kz|ru|com)\//i.test(addressLink)
         if (!is2gisLink) {
           newErrors.addressLink = true
-          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz или https://2gis.ru')
+          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz, https://2gis.ru или https://go.2gis.com')
         }
       }
     }

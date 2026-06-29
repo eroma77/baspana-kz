@@ -384,10 +384,11 @@ export default function AddListingPage() {
       if (!addressLink) {
         newErrors.addressLink = true
       } else {
-        const is2gisLink = /2gis\.(?:kz|ru)/i.test(addressLink)
+        // Must be a real https URL pointing to 2gis — prevents javascript:/data: scheme bypasses
+        const is2gisLink = /^https?:\/\/(?:[^/]*\.)?2gis\.(?:kz|ru|com)\//i.test(addressLink)
         if (!is2gisLink) {
           newErrors.addressLink = true
-          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна содержать домен 2gis.kz или 2gis.ru')
+          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz, https://2gis.ru или https://go.2gis.com')
         }
       }
     }
@@ -456,14 +457,7 @@ export default function AddListingPage() {
       router.push('/profile')
     } catch (err) {
       console.error('Error submitting listing detailed:', err)
-      let errorMsg = 'Ошибка сервера при создании объявления.'
-      if (err && typeof err === 'object') {
-        const anyErr = err as any
-        errorMsg = anyErr.message || anyErr.details || anyErr.hint || JSON.stringify(anyErr)
-      } else if (err instanceof Error) {
-        errorMsg = err.message
-      }
-      setSubmitErrorMsg(errorMsg)
+      setSubmitErrorMsg('Ошибка сервера при создании объявления. Попробуйте ещё раз.')
     } finally {
       setIsSubmitting(false)
     }
@@ -1016,6 +1010,7 @@ export default function AddListingPage() {
                     <input
                       type="url"
                       placeholder="Адрес ссылка"
+                      aria-label="Ссылка на адрес (2GIS)"
                       value={addressLink}
                       onChange={(e) => {
                         setAddressLink(e.target.value)
@@ -1093,6 +1088,7 @@ export default function AddListingPage() {
                   type="text"
                   inputMode="numeric"
                   placeholder="Бюджет от (₸)"
+                  aria-label="Бюджет от, в тенге"
                   value={formatBudgetDisplay(priceFrom)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
@@ -1113,6 +1109,7 @@ export default function AddListingPage() {
                   type="text"
                   inputMode="numeric"
                   placeholder="Бюджет до (₸)"
+                  aria-label="Бюджет до, в тенге"
                   value={formatBudgetDisplay(priceTo)}
                   onKeyDown={handleNumberKeyDown}
                   onChange={(e) => {
@@ -1198,6 +1195,7 @@ export default function AddListingPage() {
                   type="tel"
                   inputMode="numeric"
                   placeholder="700 000 0000"
+                  aria-label="Номер телефона"
                   value={formatPhoneDisplay(phone)}
                   onChange={handlePhoneChange}
                   className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 pl-9 pr-3 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] ${
