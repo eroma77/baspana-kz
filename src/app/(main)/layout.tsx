@@ -30,7 +30,7 @@ export default function MainLayout({
         supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
           .then(({ data, error }) => {
             if (!error && data.session?.user) {
-              supabase.from('profiles').select('*').eq('id', data.session.user.id).single()
+              supabase.from('profiles').select('id,email,avatar_url').eq('id', data.session.user.id).single()
                 .then(({ data: profile }) => {
                   setUser(profile ?? {
                     id: data.session!.user.id,
@@ -42,12 +42,19 @@ export default function MainLayout({
             }
           })
       }
+    } else {
+      // No OAuth redirect in progress — reconcile any stale persisted "user"
+      // (e.g. the Supabase session expired) so the UI doesn't falsely show a
+      // logged-in state and gate actions on a dead session.
+      supabase.auth.getSession().then(({ data }) => {
+        if (!data.session) setUser(null)
+      })
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
         const { data: profile } = await supabase
-          .from('profiles').select('*').eq('id', session.user.id).single()
+          .from('profiles').select('id,email,avatar_url').eq('id', session.user.id).single()
         setUser(profile ?? {
           id: session.user.id,
           email: session.user.email || '',

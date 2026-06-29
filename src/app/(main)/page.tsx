@@ -251,8 +251,9 @@ export default function FeedPage() {
   }, [filterSig, scrollRef])
 
   const handleApplySort = () => {
+    // Selecting a sort option already re-runs the fetch effect (sortBy is a
+    // dependency of fetchListings), so just close the modal — no extra fetch.
     setShowSort(false)
-    fetchListings()
   }
 
   // Listen for sort trigger from Header toolbar

@@ -8,56 +8,9 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Mi } from '@/components/icons'
 import { BottomNav } from '@/components/bottom-nav'
+import { getCityAbbr, formatDistrict, formatPrice, getAgePlural } from '@/lib/listing-format'
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
-
-const formatCanLiveWith = (val?: string | null) => {
-  if (!val) return 'Не важно'
-  const v = val.toLowerCase().trim()
-  if (v.includes('парн') || v.includes('муж')) return 'Только парни'
-  if (v.includes('дев') || v.includes('жен')) return 'Только девочки'
-  return 'Не важно'
-}
-
-const getCityAbbr = (city: string) => {
-  const c = city.toLowerCase().trim()
-  if (c.includes('алматы'))     return 'АЛА'
-  if (c.includes('астана'))     return 'АСТ'
-  if (c.includes('шымкент'))    return 'ШЫМ'
-  if (c.includes('карагандa') || c.includes('караганды')) return 'КГД'
-  if (c.includes('актобе'))     return 'АКБ'
-  if (c.includes('тараз'))      return 'ТРЗ'
-  if (c.includes('павлодар'))   return 'ПВД'
-  if (c.includes('семей'))      return 'СМЙ'
-  if (c.includes('кызылорда')) return 'КЗД'
-  if (c.includes('атырау'))     return 'АТУ'
-  if (c.includes('костанай'))   return 'КСТ'
-  if (c.includes('уральск'))    return 'УРЛ'
-  if (c.includes('петропавловск')) return 'ПТП'
-  if (c.includes('актау'))      return 'АКТ'
-  if (c.includes('темиртау'))   return 'ТМТ'
-  if (c.includes('туркестан'))  return 'ТРК'
-  if (c.includes('кокшетау'))   return 'КШТ'
-  if (c.includes('талдыкорган')) return 'ТЛД'
-  if (c.includes('жезказган'))  return 'ЖЗК'
-  return city.substring(0, 3).toUpperCase()
-}
-
-const formatDistrict = (d?: string | null) => {
-  if (!d || d === '-' || d === 'Не важно' || d === 'all') return ''
-  return d.trim().replace(/ский$/, '').replace(/ская$/, '')
-}
-
-const getAgePlural = (age: number) => {
-  const l = age % 10, l2 = age % 100
-  if (l2 >= 11 && l2 <= 14) return 'лет'
-  if (l === 1) return 'год'
-  if (l >= 2 && l <= 4) return 'года'
-  return 'лет'
-}
-
-const formatPrice = (price: number) =>
-  price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 
 const formatDate = (dateStr: string) => {
   try {
@@ -126,9 +79,12 @@ export default function ListingDetailsPage({ params }: PageProps) {
   if (isLoading) {
     return (
       <div style={{ height: '100dvh', width: '100%', background: 'var(--surface-container-highest)', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 390, height: '100%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
-          <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка объявления…</span>
+        <div style={{ width: '100%', maxWidth: 430, height: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', display: 'flex', flexDirection: 'column' }}>
+          <Header type="title" title="объявление" showBack showThemeToggle={false} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />
+            <span style={{ fontSize: 13, color: 'var(--outline)' }}>Загрузка объявления…</span>
+          </div>
         </div>
       </div>
     )
@@ -137,17 +93,20 @@ export default function ListingDetailsPage({ params }: PageProps) {
   if (!listing) {
     return (
       <div style={{ height: '100dvh', width: '100%', background: 'var(--surface-container-highest)', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '100%', maxWidth: 390, height: '100%', background: 'var(--surface)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '0 24px', textAlign: 'center' }}>
-          <div style={{ width: 64, height: 64, borderRadius: 9999, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Mi name="search_off" size={32} color="var(--outline)" />
+        <div style={{ width: '100%', maxWidth: 430, height: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', display: 'flex', flexDirection: 'column' }}>
+          <Header type="title" title="объявление" showBack showThemeToggle={false} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '0 24px', textAlign: 'center' }}>
+            <div style={{ width: 64, height: 64, borderRadius: 9999, background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Mi name="search_off" size={32} color="var(--outline)" />
+            </div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--on-surface)', letterSpacing: '-0.3px' }}>Объявление не найдено</div>
+            <button
+              onClick={() => router.push('/')}
+              style={{ height: 40, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 12, padding: '0 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              На главную
+            </button>
           </div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: 'var(--on-surface)', letterSpacing: '-0.3px' }}>Объявление не найдено</div>
-          <button
-            onClick={() => router.push('/')}
-            style={{ height: 40, background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 12, padding: '0 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-          >
-            На главную
-          </button>
         </div>
       </div>
     )
@@ -211,7 +170,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
 
   return (
     <div style={{ height: '100dvh', width: '100%', background: 'var(--surface-container-highest)', display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
-      <div style={{ width: '100%', maxWidth: 390, height: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', boxShadow: '0 0 40px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', userSelect: 'none' }}>
+      <div style={{ width: '100%', maxWidth: 430, height: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', boxShadow: '0 0 40px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', userSelect: 'none' }}>
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', overflowY: 'auto', overflowX: 'hidden', paddingBottom: 96 }}>
 
           <Header type="title" title="объявление" showBack showHelpToggle={false} />
@@ -309,11 +268,12 @@ export default function ListingDetailsPage({ params }: PageProps) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                   <Chip icon="location_on"   label={locationLabel} />
                   <Chip icon="manage_search" label={`Ищу: ${listing.searching_count}`} />
+                  <Chip icon="wc"            label={listing.gender || 'Не важно'} />
+                  <Chip icon="group"         label={listing.can_live_with || 'Не важно'} />
                   <Chip icon="home"          label={listing.rooms.includes('-комн') ? listing.rooms : `${listing.rooms}-комнатный`} />
                   <Chip icon="cake"          label={`${listing.age_from}-${listing.age_to} лет`} />
-                  <Chip icon="wc"            label={formatCanLiveWith(listing.can_live_with || listing.gender)} />
-                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Есть' : 'Нет'} />
                   <Chip icon="groups"        label={`Всего: ${listing.total_people}`} />
+                  <Chip icon="attach_money"  label={listing.deposit > 0 ? 'Есть' : 'Нет'} />
                   <Chip icon="description"   label={listing.contract === 'yes' ? 'Есть' : 'Нет'} />
                 </div>
               </div>

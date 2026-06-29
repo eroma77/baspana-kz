@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Mi } from '@/components/icons'
+import { getCityAbbr, formatDistrict, formatPrice, getAgePlural } from '@/lib/listing-format'
 
 interface ListingCardProps {
   listing: Listing
@@ -16,43 +17,6 @@ interface ListingCardProps {
 
 /* ── Helpers ─────────────────────────────────────────────────── */
 
-const getCityAbbr = (city: string) => {
-  const c = city.toLowerCase()
-  if (c.includes('алматы')) return 'АЛА'
-  if (c.includes('астана')) return 'АСТ'
-  if (c.includes('шымкент')) return 'ШЫМ'
-  if (c.includes('карагандa') || c.includes('карагандин')) return 'КГД'
-  if (c.includes('актобе')) return 'АКБ'
-  if (c.includes('тараз')) return 'ТРЗ'
-  if (c.includes('павлодар')) return 'ПВД'
-  if (c.includes('семей')) return 'СМЙ'
-  if (c.includes('кызылорда')) return 'КЗД'
-  if (c.includes('атырау')) return 'АТУ'
-  if (c.includes('костанай')) return 'КСТ'
-  if (c.includes('уральск')) return 'УРЛ'
-  if (c.includes('петропавловск')) return 'ПТП'
-  if (c.includes('актау')) return 'АКТ'
-  if (c.includes('темиртау')) return 'ТМТ'
-  if (c.includes('туркестан')) return 'ТРК'
-  if (c.includes('кокшетау')) return 'КШТ'
-  if (c.includes('талдыкорган')) return 'ТЛД'
-  if (c.includes('жезказган')) return 'ЖЗК'
-  return city.substring(0, 3).toUpperCase()
-}
-
-const formatDistrict = (d?: string | null) => {
-  if (!d || d === '-' || d === 'Не важно' || d === 'all') return ''
-  return d
-    .replace(/ский$/, '').replace(/ская$/, '')
-    .replace(/Алатауский/, 'Алатау').replace(/Алмалинский/, 'Алмалы')
-    .replace(/Ауэзовский/, 'Ауэзов').replace(/Бостандыкский/, 'Бостандык')
-    .replace(/Жетысуский/, 'Жетысу').replace(/Медеуский/, 'Медеу')
-    .replace(/Наурызбайский/, 'Наурызбай').replace(/Турксибский/, 'Турксиб')
-    .trim()
-}
-
-const formatPrice = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-
 const formatDate = (dateStr: string) => {
   try {
     const date = new Date(dateStr)
@@ -63,23 +27,6 @@ const formatDate = (dateStr: string) => {
   } catch {
     return dateStr
   }
-}
-
-const formatCanLiveWith = (val?: string | null) => {
-  if (!val) return 'Не важно'
-  const v = val.toLowerCase()
-  if (v.includes('парн') || v === 'мужской') return 'Только парни'
-  if (v.includes('дев') || v === 'женский') return 'Только девочки'
-  return 'Не важно'
-}
-
-const getAgePlural = (age: number) => {
-  const d = age % 10
-  const dd = age % 100
-  if (dd >= 11 && dd <= 14) return 'лет'
-  if (d === 1) return 'год'
-  if (d >= 2 && d <= 4) return 'года'
-  return 'лет'
 }
 
 /* ── Shared styles ───────────────────────────────────────────── */
@@ -234,7 +181,7 @@ export function ListingCard({
   onDelete,
 }: ListingCardProps) {
   const router = useRouter()
-  const { user, favorites, toggleFavorite, addToViewed } = useAppStore()
+  const { user, favorites, toggleFavorite } = useAppStore()
 
   const isFav = favorites.includes(listing.id)
   const cityAbbr = getCityAbbr(listing.city)
@@ -248,7 +195,8 @@ export function ListingCard({
   } ₸`
 
   const handleCardClick = () => {
-    addToViewed(listing.id)
+    // 'viewed' is recorded by the detail page on successful load (also covers
+    // arrivals via shared links), so we don't double-record it here.
     router.push(`/listing/${listing.id}`)
   }
 
@@ -305,7 +253,7 @@ export function ListingCard({
         <div style={{ position: 'relative', width: '100%', height: 140, background: 'var(--surface-container-low)' }}>
           {listing.photos?.length ? (
             <Image
-              src={listing.photos[0]} alt="Жилье" fill sizes="390px"
+              src={listing.photos[0]} alt="Жилье" fill sizes="430px"
               priority={isFirst || listing.is_premium}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
             />

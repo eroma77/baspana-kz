@@ -50,7 +50,29 @@ export function Header({
   showHelpToggle = false,
 }: HeaderProps) {
   const router = useRouter()
-  const { mode, setMode, theme, setTheme } = useAppStore()
+  const { mode, setMode, theme, setTheme, filters } = useAppStore()
+
+  // Count how many filters deviate from their neutral ("any") value, so the
+  // фильтр button can show whether filtering is currently active.
+  const NEUTRAL = ['Не важно', '-', '']
+  const f = filters
+  const activeFilterCount =
+    (NEUTRAL.includes(f.district) ? 0 : 1) +
+    (NEUTRAL.includes(f.gender) ? 0 : 1) +
+    (f.ageFrom ? 1 : 0) +
+    (f.ageTo ? 1 : 0) +
+    (NEUTRAL.includes(f.rooms) ? 0 : 1) +
+    (NEUTRAL.includes(f.peopleCount) ? 0 : 1) +
+    (NEUTRAL.includes(f.searchingCount) ? 0 : 1) +
+    (NEUTRAL.includes(f.canLiveWith) ? 0 : 1) +
+    (NEUTRAL.includes(f.deposit) ? 0 : 1) +
+    (NEUTRAL.includes(f.contract) ? 0 : 1) +
+    (NEUTRAL.includes(f.term) ? 0 : 1) +
+    (f.priceFrom ? 1 : 0) +
+    (f.priceTo ? 1 : 0) +
+    (f.onlyPhotos ? 1 : 0) +
+    (f.hideViewed ? 1 : 0)
+  const hasActiveFilters = activeFilterCount > 0
 
   const handleToggleTheme = () => setTheme(theme === 'light' ? 'dark' : 'light')
 
@@ -111,23 +133,32 @@ export function Header({
             style={{
               flex: 1,
               height: 40,
-              background: 'var(--surface-container-low)',
-              border: '1px solid var(--outline-border)',
+              background: hasActiveFilters ? 'var(--brand-blue-soft)' : 'var(--surface-container-low)',
+              border: `1px solid ${hasActiveFilters ? 'rgba(0,67,200,0.25)' : 'var(--outline-border)'}`,
               borderRadius: 16,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              color: 'var(--on-surface)',
+              color: hasActiveFilters ? 'var(--brand-blue)' : 'var(--on-surface)',
               fontSize: 14,
-              fontWeight: 500,
+              fontWeight: hasActiveFilters ? 600 : 500,
               cursor: 'pointer',
               letterSpacing: '-0.1px',
               fontFamily: 'inherit',
             }}
           >
-            <Mi name="tune" size={18} color="var(--on-surface-variant)" />
+            <Mi name="tune" size={18} color={hasActiveFilters ? 'var(--brand-blue)' : 'var(--on-surface-variant)'} />
             <span>фильтр</span>
+            {hasActiveFilters && (
+              <span style={{
+                minWidth: 18, height: 18, padding: '0 5px', borderRadius: 9999,
+                background: 'var(--brand-blue-container)', color: '#FFF',
+                fontSize: 11, fontWeight: 700, lineHeight: '18px', textAlign: 'center',
+              }}>
+                {activeFilterCount}
+              </span>
+            )}
           </button>
 
           <button
