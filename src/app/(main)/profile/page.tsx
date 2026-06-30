@@ -173,8 +173,10 @@ export default function ProfilePage() {
   }
 
   const handlePriceChange = (key: string, value: number) => {
+    // Clamp to a sane range (0 – 1 000 000 ₸); ignore NaN/decimals.
+    const safe = Number.isFinite(value) ? Math.min(1_000_000, Math.max(0, Math.round(value))) : 0
     setPrices((prev) =>
-      prev.map((p) => (p.key === key ? { ...p, value: Math.max(0, value) } : p))
+      prev.map((p) => (p.key === key ? { ...p, value: safe } : p))
     )
   }
 
@@ -220,6 +222,14 @@ export default function ProfilePage() {
       if (raw) setDismissedOverpaid(new Set(JSON.parse(raw) as string[]))
     } catch { /* ignore */ }
   }, [])
+
+  // Close the delete-confirmation modal with the Escape key
+  useEffect(() => {
+    if (!deleteTarget) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !isDeleting) setDeleteTarget(null) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [deleteTarget, isDeleting])
 
   const dismissOverpaid = (id: string) => {
     setDismissedOverpaid(prev => {
@@ -439,6 +449,9 @@ export default function ProfilePage() {
                           <div style={{ marginBottom: 4, background: '#FFFBE6', border: '1px solid #FFE58F', borderRadius: hasReceiptError ? 0 : '16px 16px 0 0', overflow: 'hidden' }}>
                             {/* Header row — always visible */}
                             <div
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleOverpaidExpand(item.id) } }}
                               style={{ padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', userSelect: 'none' }}
                               onClick={() => toggleOverpaidExpand(item.id)}
                             >

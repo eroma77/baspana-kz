@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Mi } from '@/components/icons'
 import { BottomNav } from '@/components/bottom-nav'
-import { getCityAbbr, formatDistrict, formatPrice, getAgePlural } from '@/lib/listing-format'
+import { getCityAbbr, formatDistrict, formatPrice, getAgePlural, build2gisUrl, whatsappUrl } from '@/lib/listing-format'
 
 /* ── Helpers ─────────────────────────────────────────────────────── */
 
@@ -24,6 +24,9 @@ function Chip({ icon, label, onClick }: { icon: string; label: string; onClick?:
   return (
     <div
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } } : undefined}
       style={{
         display: 'flex', alignItems: 'center', gap: 6,
         height: 32, borderRadius: 8, padding: '0 10px 0 8px',
@@ -58,6 +61,20 @@ export default function ListingDetailsPage({ params }: PageProps) {
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [shareToast, setShareToast] = useState(false)
   const touchStartX = useRef<number | null>(null)
+  const mainRef = useRef<HTMLElement>(null)
+
+  // When the lightbox is open, lock the page scroll behind it and allow Esc to close.
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const el = mainRef.current
+    if (el) el.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLightboxOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      if (el) el.style.overflow = ''
+    }
+  }, [lightboxOpen])
 
   useEffect(() => {
     const fetchListing = async () => {
@@ -128,10 +145,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
 
   const handleWhatsApp = () => {
     handleGuardAction(() => {
-      const cleanPhone = listing.phone.replace(/\D/g, '')
-      const phone = cleanPhone.startsWith('7') || cleanPhone.startsWith('8')
-        ? cleanPhone.replace(/^8/, '7') : `7${cleanPhone}`
-      window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer')
+      window.open(whatsappUrl(listing.phone), '_blank', 'noopener,noreferrer')
     })
   }
 
@@ -150,15 +164,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   }
 
   const handle2GIS = () => {
-    if (listing.address_link) {
-      const url = listing.address_link
-      // Only open http/https URLs to prevent javascript: scheme exploitation
-      if (url.startsWith('https://') || url.startsWith('http://')) {
-        window.open(url, '_blank', 'noopener,noreferrer')
-      }
-    } else {
-      window.open(`https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`, '_blank', 'noopener,noreferrer')
-    }
+    window.open(build2gisUrl(listing.address_link, listing.city, listing.district), '_blank', 'noopener,noreferrer')
   }
 
   const openLightbox = (index: number) => { setLightboxIndex(index); setLightboxOpen(true) }
@@ -171,7 +177,7 @@ export default function ListingDetailsPage({ params }: PageProps) {
   return (
     <div style={{ height: '100dvh', width: '100%', background: 'var(--surface-container-highest)', display: 'flex', justifyContent: 'center', overflow: 'hidden' }}>
       <div style={{ width: '100%', maxWidth: 430, height: '100%', background: 'var(--surface)', borderLeft: '1px solid var(--outline-border)', borderRight: '1px solid var(--outline-border)', boxShadow: '0 0 40px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', userSelect: 'none' }}>
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', overflowY: 'auto', overflowX: 'hidden', paddingBottom: 96 }}>
+        <main ref={mainRef} style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%', overflowY: 'auto', overflowX: 'hidden', paddingBottom: 96 }}>
 
           <Header type="title" title="объявление" showBack showHelpToggle={false} />
 

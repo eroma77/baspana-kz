@@ -261,7 +261,8 @@ export default function AddListingPage() {
     const availableSlots = limit - totalSlots
 
     if (availableSlots <= 0) {
-      alert(`Максимум можно добавить ${limit} фотографий.`)
+      setErrors((prev) => ({ ...prev, photos: true }))
+      setSubmitErrorMsg(`Максимум можно добавить ${limit} фотографий.`)
       return
     }
 
@@ -286,6 +287,13 @@ export default function AddListingPage() {
     setPhotos((prev) => [...prev, ...successUrls])
     setIsUploadingPhotos(false)
 
+    // Surface upload failures instead of silently dropping the photo
+    const failedCount = results.filter((r) => !r.url).length
+    if (failedCount > 0) {
+      setErrors((prev) => ({ ...prev, photos: true }))
+      setSubmitErrorMsg(`Не удалось загрузить ${failedCount} фото. Проверьте подключение и попробуйте ещё раз.`)
+    }
+
     // Release object URLs to free memory
     previews.forEach((p) => URL.revokeObjectURL(p))
   }
@@ -305,6 +313,9 @@ export default function AddListingPage() {
 
     setSubmitErrorMsg('')
     const newErrors: Record<string, boolean> = {}
+    // Build the message locally — reading the `submitErrorMsg` state right after
+    // setState gives a stale value (React hasn't re-rendered yet).
+    let localErrorMsg = ''
 
     if (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com') {
       setSubmitErrorMsg('Достигнут лимит (максимум 5 объявлений). Чтобы опубликовать новое, удалите одно из старых.')
@@ -350,20 +361,20 @@ export default function AddListingPage() {
       newErrors.priceFrom = true
     } else if (fromVal < 10000 || fromVal > 900000) {
       newErrors.priceFrom = true
-      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+      localErrorMsg = 'Бюджет должен быть от 10 000 ₸ до 900 000 ₸.'
     }
 
     if (!priceTo) {
       newErrors.priceTo = true
     } else if (toVal < 10000 || toVal > 900000) {
       newErrors.priceTo = true
-      setSubmitErrorMsg('Бюджет должен быть от 10 000 ₸ до 900 000 ₸.')
+      localErrorMsg = 'Бюджет должен быть от 10 000 ₸ до 900 000 ₸.'
     }
 
     if (priceFrom && priceTo && fromVal > toVal) {
       newErrors.priceFrom = true
       newErrors.priceTo = true
-      setSubmitErrorMsg('Минимальный бюджет (от) не может быть больше максимального (до).')
+      localErrorMsg = 'Минимальный бюджет (от) не может быть больше максимального (до).'
     }
 
     if (!ageFrom) newErrors.ageFrom = true
@@ -372,13 +383,17 @@ export default function AddListingPage() {
       if (ageFrom && ageTo && parseInt(ageFrom) > parseInt(ageTo)) {
         newErrors.ageFrom = true
         newErrors.ageTo = true
-        setSubmitErrorMsg('Минимальный возраст (от) не может быть больше максимального (до).')
+        localErrorMsg = 'Минимальный возраст (от) не может быть больше максимального (до).'
       }
     }
 
-
-    if (!phone || phone.length < 10) newErrors.phone = true
-
+    // Kazakhstan mobile numbers are 10 digits after +7 and start with 7
+    if (!phone || phone.length !== 10 || !phone.startsWith('7')) {
+      newErrors.phone = true
+      if (phone && (phone.length !== 10 || !phone.startsWith('7'))) {
+        localErrorMsg = 'Введите корректный номер: 10 цифр после +7 (например 700 123 4567).'
+      }
+    }
 
     if (formMode === 'roommate') {
       if (!addressLink) {
@@ -388,7 +403,7 @@ export default function AddListingPage() {
         const is2gisLink = /^https?:\/\/(?:[^/]*\.)?2gis\.(?:kz|ru|com)\//i.test(addressLink)
         if (!is2gisLink) {
           newErrors.addressLink = true
-          setSubmitErrorMsg('Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz, https://2gis.ru или https://go.2gis.com')
+          localErrorMsg = 'Неверный формат ссылки 2GIS. Ссылка должна начинаться с https://2gis.kz, https://2gis.ru или https://go.2gis.com'
         }
       }
     }
@@ -397,21 +412,21 @@ export default function AddListingPage() {
     if (formMode === 'apartment') {
       if (photos.length > 3) {
         newErrors.photos = true
-        setSubmitErrorMsg('Максимум можно добавить 3 фотографии.')
+        localErrorMsg = 'Максимум можно добавить 3 фотографии.'
       }
     } else {
       if (photos.length < 3) {
         newErrors.photos = true
-        setSubmitErrorMsg('Необходимо загрузить от 3 до 5 фотографий.')
+        localErrorMsg = 'Необходимо загрузить от 3 до 5 фотографий.'
       } else if (photos.length > 5) {
         newErrors.photos = true
-        setSubmitErrorMsg('Максимум можно добавить 5 фотографий.')
+        localErrorMsg = 'Максимум можно добавить 5 фотографий.'
       }
     }
 
-    if (Object.keys(newErrors).length > 0 || submitErrorMsg) {
+    if (Object.keys(newErrors).length > 0 || localErrorMsg) {
       setErrors(newErrors)
-      if (!submitErrorMsg) setSubmitErrorMsg('Пожалуйста, заполните выделенные обязательные поля корректно.')
+      setSubmitErrorMsg(localErrorMsg || 'Пожалуйста, заполните выделенные обязательные поля корректно.')
       return
     }
 
@@ -432,7 +447,7 @@ export default function AddListingPage() {
         : (parseInt(peopleCount) || 1),
       searching_count: formMode === 'roommate' ? (parseInt(searchingCount) || 1) : (parseInt(peopleCount) || 1),
       term: term || '1 месяц',
-      total_people: formMode === 'roommate' ? (parseInt(totalPeople) || 1) : (parseInt(totalPeople) || 1),
+      total_people: parseInt(totalPeople) || 1,
       deposit: deposit === 'Есть' ? 1 : 0,
       contract: contract === 'Есть' ? 'yes' : 'no',
       price_from: fromVal,
@@ -479,10 +494,10 @@ export default function AddListingPage() {
   const dropdownToggleClass = (err: boolean, placeholder?: string, value?: string) =>
     `w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all duration-150 ${
       err ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
-    } ${value ? 'text-zinc-900 dark:text-white font-semibold text-xs' : 'text-[#9D9D9D] font-medium text-xs'}`
+    } ${value ? 'text-zinc-900 dark:text-white font-semibold text-sm' : 'text-[#9D9D9D] font-medium text-sm'}`
 
   const dropdownListClass = "absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#25262D] border border-gray-200 dark:border-[rgba(195,197,217,0.12)] rounded-2xl shadow-xl max-h-80 overflow-y-auto"
-  const dropdownItemClass = "w-full text-left py-2.5 px-4 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+  const dropdownItemClass = "w-full text-left py-2.5 px-4 text-sm font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
   const dropdownChevron = <span className="text-[10px] text-[#9D9D9D] shrink-0">▼</span>
 
   return (
@@ -496,12 +511,17 @@ export default function AddListingPage() {
         showHelpToggle={true}
       />
 
+      {/* Click-away layer: closes any open dropdown when tapping outside it */}
+      {activeDropdown && (
+        <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
+      )}
+
       {/* #A: Draft restore banner */}
       {hasDraftBanner && (
         <div className="mx-4 mt-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 rounded-2xl px-4 py-3 flex items-center gap-3 animate-fade-in">
           <RotateCcw className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Найден незавершённый черновик</p>
+            <p className="text-sm font-bold text-amber-800 dark:text-amber-300">Найден незавершённый черновик</p>
             <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">Восстановить заполненные поля?</p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -564,7 +584,7 @@ export default function AddListingPage() {
 
             {/* Warning block if at limit */}
             {userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com' && (
-              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+              <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded-2xl p-4 flex gap-3 text-sm leading-relaxed text-amber-800 dark:text-amber-300">
                 <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0" />
                 <span>
                   Вы исчерпали лимит в 5 объявлений. Кнопка отправки заблокирована. Удалите старое объявление, чтобы создать новое.
@@ -574,7 +594,7 @@ export default function AddListingPage() {
 
             {/* Error banner */}
             {submitErrorMsg && (
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-[#FF3662] rounded-2xl p-4 flex gap-3 leading-relaxed text-xs">
+              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-[#FF3662] rounded-2xl p-4 flex gap-3 leading-relaxed text-sm">
                 <ShieldAlert className="w-5 h-5 shrink-0" />
                 <span>{submitErrorMsg}</span>
               </div>
@@ -641,7 +661,7 @@ export default function AddListingPage() {
                 type="button"
                 disabled={!hasDistricts}
                 onClick={() => toggleDropdown('district')}
-                className={`w-full border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all text-xs ${
+                className={`w-full border rounded-2xl py-3 px-4 text-left flex justify-between items-center transition-all text-sm ${
                   hasDistricts
                     ? errors.district
                       ? 'border-[#FF3662] bg-white dark:bg-[#25262D] text-zinc-900 dark:text-white font-semibold'
@@ -720,7 +740,7 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('ageFrom')}
-                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center gap-1 ${
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-sm flex justify-between items-center gap-1 ${
                         errors.ageFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       } ${ageFrom ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
                     >
@@ -738,7 +758,7 @@ export default function AddListingPage() {
                             key={a}
                             type="button"
                             onClick={() => handleDropdownSelect('ageFrom', a)}
-                            className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+                            className="w-full text-center py-2 px-3 text-sm font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
                           >
                             {a}
                           </button>
@@ -751,7 +771,7 @@ export default function AddListingPage() {
                     <button
                       type="button"
                       onClick={() => toggleDropdown('ageTo')}
-                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-xs flex justify-between items-center ${
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-2.5 text-sm flex justify-between items-center ${
                         errors.ageTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       } ${ageTo ? 'text-zinc-900 dark:text-white font-semibold' : 'text-[#9D9D9D] font-medium'}`}
                     >
@@ -768,7 +788,7 @@ export default function AddListingPage() {
                             key={a}
                             type="button"
                             onClick={() => handleDropdownSelect('ageTo', a)}
-                            className="w-full text-center py-2 px-3 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
+                            className="w-full text-center py-2 px-3 text-sm font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white"
                           >
                             {a}
                           </button>
@@ -1016,7 +1036,7 @@ export default function AddListingPage() {
                         setAddressLink(e.target.value)
                         setErrors((prev) => ({ ...prev, addressLink: false }))
                       }}
-                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] ${
+                      className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3 px-4 text-sm text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] ${
                         errors.addressLink ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                       }`}
                     />
@@ -1097,7 +1117,7 @@ export default function AddListingPage() {
                     const num = parseInt(raw || '0', 10)
                     setErrors((prev) => ({ ...prev, priceFrom: raw.length > 0 && num < 10000 }))
                   }}
-                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-sm text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
                     errors.priceFrom ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
@@ -1118,7 +1138,7 @@ export default function AddListingPage() {
                     const num = parseInt(raw || '0', 10)
                     setErrors((prev) => ({ ...prev, priceTo: raw.length > 0 && num > 900000 }))
                   }}
-                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-sm text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] transition-all duration-150 ${
                     errors.priceTo ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
@@ -1181,7 +1201,7 @@ export default function AddListingPage() {
                   setDescription(e.target.value)
                   setErrors((prev) => ({ ...prev, description: false }))
                 }}
-                className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-xs text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] leading-relaxed resize-none ${
+                className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 px-4 text-sm text-zinc-900 dark:text-white font-medium focus:outline-none placeholder:text-[#9D9D9D] leading-relaxed resize-none ${
                   errors.description ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                 }`}
               />
@@ -1190,7 +1210,7 @@ export default function AddListingPage() {
             {/* Bottom Row: Phone (45%) & Submit Button (50%) */}
             <div className="flex justify-between items-center gap-3 mt-2 pt-3 border-t border-gray-200/60 dark:border-zinc-800">
               <div className="flex-[45] relative flex items-center">
-                <span className="absolute left-4 font-bold text-zinc-900 dark:text-white text-xs z-10">+7</span>
+                <span className="absolute left-4 font-bold text-zinc-900 dark:text-white text-sm z-10">+7</span>
                 <input
                   type="tel"
                   inputMode="numeric"
@@ -1198,7 +1218,7 @@ export default function AddListingPage() {
                   aria-label="Номер телефона"
                   value={formatPhoneDisplay(phone)}
                   onChange={handlePhoneChange}
-                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 pl-9 pr-3 text-xs text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] ${
+                  className={`w-full bg-white dark:bg-[#25262D] border rounded-2xl py-3.5 pl-9 pr-3 text-sm text-zinc-900 dark:text-white font-semibold focus:outline-none placeholder:text-[#9D9D9D] ${
                     errors.phone ? 'border-[#FF3662]' : 'border-gray-200 dark:border-[rgba(195,197,217,0.12)]'
                   }`}
                 />
@@ -1207,9 +1227,9 @@ export default function AddListingPage() {
               <button
                 type="submit"
                 disabled={isSubmitting || isUploadingPhotos || (userListingsCount >= 5 && user?.email !== 'n.erdaullet@gmail.com')}
-                className="flex-[50] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 disabled:opacity-50 transition-all text-xs select-none shadow-sm uppercase tracking-wide"
+                className="flex-[50] bg-[#007BFF] text-white rounded-2xl py-3.5 px-4 font-extrabold text-center flex items-center justify-center hover:bg-blue-600 active:scale-95 disabled:opacity-50 transition-all text-sm select-none shadow-sm uppercase tracking-wide"
               >
-                {isUploadingPhotos ? 'Загрузка фото...' : isSubmitting ? 'Создание...' : `${publishPrice} ₸`}
+                {isUploadingPhotos ? 'Загрузка фото...' : isSubmitting ? 'Создание...' : publishPrice > 0 ? `${formatBudgetDisplay(String(publishPrice))} ₸` : 'Опубликовать'}
               </button>
             </div>
 

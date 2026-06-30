@@ -57,6 +57,7 @@ export function Header({
   const NEUTRAL = ['Не важно', '-', '']
   const f = filters
   const activeFilterCount =
+    (f.city ? 1 : 0) +
     (NEUTRAL.includes(f.district) ? 0 : 1) +
     (NEUTRAL.includes(f.gender) ? 0 : 1) +
     // Age is one filter even though apartment mode fills both from/to.

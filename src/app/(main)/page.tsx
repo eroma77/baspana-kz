@@ -263,6 +263,14 @@ export default function FeedPage() {
     return () => window.removeEventListener('bp:sort', open)
   }, [])
 
+  // Close the sort modal with the Escape key
+  useEffect(() => {
+    if (!showSort) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowSort(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showSort])
+
   const SORT_OPTIONS = [
     { label: 'Сначала новые', value: 'newest' },
     { label: 'Сначала старые', value: 'oldest' },

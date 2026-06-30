@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { Mi } from '@/components/icons'
-import { getCityAbbr, formatDistrict, formatPrice, getAgePlural } from '@/lib/listing-format'
+import { getCityAbbr, formatDistrict, formatPrice, getAgePlural, build2gisUrl, whatsappUrl } from '@/lib/listing-format'
 
 interface ListingCardProps {
   listing: Listing
@@ -208,24 +208,13 @@ export function ListingCard({
 
   const handleWhatsApp = (e: React.MouseEvent) => {
     handleGuard(e, () => {
-      const clean = listing.phone.replace(/\D/g, '').replace(/^8/, '7')
-      const phone = clean.startsWith('7') ? clean : `7${clean}`
-      window.open(`https://wa.me/${phone}`, '_blank', 'noopener,noreferrer')
+      window.open(whatsappUrl(listing.phone), '_blank', 'noopener,noreferrer')
     })
   }
 
   const handle2GIS = (e: React.MouseEvent) => {
     e.stopPropagation()
-    const url = listing.address_link
-    if (url && (url.startsWith('https://') || url.startsWith('http://'))) {
-      window.open(url, '_blank', 'noopener,noreferrer')
-    } else {
-      window.open(
-        `https://2gis.kz/search/${encodeURIComponent(`${listing.city} ${listing.district || ''}`)}`,
-        '_blank',
-        'noopener,noreferrer'
-      )
-    }
+    window.open(build2gisUrl(listing.address_link, listing.city, listing.district), '_blank', 'noopener,noreferrer')
   }
 
   /* ── Roommate card (apartment listing in DB) ── */

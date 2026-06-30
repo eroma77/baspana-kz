@@ -53,6 +53,42 @@ export const getAgePlural = (age: number) => {
   return 'лет'
 }
 
+// 2GIS city slugs for the cities we support, used to build a precise
+// fallback search URL when a listing has no explicit address link.
+const CITY_SLUG: Record<string, string> = {
+  'Алматы': 'almaty', 'Астана': 'astana', 'Шымкент': 'shymkent',
+  'Караганда': 'karaganda', 'Актобе': 'aktobe', 'Тараз': 'taraz',
+  'Павлодар': 'pavlodar', 'Семей': 'semey', 'Кызылорда': 'kyzylorda',
+  'Атырау': 'atyrau', 'Костанай': 'kostanay', 'Уральск': 'uralsk',
+  'Петропавловск': 'petropavl', 'Актау': 'aktau', 'Темиртау': 'temirtau',
+  'Туркестан': 'turkestan', 'Кокшетау': 'kokshetau',
+  'Талдыкорган': 'taldykorgan', 'Жезказган': 'zhezkazgan',
+}
+
+/** Build a safe 2GIS URL: the listing's link if it's a real http(s) URL,
+ *  otherwise a city-scoped search (avoids javascript:/data: scheme abuse). */
+export const build2gisUrl = (
+  addressLink: string | null | undefined,
+  city: string,
+  district?: string | null,
+) => {
+  if (addressLink && (addressLink.startsWith('https://') || addressLink.startsWith('http://'))) {
+    return addressLink
+  }
+  const slug = CITY_SLUG[(city || '').trim()] || 'almaty'
+  const q = encodeURIComponent(`${city} ${district || ''}`.trim())
+  return `https://2gis.kz/${slug}/search/${q}`
+}
+
+/** Normalize a KZ phone to wa.me digits (strip non-digits, 8->7, ensure 7…). */
+export const normalizePhone = (raw: string) => {
+  const clean = raw.replace(/\D/g, '').replace(/^8/, '7')
+  return clean.startsWith('7') ? clean : `7${clean}`
+}
+
+/** WhatsApp deep link for a phone number. */
+export const whatsappUrl = (phone: string) => `https://wa.me/${normalizePhone(phone)}`
+
 /** Normalize a gender/can-live-with value to a display label. */
 export const formatCanLiveWith = (val?: string | null) => {
   if (!val) return 'Не важно'

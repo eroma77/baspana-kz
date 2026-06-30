@@ -137,6 +137,11 @@ export default function FilterPage() {
         showHelpToggle={true}
       />
 
+      {/* Click-away layer: closes any open dropdown when tapping outside it */}
+      {activeDropdown && (
+        <div className="fixed inset-0 z-40" onClick={() => setActiveDropdown(null)} />
+      )}
+
       <div className="flex-1 overflow-y-auto px-5 py-5 flex flex-col gap-4">
 
         {errorMsg && (
