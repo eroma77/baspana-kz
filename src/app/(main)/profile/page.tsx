@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Mi } from '@/components/icons'
 import { useScrollRestoration } from '@/lib/use-scroll-restoration'
+import { SUPPORT_WHATSAPP } from '@/lib/constants'
 
 interface PriceSetting {
   key: string
@@ -434,7 +435,7 @@ export default function ProfilePage() {
                                 Если считаете, что это ошибка — напишите автору
                               </span>
                               <button
-                                onClick={() => window.open('https://wa.me/77718359057', '_blank', 'noopener,noreferrer')}
+                                onClick={() => window.open(`https://wa.me/${SUPPORT_WHATSAPP}`, '_blank', 'noopener,noreferrer')}
                                 style={{ flexShrink: 0, background: '#25D366', color: '#FFF', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
                               >
                                 <Mi name="chat" size={14} color="#FFF" />
@@ -481,7 +482,7 @@ export default function ProfilePage() {
                                   Если это случайность и вы хотите вернуть разницу — обратитесь ко мне.
                                 </span>
                                 <button
-                                  onClick={() => window.open('https://wa.me/77718359057', '_blank', 'noopener,noreferrer')}
+                                  onClick={() => window.open(`https://wa.me/${SUPPORT_WHATSAPP}`, '_blank', 'noopener,noreferrer')}
                                   style={{ alignSelf: 'flex-start', background: '#25D366', color: '#FFF', border: 'none', borderRadius: 10, padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5 }}
                                 >
                                   <Mi name="chat" size={14} color="#FFF" />

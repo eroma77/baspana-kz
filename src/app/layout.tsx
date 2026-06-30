@@ -46,8 +46,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Allow pinch-zoom — disabling it (maximumScale:1 / userScalable:false) is a
+  // WCAG accessibility failure for low-vision users.
 };
 
 export default function RootLayout({

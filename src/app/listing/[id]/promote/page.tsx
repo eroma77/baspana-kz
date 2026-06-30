@@ -6,6 +6,7 @@ import { Header } from '@/components/header'
 import { useAppStore, Listing } from '@/store/useAppStore'
 import { useRouter } from 'next/navigation'
 import { Mi } from '@/components/icons'
+import { KASPI_PAY_URL } from '@/lib/constants'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -14,7 +15,6 @@ interface PageProps {
 interface PriceSetting {
   key: string
   value: number
-  label: string
 }
 
 export default function PromotePage({ params }: PageProps) {
@@ -54,11 +54,16 @@ export default function PromotePage({ params }: PageProps) {
           .single()
 
         if (listingError) throw listingError
-        setListing(listingData as Listing)
+        const ld = listingData as Listing
+        if (ld.owner_id !== user.id) {
+          router.push('/profile')
+          return
+        }
+        setListing(ld)
 
         const { data: settingsData, error: settingsError } = await supabase
           .from('app_settings')
-          .select('*')
+          .select('key,value')
 
         if (settingsError) throw settingsError
 
@@ -88,7 +93,7 @@ export default function PromotePage({ params }: PageProps) {
   }
 
   const handlePayClick = () => {
-    window.open('https://pay.kaspi.kz/pay/3jtoh0vh', '_blank')
+    window.open(KASPI_PAY_URL, '_blank', 'noopener,noreferrer')
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,8 +152,6 @@ export default function PromotePage({ params }: PageProps) {
           const verifyResult = await res.json()
           if (verifyResult.verified === false) {
             console.warn('Receipt fraud detected in background check!')
-          } else {
-            console.log('Receipt verified successfully in background check.')
           }
         })
         .catch((err) => {
@@ -222,6 +225,11 @@ export default function PromotePage({ params }: PageProps) {
                 <div
                   key={t.key}
                   onClick={() => setSelectedTariff(t.key)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTariff(t.key) } }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={selected}
+                  aria-label={`${t.label} — ${t.price} ₸`}
                   style={{
                     borderRadius: 20,
                     padding: 18,

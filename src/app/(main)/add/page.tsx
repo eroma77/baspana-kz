@@ -1195,6 +1195,7 @@ export default function AddListingPage() {
             <div>
               <textarea
                 rows={4}
+                maxLength={2000}
                 placeholder="Описание"
                 value={description}
                 onChange={(e) => {

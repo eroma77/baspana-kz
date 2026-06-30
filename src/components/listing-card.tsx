@@ -242,7 +242,7 @@ export function ListingCard({
         <div style={{ position: 'relative', width: '100%', height: 140, background: 'var(--surface-container-low)' }}>
           {listing.photos?.length ? (
             <Image
-              src={listing.photos[0]} alt="Жилье" fill sizes="430px"
+              src={listing.photos[0]} alt={`Жильё — ${priceLabel}, ${locationLabel}`} fill sizes="430px"
               priority={isFirst || listing.is_premium}
               style={{ objectFit: 'cover', objectPosition: 'center' }}
             />
@@ -317,7 +317,7 @@ export function ListingCard({
         }}>
           {listing.photos?.length ? (
             <Image
-              src={listing.photos[0]} alt="Фото" fill sizes="72px"
+              src={listing.photos[0]} alt={`Анкета — ${priceLabel}, ${locationLabel}`} fill sizes="72px"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
             />
           ) : (

@@ -1,3 +1,10 @@
+// Kaspi payment link for promotion (override via NEXT_PUBLIC_KASPI_PAY_URL).
+export const KASPI_PAY_URL =
+  process.env.NEXT_PUBLIC_KASPI_PAY_URL || 'https://pay.kaspi.kz/pay/3jtoh0vh'
+
+// Support contact (WhatsApp), digits only — used for wa.me links.
+export const SUPPORT_WHATSAPP = '77718359057'
+
 export interface CityData {
   city: string
   districts: string[]
