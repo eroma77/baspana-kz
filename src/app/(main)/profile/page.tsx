@@ -17,6 +17,17 @@ interface PriceSetting {
   label: string
 }
 
+interface Purchase {
+  id: string
+  listing_id: string | null
+  user_email: string | null
+  days: number | null
+  price: number | null
+  receipt_no: string | null
+  receipt_url: string | null
+  created_at: string
+}
+
 function parseOverpaid(receiptUrl: string | null | undefined): { paid: number; expected: number } | null {
   if (!receiptUrl?.startsWith('overpaid:')) return null
   const parts = receiptUrl.split(':')
@@ -57,6 +68,7 @@ export default function ProfilePage() {
   const [prices, setPrices] = useState<PriceSetting[]>([])
   const [isAdminSaving, setIsAdminSaving] = useState(false)
   const [adminMessage, setAdminMessage] = useState('')
+  const [purchases, setPurchases] = useState<Purchase[]>([])
 
   // Google Login action
   const handleGoogleLogin = async () => {
@@ -133,6 +145,22 @@ export default function ProfilePage() {
       setPrices((data as PriceSetting[]) || [])
     } catch (err) {
       console.error('Error loading admin settings:', err)
+    }
+  }, [isAdmin])
+
+  // Fetch promotion purchases (admin only) for manual reconciliation
+  const fetchAdminPurchases = useCallback(async () => {
+    if (!isAdmin) return
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) return
+      const res = await fetch('/api/admin/purchases', { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) return
+      const { data } = await res.json()
+      setPurchases((data as Purchase[]) || [])
+    } catch (err) {
+      console.error('Error loading purchases:', err)
     }
   }, [isAdmin])
 
@@ -254,11 +282,12 @@ export default function ProfilePage() {
         fetchUserListings()
         if (isAdmin) {
           fetchAdminPrices()
+          fetchAdminPurchases()
         }
       }, 0)
       return () => clearTimeout(t)
     }
-  }, [user, isAdmin, fetchUserListings, fetchAdminPrices])
+  }, [user, isAdmin, fetchUserListings, fetchAdminPrices, fetchAdminPurchases])
 
   // Count of active listings
   const activeCount = userListings.filter((l) => l.status === 'active').length
@@ -338,6 +367,7 @@ export default function ProfilePage() {
                 </button>
 
                 {showAdminPanel && (
+                  <>
                   <form onSubmit={handleSavePrices} style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--on-surface)' }}>Настройки тарифов:</span>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -370,6 +400,40 @@ export default function ProfilePage() {
                       {isAdminSaving ? 'Сохранение…' : 'Сохранить изменения'}
                     </button>
                   </form>
+
+                  {/* Покупки (реклама) — для ручной сверки с поступившими деньгами */}
+                  <div style={{ padding: '0 20px 20px', borderTop: '1px solid var(--outline-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0 12px' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--on-surface)' }}>Покупки (реклама)</span>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--on-surface-variant)' }}>{purchases.length}</span>
+                    </div>
+                    {purchases.length === 0 ? (
+                      <div style={{ fontSize: 12, color: 'var(--on-surface-variant)' }}>Покупок пока нет</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        {purchases.map((p) => (
+                          <div key={p.id} style={{ background: 'var(--surface-container-low)', border: '1px solid var(--outline-border)', borderRadius: 12, padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--brand-blue)' }}>{p.price ?? '—'} ₸ · {p.days ?? '—'} дн.</span>
+                              <span style={{ fontSize: 11, color: 'var(--on-surface-variant)' }}>
+                                {new Date(p.created_at).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <div style={{ fontSize: 11, color: 'var(--on-surface-variant)', display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                              {p.receipt_no && <span>Чек: {p.receipt_no}</span>}
+                              {p.listing_id && (
+                                <a href={`/listing/${p.listing_id}`} style={{ color: 'var(--brand-blue)', textDecoration: 'none', fontWeight: 600 }}>Объявление ↗</a>
+                              )}
+                              {p.receipt_url && (
+                                <a href={p.receipt_url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--brand-blue)', textDecoration: 'none', fontWeight: 600 }}>PDF ↗</a>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  </>
                 )}
               </div>
             )}

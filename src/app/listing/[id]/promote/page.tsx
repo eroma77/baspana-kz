@@ -118,9 +118,9 @@ export default function PromotePage({ params }: PageProps) {
       formData.append('listingId', listing.id)
       formData.append('days', String(days))
 
-      // Premium is now activated SERVER-SIDE only after the receipt passes
-      // verification — the client can no longer self-grant premium without paying.
-      const res = await fetch('/api/verify-receipt', {
+      // Premium is activated on upload; the receipt is reviewed manually by the
+      // admin (purchase is logged for reconciliation against real payments).
+      const res = await fetch('/api/promote-activate', {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
@@ -129,30 +129,9 @@ export default function PromotePage({ params }: PageProps) {
 
       if (res.ok && result.verified) {
         setIsSuccess(true)
-        setStatusMessage(
-          result.overpaid
-            ? 'Чек принят (оплачено больше тарифа). Объявление добавлено в ТОП!'
-            : 'Чек принят! Объявление добавлено в ТОП.'
-        )
+        setStatusMessage('Чек принят! Объявление добавлено в ТОП.')
       } else {
-        const reasonMap: Record<string, string> = {
-          'File too small': 'Файл слишком маленький — это не настоящий чек.',
-          'Duplicate file': 'Этот чек уже был использован ранее.',
-          'Modified PDF': 'PDF был изменён после создания.',
-          'Invalid PDF': 'Файл не является корректным PDF.',
-          'Not a Kaspi receipt': 'Это не чек Kaspi (нет слова «Kaspi»).',
-          'Receipt too old': 'Чек устарел — загрузите чек, оплаченный в течение последнего часа.',
-          'Receipt date in future': 'Дата в чеке из будущего — некорректный чек.',
-          'Suspicious PDF creator': 'PDF создан в редакторе изображений — не банковский чек.',
-          'Wrong merchant': 'Чек выдан другому получателю.',
-          'Duplicate transaction': 'Эта транзакция уже использована для другого объявления.',
-          'No amount found': 'Не удалось распознать сумму в чеке.',
-          'Price mismatch': 'Сумма в чеке не совпадает со стоимостью тарифа.',
-        }
-        const base = result.error
-          || reasonMap[result.reason as string]
-          || `Чек не прошёл проверку (${result.reason || 'причина неизвестна'}).`
-        setStatusMessage(result.detail ? `${base} [${result.detail}]` : base)
+        setStatusMessage(result.error || 'Не удалось активировать. Попробуйте ещё раз.')
       }
     } catch (err) {
       console.error('Error during receipt verification:', err)
