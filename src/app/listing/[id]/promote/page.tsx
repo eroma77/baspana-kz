@@ -135,9 +135,24 @@ export default function PromotePage({ params }: PageProps) {
             : 'Чек принят! Объявление добавлено в ТОП.'
         )
       } else {
+        const reasonMap: Record<string, string> = {
+          'File too small': 'Файл слишком маленький — это не настоящий чек.',
+          'Duplicate file': 'Этот чек уже был использован ранее.',
+          'Modified PDF': 'PDF был изменён после создания.',
+          'Invalid PDF': 'Файл не является корректным PDF.',
+          'Not a Kaspi receipt': 'Это не чек Kaspi (нет слова «Kaspi»).',
+          'Receipt too old': 'Чек устарел — оплатите и загрузите свежий чек (в течение 10 минут).',
+          'Receipt date in future': 'Дата в чеке из будущего — некорректный чек.',
+          'Suspicious PDF creator': 'PDF создан в редакторе изображений — не банковский чек.',
+          'Wrong merchant': 'Чек выдан другому получателю.',
+          'Duplicate transaction': 'Эта транзакция уже использована для другого объявления.',
+          'No amount found': 'Не удалось распознать сумму в чеке.',
+          'Price mismatch': 'Сумма в чеке не совпадает со стоимостью тарифа.',
+        }
         setStatusMessage(
           result.error
-            || 'Чек не прошёл проверку. Убедитесь, что оплата прошла на нужную сумму, и загрузите свежий PDF-чек Kaspi.'
+            || reasonMap[result.reason as string]
+            || `Чек не прошёл проверку (${result.reason || 'причина неизвестна'}).`
         )
       }
     } catch (err) {
