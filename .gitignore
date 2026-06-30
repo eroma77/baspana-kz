@@ -54,3 +54,6 @@ next-env.d.ts
 
 # local listing photos staging folder
 /Обявление фото/
+
+# pdf-parse debug block writes this on cold start
+test/data/*.txt
