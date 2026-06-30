@@ -149,11 +149,10 @@ export default function PromotePage({ params }: PageProps) {
           'No amount found': 'Не удалось распознать сумму в чеке.',
           'Price mismatch': 'Сумма в чеке не совпадает со стоимостью тарифа.',
         }
-        setStatusMessage(
-          result.error
-            || reasonMap[result.reason as string]
-            || `Чек не прошёл проверку (${result.reason || 'причина неизвестна'}).`
-        )
+        const base = result.error
+          || reasonMap[result.reason as string]
+          || `Чек не прошёл проверку (${result.reason || 'причина неизвестна'}).`
+        setStatusMessage(result.detail ? `${base} [${result.detail}]` : base)
       }
     } catch (err) {
       console.error('Error during receipt verification:', err)

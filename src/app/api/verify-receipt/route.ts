@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createRateLimiter, getClientIp } from '@/lib/rate-limiter'
 import { createHash } from 'crypto'
+import { createRequire } from 'node:module'
+import { join } from 'node:path'
 
 // Rate limiter: max 5 receipt uploads per IP per 10 minutes
 const receiptRateLimiter = createRateLimiter({ maxRequests: 5, windowMs: 10 * 60 * 1000 })
@@ -130,22 +132,22 @@ export async function POST(req: NextRequest) {
     let pdfText = ''
     let pdfInfo: Record<string, string> = {}
     try {
-      // Import the library entry directly, NOT the package root. pdf-parse's
-      // index.js runs a debug block (`!module.parent` → reads a sample PDF from
-      // ./test/data) that throws under ESM/dynamic import in production, which
-      // surfaced as a bogus "Invalid PDF". The lib file has no such block.
-      // The variable name also keeps Turbopack from statically analyzing it.
+      // Load pdf-parse at RUNTIME via createRequire so the bundler never tries to
+      // bundle it (bundling broke parsing in production → bogus "Invalid PDF").
+      // Use the /lib entry to skip pdf-parse's debug block (which reads a sample
+      // file and throws). The path is a variable so Turbopack can't analyze it.
+      const requireCjs = createRequire(join(process.cwd(), 'index.js'))
       const pdfParseId = 'pdf-parse/lib/pdf-parse.js'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfMod = (await import(pdfParseId)) as any
-      const pdfParse = (pdfMod.default || pdfMod) as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
+      const pdfParse = requireCjs(pdfParseId) as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
       const parsed = await pdfParse(buffer, { max: 3 })
       pdfText = parsed.text
       pdfInfo = (parsed.info as Record<string, string>) || {}
-    } catch {
-      // File is corrupted or not a real PDF
-      await markAsFraud(listingId, 'Файл не является валидным PDF')
-      return NextResponse.json({ verified: false, reason: 'Invalid PDF' })
+    } catch (e) {
+      // Surface the real error so production failures are diagnosable.
+      const detail = (e as Error)?.message || String(e)
+      await markAsFraud(listingId, `Файл не является валидным PDF: ${detail}`)
+      return NextResponse.json({ verified: false, reason: 'Invalid PDF', detail })
     }
 
     // ── LAYER 4: Kaspi keyword check ─────────────────────────────────────────
