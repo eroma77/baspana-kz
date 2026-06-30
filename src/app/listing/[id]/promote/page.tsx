@@ -141,7 +141,7 @@ export default function PromotePage({ params }: PageProps) {
           'Modified PDF': 'PDF был изменён после создания.',
           'Invalid PDF': 'Файл не является корректным PDF.',
           'Not a Kaspi receipt': 'Это не чек Kaspi (нет слова «Kaspi»).',
-          'Receipt too old': 'Чек устарел — оплатите и загрузите свежий чек (в течение 10 минут).',
+          'Receipt too old': 'Чек устарел — загрузите чек, оплаченный в течение последнего часа.',
           'Receipt date in future': 'Дата в чеке из будущего — некорректный чек.',
           'Suspicious PDF creator': 'PDF создан в редакторе изображений — не банковский чек.',
           'Wrong merchant': 'Чек выдан другому получателю.',

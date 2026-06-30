@@ -163,8 +163,8 @@ export async function POST(req: NextRequest) {
       const [, day, month, year, time] = dateMatch
       const receiptDate = new Date(`${year}-${month}-${day}T${time}:00+05:00`)
       const ageMinutes = (Date.now() - receiptDate.getTime()) / 60_000
-      if (ageMinutes > 10) {
-        await markAsFraud(listingId, `Чек устарел: дата в чеке ${day}.${month}.${year} ${time}, допускается только за последние 10 минут`)
+      if (ageMinutes > 60) {
+        await markAsFraud(listingId, `Чек устарел: дата в чеке ${day}.${month}.${year} ${time}, допускается только за последние 60 минут`)
         return NextResponse.json({ verified: false, reason: 'Receipt too old' })
       }
       if (ageMinutes < -60) {
@@ -301,14 +301,8 @@ function extractMonetaryAmounts(text: string): number[] {
 }
 
 async function markAsFraud(listingId: string, reason: string) {
-  console.warn(`[verify-receipt] FRAUD — listing ${listingId}: ${reason}`)
-  await supabaseAdmin
-    .from('listings')
-    .update({
-      status: 'receipt_error',
-      is_premium: false,
-      premium_until: null,
-      transaction_id: null,
-    })
-    .eq('id', listingId)
+  // In the current flow premium is granted ONLY on successful verification, so a
+  // failed/rejected attempt has nothing to revert. We just log it and leave the
+  // user's listing untouched (do NOT unpublish an otherwise-active listing).
+  console.warn(`[verify-receipt] REJECTED — listing ${listingId}: ${reason}`)
 }
