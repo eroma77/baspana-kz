@@ -296,7 +296,7 @@ export default function ProfilePage() {
     <div className="flex flex-col w-full h-full">
       <Header type="title" title="мой кабинет" showHelpToggle={false} />
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: '16px 20px 110px' }}>
 
         {/* Profile card */}
         <div style={{

@@ -284,7 +284,7 @@ export default function FeedPage() {
       <Header type="mode-toggle" showThemeToggle showHelpToggle />
 
       {/* Feed list */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: '16px 20px 110px' }}>
         {isLoading && listings.length === 0 ? (
           <>
             <SkeletonCard />

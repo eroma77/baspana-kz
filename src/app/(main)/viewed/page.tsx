@@ -57,7 +57,7 @@ export default function ViewedPage() {
       {/* Header */}
       <Header type="title" title="просмотрено" showHelpToggle={true} />
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px' }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: '16px 20px 110px' }}>
         {isLoading ? (
           <div style={{ padding: '48px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: 'var(--brand-blue-container)' }} />

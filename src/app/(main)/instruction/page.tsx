@@ -42,7 +42,7 @@ export default function InstructionPage() {
     <div className="flex flex-col w-full h-full">
       <Header type="title" title="инструкция" showHelpToggle={false} />
 
-      <div className="flex-1 overflow-y-auto" style={{ padding: '16px 20px 110px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ padding: '16px 20px 110px', display: 'flex', flexDirection: 'column', gap: 24 }}>
 
         {/* Fields reference */}
         <section>
@@ -114,7 +114,7 @@ export default function InstructionPage() {
 
         {/* Contact admin */}
         <button
-          onClick={() => window.open('https://wa.me/77754737619', '_blank')}
+          onClick={() => window.open('https://wa.me/77754737619', '_blank', 'noopener,noreferrer')}
           style={{ width: '100%', minHeight: 64, padding: '16px 20px', background: 'var(--brand-blue-container)', color: '#FFF', border: 'none', borderRadius: 20, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, letterSpacing: '-0.2px', marginTop: 8 }}
         >
           <Mi name="chat" size={20} color="#FFF" />

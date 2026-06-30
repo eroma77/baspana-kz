@@ -542,7 +542,7 @@ export default function AddListingPage() {
         </div>
       )}
 
-      <div className="flex-1 px-5 py-5 overflow-y-auto pb-24">
+      <div className="flex-1 px-5 py-5 overflow-y-auto overflow-x-hidden pb-24">
 
         {/* STEP 1: Select Type */}
         {step === 'select-type' && (
