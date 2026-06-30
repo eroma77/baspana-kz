@@ -1,0 +1,13 @@
+{
+  "name": "Baspana.kz — поиск соседей и квартир",
+  "short_name": "Baspana.kz",
+  "description": "Платформа для поиска соседей и квартир в Казахстане",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "lang": "ru",
+  "dir": "ltr",
+  "background_color": "#ffffff",
+  "theme_color": "#007BFF"
+}

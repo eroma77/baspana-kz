@@ -35,14 +35,8 @@ export const metadata: Metadata = {
       },
     ],
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: "/apple-icon.png",
-  },
+  // Icon is provided by src/app/icon.svg (Next.js auto-generates the <link>).
+  // Avoid referencing PNG/ico files that don't exist (they 404ed in console).
   manifest: "/manifest.json",
   verification: {
     google: "AabU3NSCUCWuu5vpB7NK6ak9SIUk-g8WiXpJHRsaMsc",
