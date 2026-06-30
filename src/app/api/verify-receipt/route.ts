@@ -137,7 +137,10 @@ export async function POST(req: NextRequest) {
       // Use the /lib entry to skip pdf-parse's debug block (which reads a sample
       // file and throws). The path is a variable so Turbopack can't analyze it.
       const requireCjs = createRequire(join(process.cwd(), 'index.js'))
-      const pdfParseId = 'pdf-parse/lib/pdf-parse.js'
+      // Bare package (resolves to its main entry). Under require() pdf-parse's
+      // module.parent is set, so its debug block stays OFF (the /lib subpath
+      // wasn't resolvable in the deployed environment).
+      const pdfParseId = 'pdf-parse'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const pdfParse = requireCjs(pdfParseId) as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
       const parsed = await pdfParse(buffer, { max: 3 })
