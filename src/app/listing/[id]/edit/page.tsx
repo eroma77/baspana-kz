@@ -102,10 +102,11 @@ export default function EditListingPage({ params }: PageProps) {
           : (item.gender === 'женский' || item.gender === 'Только девочки' ? 'Девушка' : item.gender)
         setGender(mappedGender)
 
-        // Age mapping: single age for apartment mode, range for roommate mode
+        // Age stored as a plain number string in both modes; the " лет" suffix
+        // is added only for display.
         if (item.mode === 'apartment') {
-          setAgeFrom(`${item.age_from} лет`)
-          setAgeTo(`${item.age_from} лет`)
+          setAgeFrom(item.age_from.toString())
+          setAgeTo(item.age_from.toString())
         } else {
           setAgeFrom(item.age_from.toString())
           setAgeTo(item.age_to.toString())
@@ -541,12 +542,12 @@ export default function EditListingPage({ params }: PageProps) {
                       onClick={() => toggleDropdown('ageFrom')}
                       className={dropdownToggleClass(errors.ageFrom)}
                     >
-                      <span>{ageFrom || 'Возраст'}</span>
+                      <span>{ageFrom ? `${parseInt(ageFrom)} лет` : 'Возраст'}</span>
                       <Mi name="expand_more" size={16} color="var(--outline)" />
                     </button>
                     {activeDropdown === 'ageFrom' && (
                       <div className={dropdownListClass}>
-                        {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
+                        {Array.from({ length: 35 }, (_, i) => `${16 + i}`).map((a) => (
                           <button
                             key={a}
                             type="button"
@@ -558,7 +559,7 @@ export default function EditListingPage({ params }: PageProps) {
                             }}
                             className={dropdownItemClass}
                           >
-                            {a}
+                            {a} лет
                           </button>
                         ))}
                       </div>

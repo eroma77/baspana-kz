@@ -709,12 +709,12 @@ export default function AddListingPage() {
                     onClick={() => toggleDropdown('ageFrom')}
                     className={dropdownToggleClass(!!errors.ageFrom, 'Возраст', ageFrom)}
                   >
-                    <span className="truncate">{ageFrom || 'Возраст'}</span>
+                    <span className="truncate">{ageFrom ? `${parseInt(ageFrom)} лет` : 'Возраст'}</span>
                     {dropdownChevron}
                   </button>
                   {activeDropdown === 'ageFrom' && (
                     <div className={dropdownListClass}>
-                      {Array.from({ length: 35 }, (_, i) => `${16 + i} лет`).map((a) => (
+                      {Array.from({ length: 35 }, (_, i) => `${16 + i}`).map((a) => (
                         <button
                           key={a}
                           type="button"
@@ -726,7 +726,7 @@ export default function AddListingPage() {
                           }}
                           className={dropdownItemClass}
                         >
-                          {a}
+                          {a} лет
                         </button>
                       ))}
                     </div>

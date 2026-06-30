@@ -9,7 +9,6 @@ import { Mi } from '@/components/icons'
 import { Header } from '@/components/header'
 
 const AGE_OPTIONS = Array.from({ length: 35 }, (_, i) => 16 + i)
-const AGE_LABEL_OPTIONS = AGE_OPTIONS.map((a) => `${a} лет`)
 const TERM_OPTIONS = Array.from({ length: 12 }, (_, i) => `${i + 1} месяц`)
 
 function formatBudgetDisplay(val: string) {
@@ -232,13 +231,13 @@ export default function FilterPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="relative">
                 <button type="button" onClick={() => toggleDropdown('ageFrom')} style={{ ...FIELD, ...fieldText(!!(filters.ageFrom && filters.ageFrom !== 'Не важно')) }}>
-                  <span className="truncate">{filters.ageFrom && filters.ageFrom !== 'Не важно' ? filters.ageFrom : 'Возраст'}</span>
+                  <span className="truncate">{filters.ageFrom && filters.ageFrom !== 'Не важно' ? `${parseInt(filters.ageFrom)} лет` : 'Возраст'}</span>
                   <Mi name="expand_more" size={18} color="var(--secondary)" />
                 </button>
                 {activeDropdown === 'ageFrom' && (
                   <div style={DROPDOWN}>
-                    {AGE_LABEL_OPTIONS.map((a) => (
-                      <DropOpt key={a} label={a} onClick={() => { setFilters({ ageFrom: a, ageTo: a }); setActiveDropdown(null) }} />
+                    {AGE_OPTIONS.map((a) => (
+                      <DropOpt key={a} label={`${a} лет`} onClick={() => { setFilters({ ageFrom: String(a), ageTo: String(a) }); setActiveDropdown(null) }} />
                     ))}
                   </div>
                 )}
