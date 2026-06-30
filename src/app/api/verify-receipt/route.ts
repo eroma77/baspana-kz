@@ -130,11 +130,15 @@ export async function POST(req: NextRequest) {
     let pdfText = ''
     let pdfInfo: Record<string, string> = {}
     try {
-      // Module name in a variable prevents both Turbopack static analysis and TypeScript module resolution.
-      // pdf-parse uses Node.js fs at init time which breaks Turbopack's analysis of string-literal import().
-      const pdfParseId = 'pdf-parse'
+      // Import the library entry directly, NOT the package root. pdf-parse's
+      // index.js runs a debug block (`!module.parent` → reads a sample PDF from
+      // ./test/data) that throws under ESM/dynamic import in production, which
+      // surfaced as a bogus "Invalid PDF". The lib file has no such block.
+      // The variable name also keeps Turbopack from statically analyzing it.
+      const pdfParseId = 'pdf-parse/lib/pdf-parse.js'
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdfParse = ((await import(pdfParseId)) as any).default as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
+      const pdfMod = (await import(pdfParseId)) as any
+      const pdfParse = (pdfMod.default || pdfMod) as (buffer: Buffer, options?: { max?: number }) => Promise<{ text: string; info: Record<string, string>; numpages: number }>
       const parsed = await pdfParse(buffer, { max: 3 })
       pdfText = parsed.text
       pdfInfo = (parsed.info as Record<string, string>) || {}
