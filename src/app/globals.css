@@ -185,6 +185,15 @@ button:active {
   transform: scale(0.97);
 }
 
+/* ── iOS Safari auto-zoom prevention ────────────────────────────────── */
+/* Safari zooms on focus when font-size < 16px. Force ≥ 16px on all
+   text inputs/textareas so the viewport never scales unexpectedly.   */
+input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+textarea,
+select {
+  font-size: 16px !important;
+}
+
 /* ── Keyboard focus visibility (a11y) ───────────────────────────────── */
 /* Only shows for keyboard navigation, never on mouse/touch click. */
 :focus-visible {
