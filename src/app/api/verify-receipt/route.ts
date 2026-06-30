@@ -43,12 +43,14 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData()
     const file = formData.get('receipt') as File | null
     const listingId = formData.get('listingId') as string | null
-    // tariffPrice from client is accepted only as a last-resort fallback.
-    // The actual expected price is derived server-side from premium_until → app_settings.
-    const clientTariffPrice = formData.get('tariffPrice') as string | null
+    // Client sends only the tariff LENGTH (days); the price is derived server-side.
+    const days = parseInt((formData.get('days') as string | null) || '0', 10)
 
     if (!file || !listingId) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 })
+    }
+    if (![3, 7, 30].includes(days)) {
+      return NextResponse.json({ error: 'Invalid tariff' }, { status: 400 })
     }
 
     if (file.type !== 'application/pdf') {
@@ -76,33 +78,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // ── DERIVE EXPECTED PRICE SERVER-SIDE ────────────────────────────────────
-    // Attack closed: client used to send tariffPrice in FormData which could be
-    // manipulated (pay 190₸ for 3-day tariff, DevTools: tariffPrice=190, activate
-    // 7-day listing → verification passes, got 7 days for 190₸ price).
-    // Fix: derive the tier from premium_until (set server-side on activation),
-    // then fetch the authoritative price from app_settings.
-    let priceExpected = 0
-    if (listing.premium_until) {
-      const msLeft = new Date(listing.premium_until).getTime() - Date.now()
-      const daysLeft = msLeft / 86_400_000
-      const tariffKey = daysLeft > 20 ? 'price_30_days_top' : daysLeft > 5 ? 'price_7_days_top' : 'price_3_days_top'
-      const { data: priceSetting } = await supabaseAdmin
-        .from('app_settings')
-        .select('value')
-        .eq('key', tariffKey)
-        .single()
-      if (priceSetting?.value) priceExpected = parseFloat(priceSetting.value)
-    }
-
-    // Fallback to client value only if DB derivation failed (e.g., listing not yet marked premium)
-    if (!priceExpected && clientTariffPrice) {
-      priceExpected = parseInt(clientTariffPrice, 10)
-    }
-
+    // ── DERIVE EXPECTED PRICE SERVER-SIDE FROM THE REQUESTED TARIFF ──────────
+    // The client sends only the tariff length (days); the price for it is read
+    // authoritatively from app_settings. A manipulated client price can't pass,
+    // and premium is granted by THIS route only — never by the client directly.
+    const tariffKey = days === 30 ? 'price_30_days_top' : days === 7 ? 'price_7_days_top' : 'price_3_days_top'
+    const { data: priceSetting } = await supabaseAdmin
+      .from('app_settings')
+      .select('value')
+      .eq('key', tariffKey)
+      .single()
+    const priceExpected = priceSetting?.value ? parseFloat(priceSetting.value) : 0
     if (isNaN(priceExpected) || priceExpected <= 0) {
       return NextResponse.json({ error: 'Could not determine expected tariff price' }, { status: 400 })
     }
+
+    // Premium window granted on success (server-authoritative).
+    const premiumUntil = new Date(Date.now() + days * 86_400_000).toISOString()
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
@@ -250,10 +242,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (isOverpaid) {
-      // Paid MORE than required — allow listing but flag for user notification
+      // Paid MORE than required — activate premium and flag for user notification
       await supabaseAdmin
         .from('listings')
         .update({
+          is_premium: true,
+          premium_until: premiumUntil,
+          status: 'active',
           transaction_id: transactionId,
           receipt_url: `overpaid:${Math.round(maxPaid)}:${priceExpected}`,
         })
@@ -262,10 +257,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ verified: true, overpaid: true, paidAmount: maxPaid, expectedAmount: priceExpected, transactionId })
     }
 
-    // ── ALL CHECKS PASSED ─────────────────────────────────────────────────────
+    // ── ALL CHECKS PASSED — activate premium server-side ──────────────────────
     await supabaseAdmin
       .from('listings')
       .update({
+        is_premium: true,
+        premium_until: premiumUntil,
+        status: 'active',
         transaction_id: transactionId,
         receipt_url: `fh:${fileHash}`,
       })

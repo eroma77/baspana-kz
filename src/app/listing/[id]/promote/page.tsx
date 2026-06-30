@@ -105,62 +105,44 @@ export default function PromotePage({ params }: PageProps) {
   const handleUploadReceipt = async () => {
     if (!file || !listing) return
     setIsUploading(true)
-    setStatusMessage('Загрузка чека и активация услуги...')
+    setStatusMessage('Проверяем чек…')
 
-    let days = 3
-    let tariffPrice = prices.price_3_days_top
-    if (selectedTariff === '7_days') {
-      days = 7
-      tariffPrice = prices.price_7_days_top
-    } else if (selectedTariff === '30_days') {
-      days = 30
-      tariffPrice = prices.price_30_days_top
-    }
-
-    const premiumUntilDate = new Date()
-    premiumUntilDate.setDate(premiumUntilDate.getDate() + days)
+    const days = selectedTariff === '30_days' ? 30 : selectedTariff === '7_days' ? 7 : 3
 
     try {
-      const { error: dbError } = await supabase
-        .from('listings')
-        .update({
-          is_premium: true,
-          premium_until: premiumUntilDate.toISOString(),
-          status: 'active',
-        })
-        .eq('id', listing.id)
-
-      if (dbError) throw dbError
-
-      setIsSuccess(true)
-      setStatusMessage('Тариф продвижения активирован мгновенно! Спасибо за оплату.')
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token ?? ''
 
       const formData = new FormData()
       formData.append('receipt', file)
       formData.append('listingId', listing.id)
-      formData.append('tariffPrice', tariffPrice.toString())
+      formData.append('days', String(days))
 
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData.session?.access_token ?? ''
-
-      fetch('/api/verify-receipt', {
+      // Premium is now activated SERVER-SIDE only after the receipt passes
+      // verification — the client can no longer self-grant premium without paying.
+      const res = await fetch('/api/verify-receipt', {
         method: 'POST',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       })
-        .then(async (res) => {
-          const verifyResult = await res.json()
-          if (verifyResult.verified === false) {
-            console.warn('Receipt fraud detected in background check!')
-          }
-        })
-        .catch((err) => {
-          console.error('Error during background receipt verification:', err)
-        })
+      const result = await res.json()
 
+      if (res.ok && result.verified) {
+        setIsSuccess(true)
+        setStatusMessage(
+          result.overpaid
+            ? 'Чек принят (оплачено больше тарифа). Объявление добавлено в ТОП!'
+            : 'Чек принят! Объявление добавлено в ТОП.'
+        )
+      } else {
+        setStatusMessage(
+          result.error
+            || 'Чек не прошёл проверку. Убедитесь, что оплата прошла на нужную сумму, и загрузите свежий PDF-чек Kaspi.'
+        )
+      }
     } catch (err) {
-      console.error('Error during receipt activation:', err)
-      setStatusMessage('Ошибка при активации. Попробуйте еще раз.')
+      console.error('Error during receipt verification:', err)
+      setStatusMessage('Ошибка при проверке чека. Попробуйте ещё раз.')
     } finally {
       setIsUploading(false)
     }
