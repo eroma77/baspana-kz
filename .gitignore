@@ -52,8 +52,10 @@ next-env.d.ts
 # local data-seeding scripts (contain Supabase service role key)
 /scripts/
 
-# local listing photos staging folder
+# local listing photos staging folders
 /Обявление фото/
+/фотолар/
+/Чек о покупке/
 
 # pdf-parse debug block writes this on cold start
 test/data/*.txt
